@@ -73,7 +73,37 @@ public class Main {
         while ((line = br.readLine()) != null) {
             try {
                 String[] args = line.split(" +");
-                if (line.startsWith("f")) {
+                if (line.startsWith("a ")) {
+                    if (args.length < 2) throw new CommandException(CommandException.COMMAND_A);
+
+                    try {
+                        float targetSpeed = 1;
+                        if (args.length == 3) targetSpeed = Float.parseFloat(args[2]);
+                        locomotives.get(Integer.parseInt(args[1])).accelerate(targetSpeed);
+                    } catch (NumberFormatException e) {
+                        throw new CommandException(CommandException.COMMAND_A);
+                    }
+                } else if (line.startsWith("d ")) {
+                    if (args.length < 2) throw new CommandException(CommandException.COMMAND_D);
+
+                    try {
+                        float targetSpeed = 0;
+                        if (args.length == 3) targetSpeed = Float.parseFloat(args[2]);
+                        locomotives.get(Integer.parseInt(args[1])).decelerate(targetSpeed);
+                    } catch (NumberFormatException e) {
+                        throw new CommandException(CommandException.COMMAND_D);
+                    }
+                } else if (line.startsWith("ed ")) {
+                    if (args.length < 2) throw new CommandException(CommandException.COMMAND_ED);
+
+                    try {
+                        float targetSpeed = 0;
+                        if (args.length == 3) targetSpeed = Float.parseFloat(args[2]);
+                        locomotives.get(Integer.parseInt(args[1])).emergencyDecelerate(targetSpeed);
+                    } catch (NumberFormatException e) {
+                        throw new CommandException(CommandException.COMMAND_ED);
+                    }
+                } else if (line.startsWith("f ")) {
                     if (args.length != 3) throw new CommandException(CommandException.COMMAND_F);
 
                     try {
@@ -83,7 +113,7 @@ public class Main {
                     }
                 } else if (line.startsWith("r")) {
 
-                } else if (line.startsWith("s")) {
+                } else if (line.startsWith("s ")) {
                     if (args.length != 2) throw new CommandException(CommandException.COMMAND_S);
 
                     try {
@@ -111,6 +141,11 @@ public class Main {
     }
 
     private static void cleanup() throws JmriException {
+        // end loco's controlling thread
+        for (Map.Entry<Integer, Loco> locomotive : locomotives.entrySet()) {
+            locomotive.getValue().stopControlThread();
+        }
+
         turnOffPower();
     }
 
