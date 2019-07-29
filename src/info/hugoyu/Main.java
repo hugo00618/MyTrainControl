@@ -1,6 +1,8 @@
 package info.hugoyu;
 
-import jmri.*;
+import jmri.InstanceManager;
+import jmri.JmriException;
+import jmri.PowerManager;
 import jmri.jmrix.dccpp.serial.DCCppAdapter;
 
 import java.io.BufferedReader;
