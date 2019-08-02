@@ -3,67 +3,81 @@ package info.hugoyu;
 import jmri.*;
 
 public class Loco implements ThrottleListener {
-    private static final float ACC_RATE = 0.08f;     // acceleration rate
-    private static final float DEC_RATE = -0.08f;     // standard deceleration rate
-    private static final float EDEC_RATE = -0.11f;    // emergency deceleration rate
-
-    private static final float TOP_SPEED = 1.0f;
+    public static final double ACC_RATE_COEF = 45;
+    public static final double DEC_RATE_COEF = 45;
 
     private String name;
+    private LocoProfile profile;
     private Thread controlThread;
     private boolean running = false;
 
-    private float speed = 0f;
+    private Object speedLock = new Object();
+    private double speed = 0;
 
-    private int accDecFlag = 0;
-    private long accDecT0;
-    private float accDecRate;
-    private float targetSpeed;
+    private long t0;
+    private double targetSpeed;
 
-    public Loco(int address, String name) {
+    private double moveDist = 0;
+
+    public Loco(int address, String name, LocoProfile profile) {
         this.name = name;
+        this.profile = profile;
         InstanceManager.getNullableDefault(ThrottleManager.class).requestThrottle(address, this);
     }
 
-    /**
-     * @param speed set loco to certain speed with acc/dcc
-     */
-    public void setSpeed(float speed) {
-        if (speed > this.speed) {
-            accelerate(speed);
-        } else {
-            decelerate(speed);
+    public void stop() {
+        moveDist = 0;
+        setTargetSpeed(0);
+    }
+
+    public void move(double dist) {
+        move(dist, profile.getMaxSpeed());
+    }
+
+    public void move(double dist, double targetSpeed) {
+        moveDist = dist;
+        setTargetSpeed(targetSpeed);
+    }
+
+    private void setTargetSpeed(double targetSpeed) {
+        synchronized (speedLock) {
+            t0 = System.currentTimeMillis();
+            this.targetSpeed = targetSpeed;
+            speedLock.notify();
         }
     }
 
-    /**
-     * @param targetSpeed accelerate until reaches targetSpeed
-     */
-    public void accelerate(float targetSpeed) {
-        accDecT0 = System.currentTimeMillis();
-        accDecFlag = 1;
-        accDecRate = ACC_RATE;
-        this.targetSpeed = targetSpeed;
-    }
+    private boolean updateSpeed() {
+        double oldSpeed = speed;
 
-    /**
-     * @param targetSpeed decelerate to targetSpeed with standard deceleration rate
-     */
-    public void decelerate(float targetSpeed) {
-        accDecT0 = System.currentTimeMillis();
-        accDecFlag = 2;
-        accDecRate = DEC_RATE;
-        this.targetSpeed = targetSpeed;
-    }
+        if (targetSpeed != speed || moveDist > 0) {
+            long t1 = System.currentTimeMillis();
+            long deltaT = t1 - t0;
 
-    /**
-     * @param targetSpeed decelerate to targetSpeed with emergency deceleration rate
-     */
-    public void emergencyDecelerate(float targetSpeed) {
-        accDecT0 = System.currentTimeMillis();
-        accDecFlag = 2;
-        accDecRate = EDEC_RATE;
-        this.targetSpeed = targetSpeed;
+            if (moveDist > 0) {
+                double deltaD = speed * deltaT / 1000;
+                moveDist -= deltaD;
+
+                if (profile.isNeedToStop(speed, moveDist)) {
+                    setTargetSpeed(0);
+                } else {
+                    setTargetSpeed(profile.getMaxSpeed());
+                }
+                System.out.println(profile.isNeedToStop(speed, moveDist));
+            }
+
+            if (targetSpeed != speed) {
+                double a = targetSpeed > speed ? profile.getAccRate() : profile.getDecRate();
+                speed += a * deltaT / 1000;
+                speed = Math.min(Math.max(speed, 0), profile.getMaxSpeed());
+            }
+
+//            System.out.println(speed + " " + targetSpeed + " " + moveDist);
+
+            t0 = t1;
+        }
+
+        return speed != oldSpeed;
     }
 
     @Override
@@ -76,35 +90,29 @@ public class Loco implements ThrottleListener {
         System.out.println(name + ": throttle found");
 
         controlThread = new Thread(new Runnable() {
-            long lastTrackedSliderMovementTime = 0;
+            long lastTrackedSliderMovementTime = System.currentTimeMillis();
             static final long trackSliderMinInterval = 200;
 
             @Override
             public void run() {
-//                TODO: eliminate spinning
                 while (running) {
-                    if (System.currentTimeMillis() - lastTrackedSliderMovementTime >= trackSliderMinInterval) {
-                        lastTrackedSliderMovementTime = System.currentTimeMillis();
+                    synchronized (speedLock) {
+                        if (System.currentTimeMillis() - lastTrackedSliderMovementTime >= trackSliderMinInterval) {
+                            lastTrackedSliderMovementTime = System.currentTimeMillis();
 
-                        // check accelerate
-                        if (accDecFlag != 0) {
-                            if ((accDecFlag == 1 && speed > targetSpeed) ||
-                                    (accDecFlag == 2 && speed < targetSpeed)) { // finish acc/dcc
-                                accDecFlag = 0;
-                            } else {
-                                long accDecT1 = System.currentTimeMillis();
-                                long deltaT = accDecT1 - accDecT0;
-                                speed += accDecRate * deltaT / 1000;
-                                accDecT0 = accDecT1;
-                            }
-                        }
+                            // check acc/dec
+                            boolean speedChanged = updateSpeed();
 
-                        dccThrottle.setSpeedSetting(speed);
+                            dccThrottle.setSpeedSetting((float) (profile.getThrottleByte(speed) / 128));
 
-                        try {
-                            Thread.sleep(trackSliderMinInterval);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
+                            // sleep if no further speed adjustment needed
+//                            if (!speedChanged) {
+//                                try {
+//                                    speedLock.wait();
+//                                } catch (InterruptedException e) {
+//
+//                                }
+//                            }
                         }
                     }
                 }
@@ -126,6 +134,9 @@ public class Loco implements ThrottleListener {
     }
 
     public void stopControlThread() {
-        running = false;
+        synchronized (speedLock) {
+            running = false;
+            speedLock.notify();
+        }
     }
 }

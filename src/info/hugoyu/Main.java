@@ -3,6 +3,7 @@ package info.hugoyu;
 import jmri.InstanceManager;
 import jmri.JmriException;
 import jmri.PowerManager;
+import jmri.jmrix.dccpp.DCCppPowerManager;
 import jmri.jmrix.dccpp.serial.DCCppAdapter;
 
 import java.io.BufferedReader;
@@ -21,7 +22,11 @@ public class Main {
         turnOnPower();
 
         // register N700A
-        registerLoco(3, "N700A");
+        try {
+            registerLoco(3, "N700A", "n700a-1000.profile");
+        } catch (IOException e) {
+            System.err.println("Failed to read locoProfile");
+        }
 
         listenCommands();
 
@@ -47,13 +52,15 @@ public class Main {
     }
 
     private static void turnOnPower() throws JmriException {
-        PowerManager powerManager = InstanceManager.getNullableDefault(jmri.PowerManager.class);
-        powerManager.setPower(PowerManager.ON);
+        DCCppPowerManager powerManager = (DCCppPowerManager) InstanceManager.getNullableDefault(jmri.PowerManager.class);
+        if (powerManager.getPower() != PowerManager.ON) {
+            powerManager.setPower(PowerManager.ON);
+        }
         System.out.println("Power on");
     }
 
     private static void turnOffPower() throws JmriException {
-        PowerManager powerManager = InstanceManager.getNullableDefault(jmri.PowerManager.class);
+        DCCppPowerManager powerManager = (DCCppPowerManager) InstanceManager.getNullableDefault(jmri.PowerManager.class);
         if (powerManager.getPower() != PowerManager.OFF) {
             powerManager.setPower(PowerManager.OFF);
         }
@@ -61,8 +68,8 @@ public class Main {
         System.out.println("Power off");
     }
 
-    private static void registerLoco(int address, String name) {
-        locomotives.put(address, new Loco(address, name));
+    private static void registerLoco(int address, String name, String locoProfile) throws IOException {
+        locomotives.put(address, new Loco(address, name, new LocoProfile(locoProfile)));
     }
 
     private static void listenCommands() throws IOException {
@@ -73,70 +80,59 @@ public class Main {
         while ((line = br.readLine()) != null) {
             try {
                 String[] args = line.split(" +");
-                if (line.startsWith("a ")) {
-                    if (args.length < 2) throw new CommandException(CommandException.COMMAND_A);
+                if (line.startsWith("ms ")) { // measure
+//                    if (args.length != 3) throw new CommandException(CommandException.COMMAND_MS);
+//
+//                    try {
+//                        locomotives.get(Integer.parseInt(args[1])).setThrottleHard((float) (Integer.parseInt(args[2]) / 128.0));
+//                    } catch (NumberFormatException e) {
+//                        throw new CommandException(CommandException.COMMAND_MS);
+//                    }
+                } else if (line.startsWith("mv ")) { // move
+                    if (args.length < 3 || args.length > 4)
+                        throw new CommandException(CommandException.COMMAND_MV);
 
                     try {
-                        float targetSpeed = 1;
-                        if (args.length == 3) targetSpeed = Float.parseFloat(args[2]);
-                        locomotives.get(Integer.parseInt(args[1])).accelerate(targetSpeed);
+                        if (args.length == 3) {
+                            locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]));
+                        } else {
+                            locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]), Float.parseFloat(args[3]));
+                        }
                     } catch (NumberFormatException e) {
-                        throw new CommandException(CommandException.COMMAND_A);
+                        throw new CommandException(CommandException.COMMAND_MV);
                     }
-                } else if (line.startsWith("d ")) {
-                    if (args.length < 2) throw new CommandException(CommandException.COMMAND_D);
-
-                    try {
-                        float targetSpeed = 0;
-                        if (args.length == 3) targetSpeed = Float.parseFloat(args[2]);
-                        locomotives.get(Integer.parseInt(args[1])).decelerate(targetSpeed);
-                    } catch (NumberFormatException e) {
-                        throw new CommandException(CommandException.COMMAND_D);
-                    }
-                } else if (line.startsWith("ed ")) {
-                    if (args.length < 2) throw new CommandException(CommandException.COMMAND_ED);
-
-                    try {
-                        float targetSpeed = 0;
-                        if (args.length == 3) targetSpeed = Float.parseFloat(args[2]);
-                        locomotives.get(Integer.parseInt(args[1])).emergencyDecelerate(targetSpeed);
-                    } catch (NumberFormatException e) {
-                        throw new CommandException(CommandException.COMMAND_ED);
-                    }
-                } else if (line.startsWith("f ")) {
-                    if (args.length != 3) throw new CommandException(CommandException.COMMAND_F);
-
-                    try {
-                        setSpeed(args[1], args[2]);
-                    } catch (CommandException e) {
-                        throw new CommandException(CommandException.COMMAND_F);
-                    }
-                } else if (line.startsWith("r")) {
+                } else if (line.startsWith("r ")) {
 
                 } else if (line.startsWith("s ")) {
                     if (args.length != 2) throw new CommandException(CommandException.COMMAND_S);
 
                     try {
-                        setSpeed(args[1], "0");
-                    } catch (CommandException e) {
+                        locomotives.get(Integer.parseInt(args[1])).stop();
+                    } catch (NumberFormatException e) {
                         throw new CommandException(CommandException.COMMAND_S);
                     }
+                } else if (line.startsWith("ss ")) {
+//                    if (args.length != 3) throw new CommandException(CommandException.COMMAND_SS);
+//
+//                    try {
+//                        setSpeed(args[1], args[2], false);
+//                    } catch (CommandException e) {
+//                        throw new CommandException(CommandException.COMMAND_SS);
+//                    }
+                } else if (line.startsWith("ssh ")) { // hard-set speed (take effect right away)
+//                    if (args.length != 3) throw new CommandException(CommandException.COMMAND_SSH);
+//
+//                    try {
+//                        setSpeed(args[1], args[2], true);
+//                    } catch (CommandException e) {
+//                        throw new CommandException(CommandException.COMMAND_SSH);
+//                    }
                 }
             } catch (CommandException e) {
                 System.err.println(e.getMessage());
             }
 
             System.out.println("Type command: ");
-        }
-    }
-
-    private static void setSpeed(String addressStr, String speedStr) throws CommandException {
-        try {
-            int address = Integer.parseInt(addressStr);
-            float speed =  Float.parseFloat(speedStr);
-            locomotives.get(address).setSpeed(speed);
-        } catch (NumberFormatException e) {
-            throw new CommandException("");
         }
     }
 
