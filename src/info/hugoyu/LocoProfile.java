@@ -9,6 +9,8 @@ import java.util.List;
 import java.util.Map;
 
 public class LocoProfile {
+    public static final double ACC_RATE_COEF = 45;
+    public static final double DEC_RATE_COEF = 45;
 
     private double accRate, decRate;
     private Map<Double, Integer> speedMap = new HashMap<>();
@@ -17,8 +19,8 @@ public class LocoProfile {
     public LocoProfile(String profilePath) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(profilePath));
 
-        accRate = Double.parseDouble(br.readLine()) * Loco.ACC_RATE_COEF;
-        decRate = Double.parseDouble(br.readLine()) * Loco.DEC_RATE_COEF;
+        accRate = Double.parseDouble(br.readLine()) * ACC_RATE_COEF;
+        decRate = Double.parseDouble(br.readLine()) * DEC_RATE_COEF;
 
         String line;
         while ((line = br.readLine()) != null) {
@@ -58,6 +60,7 @@ public class LocoProfile {
 
     public boolean isNeedToStop(double speed, double moveDist) {
         double stoppingDist = Math.pow(speed, 2) / 2 / -decRate;
+//        System.out.println(speed + " " + (moveDist - stoppingDist));
         return stoppingDist >= moveDist;
     }
 }

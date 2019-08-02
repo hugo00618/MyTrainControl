@@ -15,6 +15,11 @@ import java.util.Vector;
 
 public class Main {
 
+    public static final String COMMAND_MS = "ms addr [speed (0 - 128)]";
+    public static final String COMMAND_MV = "mv addr [dist] {[max speed (0.0 - 1.0)]}";
+    public static final String COMMAND_S = "s addr";
+    public static final String COMMAND_SPD = "spd addr [speed (0.0 - 1.0)]";
+
     private static Map<Integer, Loco> locomotives = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
@@ -80,17 +85,17 @@ public class Main {
         while ((line = br.readLine()) != null) {
             try {
                 String[] args = line.split(" +");
-                if (line.startsWith("ms ")) { // measure
-//                    if (args.length != 3) throw new CommandException(CommandException.COMMAND_MS);
-//
-//                    try {
-//                        locomotives.get(Integer.parseInt(args[1])).setThrottleHard((float) (Integer.parseInt(args[2]) / 128.0));
-//                    } catch (NumberFormatException e) {
-//                        throw new CommandException(CommandException.COMMAND_MS);
-//                    }
+                if (line.startsWith("ms ")) { // measure throttle byte
+                    if (args.length != 3) throw new IllegalArgumentException(COMMAND_MS);
+
+                    try {
+                        locomotives.get(Integer.parseInt(args[1])).setThrottle((float) (Integer.parseInt(args[2]) / 128.0));
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException(COMMAND_MS);
+                    }
                 } else if (line.startsWith("mv ")) { // move
                     if (args.length < 3 || args.length > 4)
-                        throw new CommandException(CommandException.COMMAND_MV);
+                        throw new IllegalArgumentException(COMMAND_MV);
 
                     try {
                         if (args.length == 3) {
@@ -99,36 +104,28 @@ public class Main {
                             locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]), Float.parseFloat(args[3]));
                         }
                     } catch (NumberFormatException e) {
-                        throw new CommandException(CommandException.COMMAND_MV);
+                        throw new IllegalArgumentException(COMMAND_MV);
                     }
-                } else if (line.startsWith("r ")) {
+                } else if (line.startsWith("r ")) { // register loco
 
-                } else if (line.startsWith("s ")) {
-                    if (args.length != 2) throw new CommandException(CommandException.COMMAND_S);
+                } else if (line.startsWith("s ")) { // stop
+                    if (args.length != 2) throw new IllegalArgumentException(COMMAND_S);
 
                     try {
                         locomotives.get(Integer.parseInt(args[1])).stop();
                     } catch (NumberFormatException e) {
-                        throw new CommandException(CommandException.COMMAND_S);
+                        throw new IllegalArgumentException(COMMAND_S);
                     }
-                } else if (line.startsWith("ss ")) {
-//                    if (args.length != 3) throw new CommandException(CommandException.COMMAND_SS);
+                } else if (line.startsWith("spd ")) { // set speed
+//                    if (args.length != 3) throw new IllegalArgumentException(COMMAND_SPD);
 //
 //                    try {
-//                        setSpeed(args[1], args[2], false);
-//                    } catch (CommandException e) {
-//                        throw new CommandException(CommandException.COMMAND_SS);
-//                    }
-                } else if (line.startsWith("ssh ")) { // hard-set speed (take effect right away)
-//                    if (args.length != 3) throw new CommandException(CommandException.COMMAND_SSH);
-//
-//                    try {
-//                        setSpeed(args[1], args[2], true);
-//                    } catch (CommandException e) {
-//                        throw new CommandException(CommandException.COMMAND_SSH);
+//                        locomotives.get(Integer.parseInt(args[1])).setTargetSpeed(Double.parseDouble(args[2]));
+//                    } catch (NumberFormatException e) {
+//                        throw new IllegalArgumentException(COMMAND_SPD);
 //                    }
                 }
-            } catch (CommandException e) {
+            } catch (IllegalArgumentException e) {
                 System.err.println(e.getMessage());
             }
 

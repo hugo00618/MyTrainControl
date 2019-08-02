@@ -2,16 +2,18 @@ package info.hugoyu;
 
 import jmri.*;
 
-public class Loco implements ThrottleListener {
-    public static final double ACC_RATE_COEF = 45;
-    public static final double DEC_RATE_COEF = 45;
+import java.util.concurrent.locks.ReentrantLock;
 
+public class Loco implements ThrottleListener {
     private String name;
     private LocoProfile profile;
     private Thread controlThread;
     private boolean running = false;
 
-    private Object speedLock = new Object();
+    private boolean throttleOverride = false;
+    private float throttle;
+
+    private ReentrantLock speedLock = new ReentrantLock();
     private double speed = 0;
 
     private long t0;
@@ -25,9 +27,19 @@ public class Loco implements ThrottleListener {
         InstanceManager.getNullableDefault(ThrottleManager.class).requestThrottle(address, this);
     }
 
+    public void setThrottle(float throttle) {
+        speedLock.lock();
+        throttleOverride = true;
+        this.throttle = throttle;
+        speedLock.unlock();
+    }
+
     public void stop() {
+        speedLock.lock();
         moveDist = 0;
+        throttleOverride = false;
         setTargetSpeed(0);
+        speedLock.unlock();
     }
 
     public void move(double dist) {
@@ -35,16 +47,19 @@ public class Loco implements ThrottleListener {
     }
 
     public void move(double dist, double targetSpeed) {
+        speedLock.lock();
         moveDist = dist;
         setTargetSpeed(targetSpeed);
+        speedLock.unlock();
     }
 
-    private void setTargetSpeed(double targetSpeed) {
-        synchronized (speedLock) {
-            t0 = System.currentTimeMillis();
-            this.targetSpeed = targetSpeed;
-            speedLock.notify();
-        }
+    public void setTargetSpeed(double targetSpeed) {
+        boolean heldLock = speedLock.isHeldByCurrentThread();
+
+        if (!heldLock) speedLock.lock();
+        this.targetSpeed = targetSpeed;
+        t0 = System.currentTimeMillis();
+        if (!heldLock) speedLock.unlock();
     }
 
     private boolean updateSpeed() {
@@ -63,7 +78,6 @@ public class Loco implements ThrottleListener {
                 } else {
                     setTargetSpeed(profile.getMaxSpeed());
                 }
-                System.out.println(profile.isNeedToStop(speed, moveDist));
             }
 
             if (targetSpeed != speed) {
@@ -71,8 +85,6 @@ public class Loco implements ThrottleListener {
                 speed += a * deltaT / 1000;
                 speed = Math.min(Math.max(speed, 0), profile.getMaxSpeed());
             }
-
-//            System.out.println(speed + " " + targetSpeed + " " + moveDist);
 
             t0 = t1;
         }
@@ -96,16 +108,19 @@ public class Loco implements ThrottleListener {
             @Override
             public void run() {
                 while (running) {
-                    synchronized (speedLock) {
-                        if (System.currentTimeMillis() - lastTrackedSliderMovementTime >= trackSliderMinInterval) {
-                            lastTrackedSliderMovementTime = System.currentTimeMillis();
+                    speedLock.lock();
+                    updateSpeed();
 
-                            // check acc/dec
-                            boolean speedChanged = updateSpeed();
+                    if (System.currentTimeMillis() - lastTrackedSliderMovementTime >= trackSliderMinInterval) {
+                        lastTrackedSliderMovementTime = System.currentTimeMillis();
 
+                        if (throttleOverride) {
+                            dccThrottle.setSpeedSetting(throttle);
+                        } else {
                             dccThrottle.setSpeedSetting((float) (profile.getThrottleByte(speed) / 128));
+                        }
 
-                            // sleep if no further speed adjustment needed
+                        // sleep if no further speed adjustment needed
 //                            if (!speedChanged) {
 //                                try {
 //                                    speedLock.wait();
@@ -113,8 +128,8 @@ public class Loco implements ThrottleListener {
 //
 //                                }
 //                            }
-                        }
                     }
+                    speedLock.unlock();
                 }
             }
         });
@@ -134,9 +149,6 @@ public class Loco implements ThrottleListener {
     }
 
     public void stopControlThread() {
-        synchronized (speedLock) {
-            running = false;
-            speedLock.notify();
-        }
+        running = false;
     }
 }
