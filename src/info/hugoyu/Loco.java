@@ -2,44 +2,45 @@ package info.hugoyu;
 
 import jmri.*;
 
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class Loco implements ThrottleListener {
+    private int address;
     private String name;
     private LocoProfile profile;
-    private Thread controlThread;
-    private boolean running = false;
 
     private boolean throttleOverride = false;
     private float throttle;
-
-    private ReentrantLock speedLock = new ReentrantLock();
     private double speed = 0;
-
     private long t0;
     private double targetSpeed;
-
     private double moveDist = 0;
 
+    private Object speedLock = new Object();
+
+    private ScheduledExecutorService scheduler;
+
     public Loco(int address, String name, LocoProfile profile) {
+        this.address = address;
         this.name = name;
         this.profile = profile;
         InstanceManager.getNullableDefault(ThrottleManager.class).requestThrottle(address, this);
     }
 
     public void setThrottle(float throttle) {
-        speedLock.lock();
-        throttleOverride = true;
-        this.throttle = throttle;
-        speedLock.unlock();
+        synchronized (speedLock) {
+            throttleOverride = true;
+            this.throttle = throttle;
+        }
     }
 
     public void stop() {
-        speedLock.lock();
-        moveDist = 0;
-        throttleOverride = false;
-        setTargetSpeed(0);
-        speedLock.unlock();
+        synchronized (speedLock) {
+            moveDist = 0;
+            setTargetSpeed(0);
+        }
     }
 
     public void move(double dist) {
@@ -47,21 +48,22 @@ public class Loco implements ThrottleListener {
     }
 
     public void move(double dist, double targetSpeed) {
-        speedLock.lock();
-        moveDist = dist;
-        setTargetSpeed(targetSpeed);
-        speedLock.unlock();
+        synchronized (speedLock) {
+            moveDist = dist;
+            setTargetSpeed(targetSpeed);
+        }
     }
 
-    public void setTargetSpeed(double targetSpeed) {
-        boolean heldLock = speedLock.isHeldByCurrentThread();
-
-        if (!heldLock) speedLock.lock();
-        this.targetSpeed = targetSpeed;
-        t0 = System.currentTimeMillis();
-        if (!heldLock) speedLock.unlock();
+    private void setTargetSpeed(double targetSpeed) {
+        synchronized (speedLock) {
+            this.targetSpeed = targetSpeed;
+            t0 = System.currentTimeMillis();
+        }
     }
 
+    /**
+     * @return if speed has changed
+     */
     private boolean updateSpeed() {
         double oldSpeed = speed;
 
@@ -75,8 +77,6 @@ public class Loco implements ThrottleListener {
 
                 if (profile.isNeedToStop(speed, moveDist)) {
                     setTargetSpeed(0);
-                } else {
-                    setTargetSpeed(profile.getMaxSpeed());
                 }
             }
 
@@ -89,7 +89,7 @@ public class Loco implements ThrottleListener {
             t0 = t1;
         }
 
-        return speed != oldSpeed;
+        return oldSpeed != speed;
     }
 
     @Override
@@ -101,41 +101,23 @@ public class Loco implements ThrottleListener {
     public void notifyThrottleFound(DccThrottle dccThrottle) {
         System.out.println(name + ": throttle found");
 
-        controlThread = new Thread(new Runnable() {
-            long lastTrackedSliderMovementTime = System.currentTimeMillis();
-            static final long trackSliderMinInterval = 200;
-
+        // update speed every millisecond
+        scheduler = Executors.newScheduledThreadPool(1);
+        scheduler.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
-                while (running) {
-                    speedLock.lock();
-                    updateSpeed();
-
-                    if (System.currentTimeMillis() - lastTrackedSliderMovementTime >= trackSliderMinInterval) {
-                        lastTrackedSliderMovementTime = System.currentTimeMillis();
-
-                        if (throttleOverride) {
-                            dccThrottle.setSpeedSetting(throttle);
-                        } else {
-                            dccThrottle.setSpeedSetting((float) (profile.getThrottleByte(speed) / 128));
-                        }
-
-                        // sleep if no further speed adjustment needed
-//                            if (!speedChanged) {
-//                                try {
-//                                    speedLock.wait();
-//                                } catch (InterruptedException e) {
-//
-//                                }
-//                            }
+                synchronized (speedLock) {
+                    if (throttleOverride) {
+                        ThrottleControlThread.getInstance().
+                                addTask(address, new ThrottleControlThread.ThrottleControlTask(dccThrottle, throttle));
+                        throttleOverride = false;
+                    } else if (updateSpeed()) {
+                        ThrottleControlThread.getInstance().
+                                addTask(address, new ThrottleControlThread.ThrottleControlTask(dccThrottle, profile.getThrottle(speed)));
                     }
-                    speedLock.unlock();
                 }
             }
-        });
-
-        running = true;
-        controlThread.start();
+        }, 0, 1, TimeUnit.MICROSECONDS);
     }
 
     @Override
@@ -149,6 +131,6 @@ public class Loco implements ThrottleListener {
     }
 
     public void stopControlThread() {
-        running = false;
+        if (scheduler != null) scheduler.shutdown();
     }
 }

@@ -26,6 +26,9 @@ public class Main {
         selectPort();
         turnOnPower();
 
+        // construct dcc command thread and start
+        ThrottleControlThread.getInstance();
+
         // register N700A
         try {
             registerLoco(3, "N700A", "n700a-1000.profile");
@@ -101,7 +104,7 @@ public class Main {
                         if (args.length == 3) {
                             locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]));
                         } else {
-                            locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]), Float.parseFloat(args[3]));
+                            locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]), Double.parseDouble(args[3]));
                         }
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException(COMMAND_MV);
@@ -138,6 +141,9 @@ public class Main {
         for (Map.Entry<Integer, Loco> locomotive : locomotives.entrySet()) {
             locomotive.getValue().stopControlThread();
         }
+
+        // end dcc command thread
+        ThrottleControlThread.getInstance().interrupt();
 
         turnOffPower();
     }

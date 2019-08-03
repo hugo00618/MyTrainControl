@@ -40,15 +40,15 @@ public class LocoProfile {
         return decRate;
     }
 
-    public double getThrottleByte(double speed) throws IllegalArgumentException {
+    public float getThrottle(double speed) throws IllegalArgumentException {
         for (int i = 0; i < speedPoints.size(); i++) {
             double speedPoint = speedPoints.get(i);
             if (speed <= speedPoint) {
                 int hi = speedMap.get(speedPoint);
-                if (speed == speedPoint) return hi;
+                if (speed == speedPoint) return hi / 128.0f;
                 double prevSpeedPoint = speedPoints.get(i-1);
                 int lo = speedMap.get(prevSpeedPoint);
-                return lo + (speed - prevSpeedPoint) / (speedPoint - prevSpeedPoint) * (hi - lo);
+                return (float) ((lo + (speed - prevSpeedPoint) / (speedPoint - prevSpeedPoint) * (hi - lo)) / 128.0);
             }
         }
         throw new IllegalArgumentException("invalid speed: " + speed);
