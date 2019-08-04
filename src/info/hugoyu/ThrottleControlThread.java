@@ -37,7 +37,6 @@ public class ThrottleControlThread extends Thread {
         synchronized (tasksLock) {
             taskAddrs.add(addr);
             taskMap.put(addr, task);
-            System.out.println("wake");
             tasksLock.notify();
         }
     }
@@ -54,7 +53,6 @@ public class ThrottleControlThread extends Thread {
                                 if (taskMap.containsKey(taskAddr)) {
                                     ThrottleControlTask task = taskMap.get(taskAddr);
                                     taskMap.remove(taskAddr);
-                                    System.out.println("throttle set: " + task.throttle);
 
                                     task.dccThrottle.setSpeedSetting(task.throttle);
 

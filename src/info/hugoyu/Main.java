@@ -112,13 +112,13 @@ public class Main {
                 } else if (line.startsWith("r ")) { // register loco
 
                 } else if (line.startsWith("s ")) { // stop
-                    if (args.length != 2) throw new IllegalArgumentException(COMMAND_S);
-
-                    try {
-                        locomotives.get(Integer.parseInt(args[1])).stop();
-                    } catch (NumberFormatException e) {
-                        throw new IllegalArgumentException(COMMAND_S);
-                    }
+//                    if (args.length != 2) throw new IllegalArgumentException(COMMAND_S);
+//
+//                    try {
+//                        locomotives.get(Integer.parseInt(args[1])).stop();
+//                    } catch (NumberFormatException e) {
+//                        throw new IllegalArgumentException(COMMAND_S);
+//                    }
                 } else if (line.startsWith("spd ")) { // set speed
 //                    if (args.length != 3) throw new IllegalArgumentException(COMMAND_SPD);
 //

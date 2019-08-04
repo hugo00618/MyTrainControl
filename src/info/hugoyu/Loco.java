@@ -36,12 +36,12 @@ public class Loco implements ThrottleListener {
         }
     }
 
-    public void stop() {
-        synchronized (speedLock) {
-            moveDist = 0;
-            setTargetSpeed(0);
-        }
-    }
+//    public void stop() {
+//        synchronized (speedLock) {
+//            moveDist = 0;
+//            setTargetSpeed(0);
+//        }
+//    }
 
     public void move(double dist) {
         move(dist, profile.getMaxSpeed());
