@@ -2,6 +2,7 @@ package info.hugoyu;
 
 import jmri.*;
 
+import java.util.PriorityQueue;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -13,12 +14,36 @@ public class Loco implements ThrottleListener {
 
     private boolean throttleOverride = false;
     private float throttle;
-    private double speed = 0;
-    private long t0;
+
+    private double vSpeed = 0, rSpeed = 0; // virtual speed, real speed
+    private long vt0, rt0; // virtual last updated time, real last update time
     private double targetSpeed;
     private double moveDist = 0;
 
-    private Object speedLock = new Object();
+    static class SpeedUpdate implements Comparable<SpeedUpdate> {
+        long timestamp;
+        double speed;
+
+        public SpeedUpdate(long timestamp, double speed) {
+            this.timestamp = timestamp;
+            this.speed = speed;
+        }
+
+        @Override
+        public int compareTo(SpeedUpdate o) {
+            if (this.timestamp < o.timestamp) {
+                return -1;
+            } else if (this.timestamp > o.timestamp) {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+    }
+
+    private PriorityQueue<SpeedUpdate> speedUpdateQueue = new PriorityQueue<>();
+
+    private final Object speedLock = new Object(), speedUpdateQueueLock = new Object();
 
     private ScheduledExecutorService scheduler;
 
@@ -57,7 +82,25 @@ public class Loco implements ThrottleListener {
     private void setTargetSpeed(double targetSpeed) {
         synchronized (speedLock) {
             this.targetSpeed = targetSpeed;
-            t0 = System.currentTimeMillis();
+            vt0 = System.currentTimeMillis();
+        }
+    }
+
+    public void addRealSpeedUpdate(SpeedUpdate speedUpdate) {
+        synchronized (speedUpdateQueueLock) {
+            speedUpdateQueue.add(speedUpdate);
+        }
+    }
+
+    private void updateRealSpeed(long rt1, double speed) {
+        synchronized (speedLock) {
+            long rdt = rt1 - rt0;
+
+            double deltaD = rSpeed * rdt / 1000;
+            moveDist -= deltaD;
+
+            this.rSpeed = speed;
+            rt0 = rt1;
         }
     }
 
@@ -65,31 +108,46 @@ public class Loco implements ThrottleListener {
      * @return if speed has changed
      */
     private boolean updateSpeed() {
-        double oldSpeed = speed;
+        double oldSpeed = vSpeed;
 
-        if (targetSpeed != speed || moveDist > 0) {
-            long t1 = System.currentTimeMillis();
-            long deltaT = t1 - t0;
+        if (targetSpeed != vSpeed || moveDist > 0) {
+            long vt1 = System.currentTimeMillis();
+            long vdt = vt1 - vt0; // virtual delta t
 
             if (moveDist > 0) {
-                double deltaD = speed * deltaT / 1000;
-                moveDist -= deltaD;
+                // poll speedUpdateQueue and update rSpeed and moveDist
+                synchronized (speedUpdateQueueLock) {
+                    while (!speedUpdateQueue.isEmpty()) {
+                        SpeedUpdate speedUpdate = speedUpdateQueue.poll();
+                        updateRealSpeed(speedUpdate.timestamp, speedUpdate.speed);
+                    }
+                }
 
-                if (profile.isNeedToStop(speed, moveDist)) {
+                // if no speed adjustments
+                if (rSpeed >= targetSpeed) {
+                    updateRealSpeed(System.currentTimeMillis(), rSpeed);
+                }
+
+                // check if needs to stop
+                if (profile.isNeedToStop(rSpeed, moveDist)) {
                     setTargetSpeed(0);
+                } else if (targetSpeed < rSpeed) {
+                    setTargetSpeed(rSpeed);
                 }
             }
 
-            if (targetSpeed != speed) {
-                double a = targetSpeed > speed ? profile.getAccRate() : profile.getDecRate();
-                speed += a * deltaT / 1000;
-                speed = Math.min(Math.max(speed, 0), profile.getMaxSpeed());
+            if (targetSpeed != vSpeed) {
+                double a = 0;
+                a = targetSpeed > vSpeed ? profile.getAccRate() : profile.getDecRate();
+                vSpeed += a * vdt / 1000;
+                vSpeed = Math.min(Math.max(vSpeed, 0), profile.getMaxSpeed());
+//                System.out.println(vSpeed + " " + targetSpeed);
             }
 
-            t0 = t1;
+            vt0 = vt1;
         }
 
-        return oldSpeed != speed;
+        return oldSpeed != vSpeed;
     }
 
     @Override
@@ -108,12 +166,12 @@ public class Loco implements ThrottleListener {
             public void run() {
                 synchronized (speedLock) {
                     if (throttleOverride) {
-                        ThrottleControlThread.getInstance().
-                                addTask(address, new ThrottleControlThread.ThrottleControlTask(dccThrottle, throttle));
+//                        ThrottleControlThread.getInstance().
+//                                addTask(address, new ThrottleControlThread.ThrottleControlTask(dccThrottle, throttle));
                         throttleOverride = false;
                     } else if (updateSpeed()) {
                         ThrottleControlThread.getInstance().
-                                addTask(address, new ThrottleControlThread.ThrottleControlTask(dccThrottle, profile.getThrottle(speed)));
+                                addTask(address, new ThrottleControlThread.ThrottleControlTask(Loco.this, dccThrottle, profile.getThrottle(vSpeed), vSpeed));
                     }
                 }
             }
@@ -133,4 +191,5 @@ public class Loco implements ThrottleListener {
     public void stopControlThread() {
         if (scheduler != null) scheduler.shutdown();
     }
+
 }

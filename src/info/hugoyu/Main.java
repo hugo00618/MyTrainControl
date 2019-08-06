@@ -101,10 +101,13 @@ public class Main {
                         throw new IllegalArgumentException(COMMAND_MV);
 
                     try {
+                        int locoAddr = Integer.parseInt(args[1]);
+                        if (!locomotives.containsKey(locoAddr)) throw new IllegalArgumentException(COMMAND_MV);
+                        Loco loco = locomotives.get(locoAddr);
                         if (args.length == 3) {
-                            locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]));
+                            loco.move(Integer.parseInt(args[2]));
                         } else {
-                            locomotives.get(Integer.parseInt(args[1])).move(Integer.parseInt(args[2]), Double.parseDouble(args[3]));
+                            loco.move(Integer.parseInt(args[2]), Double.parseDouble(args[3]));
                         }
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException(COMMAND_MV);

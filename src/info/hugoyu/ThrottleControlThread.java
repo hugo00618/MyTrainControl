@@ -14,18 +14,22 @@ public class ThrottleControlThread extends Thread {
 
     private static boolean stop = false;
 
-    static long lastTrackedSliderMovementTime = System.currentTimeMillis();
-    static final long trackSliderMinInterval = 200;
+    static long lastUpdatedTime = System.currentTimeMillis();
+    static final long MIN_UPDATE_INTERVAL = 20;
 
     private static ThrottleControlThread instance;
 
     static class ThrottleControlTask {
+        Loco loco;
         Throttle dccThrottle;
         float throttle;
+        double speed;
 
-        public ThrottleControlTask(Throttle dccThrottle, float throttle) {
+        public ThrottleControlTask(Loco loco, Throttle dccThrottle, float throttle, double speed) {
+            this.loco = loco;
             this.dccThrottle = dccThrottle;
             this.throttle = throttle;
+            this.speed = speed;
         }
     }
 
@@ -48,15 +52,15 @@ public class ThrottleControlThread extends Thread {
                 synchronized (tasksLock) {
                     while (!stop) {
                         while (!taskAddrs.isEmpty()) {
-                            if (System.currentTimeMillis() - lastTrackedSliderMovementTime >= trackSliderMinInterval) {
+                            if (System.currentTimeMillis() - lastUpdatedTime >= MIN_UPDATE_INTERVAL) {
                                 int taskAddr = taskAddrs.poll();
                                 if (taskMap.containsKey(taskAddr)) {
                                     ThrottleControlTask task = taskMap.get(taskAddr);
                                     taskMap.remove(taskAddr);
 
                                     task.dccThrottle.setSpeedSetting(task.throttle);
-
-                                    lastTrackedSliderMovementTime = System.currentTimeMillis();
+                                    lastUpdatedTime = System.currentTimeMillis();
+                                    task.loco.addRealSpeedUpdate(new Loco.SpeedUpdate(lastUpdatedTime, task.speed));
                                 }
                             }
                         }
