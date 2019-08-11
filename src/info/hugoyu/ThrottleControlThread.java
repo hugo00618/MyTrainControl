@@ -31,6 +31,16 @@ public class ThrottleControlThread extends Thread {
             this.throttle = throttle;
             this.speed = speed;
         }
+
+        /**
+         * throttle overwrite task
+         * @param dccThrottle
+         * @param throttle
+         */
+        public ThrottleControlTask(Throttle dccThrottle, float throttle) {
+            this.dccThrottle = dccThrottle;
+            this.throttle = throttle;
+        }
     }
 
     private ThrottleControlThread(Runnable runnable) {
@@ -60,7 +70,8 @@ public class ThrottleControlThread extends Thread {
 
                                     task.dccThrottle.setSpeedSetting(task.throttle);
                                     lastUpdatedTime = System.currentTimeMillis();
-                                    task.loco.addRealSpeedUpdate(new Loco.SpeedUpdate(lastUpdatedTime, task.speed));
+                                    if (task.loco != null)
+                                        task.loco.addRealSpeedUpdate(new Loco.SpeedUpdate(lastUpdatedTime, task.speed));
                                 }
                             }
                         }

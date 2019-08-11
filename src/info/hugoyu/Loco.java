@@ -12,10 +12,15 @@ public class Loco implements ThrottleListener {
     private String name;
     private LocoProfile profile;
 
+    private boolean throttleOverwrite = false;
+    private int vThrottleByte, rThrottleByte;
+    private final Object throttleLock = new Object();
+
     private double vSpeed = 0, rSpeed = 0; // virtual speed, real speed
     private long vt0, rt0; // virtual last updated time, real last update time
     private double targetSpeed;
     private double moveDist = 0;
+    private final Object speedLock = new Object();
 
     static class SpeedUpdate implements Comparable<SpeedUpdate> {
         long timestamp;
@@ -39,8 +44,7 @@ public class Loco implements ThrottleListener {
     }
 
     private PriorityQueue<SpeedUpdate> speedUpdateQueue = new PriorityQueue<>();
-
-    private final Object speedLock = new Object(), speedUpdateQueueLock = new Object();
+    private final Object speedUpdateQueueLock = new Object();
 
     private ScheduledExecutorService scheduler;
 
@@ -57,11 +61,15 @@ public class Loco implements ThrottleListener {
      * @param throttleByte [0 - 128]
      */
     public void setThrottleByte(int throttleByte) {
-        move(Double.MAX_VALUE, profile.getSpeed(throttleByte));
+        synchronized (throttleLock) {
+            throttleOverwrite = true;
+            this.vThrottleByte = throttleByte;
+            System.out.println(throttleByte);
+        }
     }
 
     public void stop() {
-        move(0);
+        setThrottleByte(0);
     }
 
     public void move(double dist) {
@@ -168,10 +176,20 @@ public class Loco implements ThrottleListener {
         scheduler.scheduleAtFixedRate(new Runnable() {
             @Override
             public void run() {
+                synchronized (throttleLock) {
+                    if (throttleOverwrite && vThrottleByte != rThrottleByte) {
+                        rThrottleByte = vThrottleByte;
+                        if (rThrottleByte == 0) throttleOverwrite = false;
+                        ThrottleControlThread.getInstance().
+                                addTask(address, new ThrottleControlThread.ThrottleControlTask(dccThrottle, rThrottleByte / 128.0f));
+                        return;
+                    }
+                }
                 synchronized (speedLock) {
-                    if (updateSpeed()) {
+                     if (updateSpeed()) {
                         ThrottleControlThread.getInstance().
                                 addTask(address, new ThrottleControlThread.ThrottleControlTask(Loco.this, dccThrottle, profile.getThrottle(vSpeed), vSpeed));
+                        return;
                     }
                 }
             }

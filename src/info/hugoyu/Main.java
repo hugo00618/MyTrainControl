@@ -31,8 +31,8 @@ public class Main {
 
         // register N700A
         try {
-            registerLoco(3, "N700A", "n700a-1000.profile");
-            registerLoco(4, "500", "n700a-1000.profile");
+            registerLoco(3, "N700A", "profile/n700a-1000.profile");
+            registerLoco(4, "500", "profile/500-1000.profile");
         } catch (IOException e) {
             System.err.println("Failed to read locoProfile");
         }
