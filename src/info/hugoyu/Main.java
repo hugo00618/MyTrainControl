@@ -32,6 +32,7 @@ public class Main {
         // register N700A
         try {
             registerLoco(3, "N700A", "n700a-1000.profile");
+            registerLoco(4, "500", "n700a-1000.profile");
         } catch (IOException e) {
             System.err.println("Failed to read locoProfile");
         }
@@ -92,7 +93,7 @@ public class Main {
                     if (args.length != 3) throw new IllegalArgumentException(COMMAND_MS);
 
                     try {
-                        locomotives.get(Integer.parseInt(args[1])).setThrottle((float) (Integer.parseInt(args[2]) / 128.0));
+                        locomotives.get(Integer.parseInt(args[1])).setThrottleByte((Integer.parseInt(args[2])));
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException(COMMAND_MS);
                     }
@@ -115,13 +116,13 @@ public class Main {
                 } else if (line.startsWith("r ")) { // register loco
 
                 } else if (line.startsWith("s ")) { // stop
-//                    if (args.length != 2) throw new IllegalArgumentException(COMMAND_S);
-//
-//                    try {
-//                        locomotives.get(Integer.parseInt(args[1])).stop();
-//                    } catch (NumberFormatException e) {
-//                        throw new IllegalArgumentException(COMMAND_S);
-//                    }
+                    if (args.length != 2) throw new IllegalArgumentException(COMMAND_S);
+
+                    try {
+                        locomotives.get(Integer.parseInt(args[1])).stop();
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException(COMMAND_S);
+                    }
                 } else if (line.startsWith("spd ")) { // set speed
 //                    if (args.length != 3) throw new IllegalArgumentException(COMMAND_SPD);
 //

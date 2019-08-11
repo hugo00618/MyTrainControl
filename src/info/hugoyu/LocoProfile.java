@@ -13,8 +13,10 @@ public class LocoProfile {
     public static final double DEC_RATE_COEF = 45;
 
     private double accRate, decRate;
-    private Map<Double, Integer> speedMap = new HashMap<>();
+    private Map<Double, Integer> speedMap = new HashMap<>(); // speed -> throttle
+    private Map<Integer, Double> throttleMap = new HashMap<>(); // throttle -> speed
     private List<Double> speedPoints = new ArrayList<>();
+    private List<Integer> throttlePoints = new ArrayList<>();
 
     public LocoProfile(String profilePath) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(profilePath));
@@ -29,6 +31,8 @@ public class LocoProfile {
             double speed = Double.parseDouble(args[1]);
             speedMap.put(speed, throttleByte);
             speedPoints.add(speed);
+            throttleMap.put(throttleByte, speed);
+            throttlePoints.add(throttleByte);
         }
     }
 
@@ -54,13 +58,22 @@ public class LocoProfile {
         throw new IllegalArgumentException("invalid speed: " + speed);
     }
 
+    public double getSpeed(int throttleByte) throws IllegalArgumentException {
+        for (int i = 0; i < throttlePoints.size(); i++) {
+            int throttlePoint = throttlePoints.get(i);
+            if (throttleByte <= throttlePoint) {
+                double hi = throttleMap.get(throttlePoint);
+                if (throttleByte == throttlePoint) return hi;
+                int prevThrottlePoint = throttlePoints.get(i-1);
+                double lo = throttleMap.get(prevThrottlePoint);
+                return lo + (throttleByte - prevThrottlePoint) * 1.0 / (throttlePoint - prevThrottlePoint) * (hi - lo);
+            }
+        }
+        throw new IllegalArgumentException("invalid throttleByte: " + throttleByte);
+    }
+
     public double getMaxSpeed() {
         return speedPoints.get(speedPoints.size() - 1);
     }
 
-    public boolean isNeedToStop(double speed, double moveDist) {
-        double stoppingDist = Math.pow(speed, 2) / 2 / -decRate;
-//        System.out.println(speed + " " + (moveDist - stoppingDist));
-        return stoppingDist >= moveDist;
-    }
 }
