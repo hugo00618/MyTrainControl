@@ -64,7 +64,6 @@ public class Loco implements ThrottleListener {
         synchronized (throttleLock) {
             throttleOverwrite = true;
             this.vThrottleByte = throttleByte;
-            System.out.println(throttleByte);
         }
     }
 
@@ -145,7 +144,6 @@ public class Loco implements ThrottleListener {
                 a = targetSpeed > vSpeed ? profile.getAccRate() : profile.getDecRate();
                 vSpeed += a * vdt / 1000;
                 vSpeed = Math.min(Math.max(vSpeed, 0), profile.getMaxSpeed());
-//                System.out.println(vSpeed + " " + targetSpeed);
             }
 
             vt0 = vt1;

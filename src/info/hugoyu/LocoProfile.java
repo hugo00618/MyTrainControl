@@ -12,6 +12,7 @@ public class LocoProfile {
     public static final double ACC_RATE_COEF = 45;
     public static final double DEC_RATE_COEF = 45;
 
+    private int length;
     private double accRate, decRate;
     private Map<Double, Integer> speedMap = new HashMap<>(); // speed -> throttle
     private Map<Integer, Double> throttleMap = new HashMap<>(); // throttle -> speed
@@ -20,6 +21,12 @@ public class LocoProfile {
 
     public LocoProfile(String profilePath) throws IOException {
         BufferedReader br = new BufferedReader(new FileReader(profilePath));
+
+        int lengthControlCar = Integer.parseInt(br.readLine());
+        int lengthPassengerCar = Integer.parseInt(br.readLine());
+        int numControlCars = Integer.parseInt(br.readLine());
+        int numPassengerCars = Integer.parseInt(br.readLine());
+        length = numControlCars * lengthControlCar + numPassengerCars + lengthPassengerCar;
 
         accRate = Double.parseDouble(br.readLine()) * ACC_RATE_COEF;
         decRate = Double.parseDouble(br.readLine()) * DEC_RATE_COEF;
