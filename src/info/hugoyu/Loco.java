@@ -9,7 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 public class Loco implements ThrottleListener {
     private int address;
-    private String name;
+    private String alias;
     private LocoProfile profile;
 
     private boolean throttleOverwrite = false;
@@ -48,9 +48,9 @@ public class Loco implements ThrottleListener {
 
     private ScheduledExecutorService scheduler;
 
-    public Loco(int address, String name, LocoProfile profile) {
+    public Loco(int address, String alias, LocoProfile profile) {
         this.address = address;
-        this.name = name;
+        this.alias = alias;
         this.profile = profile;
         InstanceManager.getNullableDefault(ThrottleManager.class).requestThrottle(address, this);
     }
@@ -167,8 +167,6 @@ public class Loco implements ThrottleListener {
 
     @Override
     public void notifyThrottleFound(DccThrottle dccThrottle) {
-        System.out.println(name + ": throttle found");
-
         // update speed every millisecond
         scheduler = Executors.newScheduledThreadPool(1);
         scheduler.scheduleAtFixedRate(new Runnable() {

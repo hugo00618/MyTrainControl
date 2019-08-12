@@ -15,27 +15,18 @@ import java.util.Vector;
 
 public class Main {
 
-    public static final String COMMAND_MS = "ms addr [speed (0 - 128)]";
-    public static final String COMMAND_MV = "mv addr [dist] {[max speed (0.0 - 1.0)]}";
-    public static final String COMMAND_S = "s addr";
-    public static final String COMMAND_SPD = "spd addr [speed (0.0 - 1.0)]";
+    public static final String COMMAND_MS   = "ms addr [speed (0 - 128)]";
+    public static final String COMMAND_MV   = "mv addr [dist] {[max speed (0.0 - 1.0)]}";
+    public static final String COMMAND_R    = "r addr bandai";
+    public static final String COMMAND_S    = "s addr";
 
     private static Map<Integer, Loco> locomotives = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
         selectPort();
         turnOnPower();
-
         // construct dcc command thread and start
         ThrottleControlThread.getInstance();
-
-        // register N700A
-        try {
-            registerLoco(3, "N700A", "profile/n700a-1000.profile");
-            registerLoco(4, "500", "profile/500-4000.profile");
-        } catch (IOException e) {
-            System.err.println("Failed to read locoProfile");
-        }
 
         listenCommands();
 
@@ -65,7 +56,6 @@ public class Main {
         if (powerManager.getPower() != PowerManager.ON) {
             powerManager.setPower(PowerManager.ON);
         }
-        System.out.println("Power on");
     }
 
     private static void turnOffPower() throws JmriException {
@@ -73,20 +63,23 @@ public class Main {
         if (powerManager.getPower() != PowerManager.OFF) {
             powerManager.setPower(PowerManager.OFF);
         }
-
-        System.out.println("Power off");
     }
 
-    private static void registerLoco(int address, String name, String locoProfile) throws IOException {
-        locomotives.put(address, new Loco(address, name, new LocoProfile(locoProfile)));
+    private static void registerLoco(int address, String bandai) throws IOException {
+        String alias = Utils.getInstance().getLocoAlias(address);
+        LocoProfile profile = new LocoProfile(Utils.getInstance().getLocoProfilePath(address, bandai));
+        locomotives.put(address, new Loco(address, alias, profile));
+        System.out.println("Registered: " + alias);
     }
 
     private static void listenCommands() throws IOException {
         BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
         String line;
-        System.out.println("Type command: ");
 
-        while ((line = br.readLine()) != null) {
+        while (true) {
+            System.out.println("Type command: ");
+            if ((line = br.readLine()) == null) break;
+
             try {
                 String[] args = line.split(" +");
                 if (line.startsWith("ms ")) { // measure throttle byte
@@ -114,7 +107,13 @@ public class Main {
                         throw new IllegalArgumentException(COMMAND_MV);
                     }
                 } else if (line.startsWith("r ")) { // register loco
+                    if (args.length != 3) throw new IllegalArgumentException(COMMAND_R);
 
+                    try {
+                        registerLoco(Integer.parseInt(args[1]), args[2]);
+                    } catch (NumberFormatException e) {
+                        throw new IllegalArgumentException(COMMAND_R);
+                    }
                 } else if (line.startsWith("s ")) { // stop
                     if (args.length != 2) throw new IllegalArgumentException(COMMAND_S);
 
@@ -123,20 +122,12 @@ public class Main {
                     } catch (NumberFormatException e) {
                         throw new IllegalArgumentException(COMMAND_S);
                     }
-                } else if (line.startsWith("spd ")) { // set speed
-//                    if (args.length != 3) throw new IllegalArgumentException(COMMAND_SPD);
-//
-//                    try {
-//                        locomotives.get(Integer.parseInt(args[1])).setTargetSpeed(Double.parseDouble(args[2]));
-//                    } catch (NumberFormatException e) {
-//                        throw new IllegalArgumentException(COMMAND_SPD);
-//                    }
+                } else {
+                    throw new IllegalArgumentException("Unknown command");
                 }
             } catch (IllegalArgumentException e) {
                 System.err.println(e.getMessage());
             }
-
-            System.out.println("Type command: ");
         }
     }
 
