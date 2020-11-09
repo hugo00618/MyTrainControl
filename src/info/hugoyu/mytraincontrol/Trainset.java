@@ -1,13 +1,18 @@
-package info.hugoyu;
+package info.hugoyu.mytraincontrol;
 
-import jmri.*;
 
-public class Loco implements ThrottleListener {
+import jmri.DccThrottle;
+import jmri.InstanceManager;
+import jmri.LocoAddress;
+import jmri.ThrottleListener;
+import jmri.ThrottleManager;
+
+public class Trainset implements ThrottleListener {
     String name;
 
     DccThrottle throttle;
 
-    public Loco(int address, String name) {
+    public Trainset(int address, String name) {
         this.name = name;
         InstanceManager.getNullableDefault(ThrottleManager.class).requestThrottle(address, this);
     }
@@ -23,7 +28,7 @@ public class Loco implements ThrottleListener {
 
     @Override
     public void notifyThrottleFound(DccThrottle dccThrottle) {
-        System.out.println(name + ": throttle found");
+        System.out.println(name + ": throttle registered");
         this.throttle = dccThrottle;
     }
 
