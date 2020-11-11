@@ -17,7 +17,7 @@ public class StopCommand implements ICommand {
 
     @Override
     public String help() {
-        return null;
+        return "s {address}";
     }
 
     @Override

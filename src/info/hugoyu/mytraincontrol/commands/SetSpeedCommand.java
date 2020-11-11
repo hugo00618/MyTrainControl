@@ -8,7 +8,7 @@ public class SetSpeedCommand implements  ICommand {
     public void execute(String[] args) throws Exception {
         try {
             int address = Integer.parseInt(args[1]);
-            float speed = Float.parseFloat(args[2]);
+            double speed = Integer.parseInt(args[2]);
             TrainUtil.setSpeed(address, speed);
         } catch (NumberFormatException e) {
             throw new CommandInvalidUsageException(this);
@@ -17,7 +17,7 @@ public class SetSpeedCommand implements  ICommand {
 
     @Override
     public String help() {
-        return null;
+        return "ss {address} {speed (double) 0 - inf}";
     }
 
     @Override

@@ -1,8 +1,10 @@
 package info.hugoyu.mytraincontrol;
 
+import info.hugoyu.mytraincontrol.commandstation.CommandStationRunnable;
 import info.hugoyu.mytraincontrol.exceptions.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.exceptions.CommandNotFoundException;
-import info.hugoyu.mytraincontrol.util.BaseStationUtil;
+import info.hugoyu.mytraincontrol.trainset.Trainset;
+import info.hugoyu.mytraincontrol.util.BaseStationPowerUtil;
 import jmri.ConfigureManager;
 import jmri.InstanceManager;
 import jmri.JmriException;
@@ -22,10 +24,13 @@ public class Main {
 
     public static void main(String[] args) throws Exception {
         selectPort();
-        BaseStationUtil.turnOnPower();
+        BaseStationPowerUtil.turnOnPower();
 
         // register N700A
-        CommandProvider.runCommand(new String[]{"r", "3", "N700A"});
+        CommandProvider.runCommand(new String[]{"r", "3", "N700A", "n700-6000.json"});
+        CommandProvider.runCommand(new String[]{"r", "4", "500Series", "500-4000.json"});
+
+        CommandStationRunnable.getInstance();
 
         listenCommands();
 
@@ -77,7 +82,7 @@ public class Main {
     }
 
     private static void cleanup() throws JmriException {
-        BaseStationUtil.turnOffPower();
+        BaseStationPowerUtil.turnOffPower();
     }
 
 

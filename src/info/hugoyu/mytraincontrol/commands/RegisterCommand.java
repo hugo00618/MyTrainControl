@@ -9,7 +9,7 @@ public class RegisterCommand implements ICommand {
     public void execute(String[] args) throws CommandInvalidUsageException {
         try {
             int address = Integer.parseInt(args[1]);
-            TrainUtil.registerTrainset(address, args[2]);
+            TrainUtil.registerTrainset(address, args[2], args[3]);
         } catch (NumberFormatException e) {
             throw new CommandInvalidUsageException(this);
         } catch (Exception e) {
@@ -19,11 +19,11 @@ public class RegisterCommand implements ICommand {
 
     @Override
     public String help() {
-        return null;
+        return "r {address} {name} {configFileName}";
     }
 
     @Override
     public int numberOfArgs() {
-        return 3;
+        return 4;
     }
 }
