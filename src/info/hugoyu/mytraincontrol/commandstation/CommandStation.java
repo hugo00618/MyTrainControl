@@ -1,16 +1,16 @@
 package info.hugoyu.mytraincontrol.commandstation;
 
-import java.util.LinkedList;
+import java.util.PriorityQueue;
 import java.util.Queue;
 
 public class CommandStation {
 
     private static CommandStation instance;
 
-    private static Queue<CommandStationTask> tasks;
+    private static volatile Queue<CommandStationTask> tasks;
 
     private CommandStation() {
-        tasks = new LinkedList<>();
+        tasks = new PriorityQueue<>();
     }
 
     public static CommandStation getInstance() {
@@ -20,21 +20,20 @@ public class CommandStation {
         return instance;
     }
 
-    public boolean hasTasks() {
-        synchronized(tasks) {
-            return !tasks.isEmpty();
-        }
-    }
-
     public void addTask(CommandStationTask task) {
         synchronized (tasks) {
             tasks.add(task);
         }
     }
 
-    public CommandStationTask getTask() {
+    public CommandStationTask getAvailableTask() {
         synchronized (tasks) {
-            return tasks.poll();
+            CommandStationTask task = tasks.peek();
+            if (task != null && System.currentTimeMillis() >= task.getScheduledExecutionTime()) {
+                return tasks.poll();
+            } else {
+                return null;
+            }
         }
     }
 }

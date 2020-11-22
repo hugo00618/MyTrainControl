@@ -10,34 +10,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/jdom.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/jna-platform-4.4.0.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/websocket-api-9.4.7.v20170914.jar!/" />
-        </CLASSES>
-        <JAVADOC />
-        <SOURCES />
-      </library>
-    </orderEntry>
-    <orderEntry type="module-library">
-      <library>
-        <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/smtp.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/libusb4java-1.2.0-windows-x86.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -55,6 +28,33 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../libs/byte-buddy-1.7.10.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../libs/jackson-databind-2.9.8.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
+          <root url="jar://$MODULE_DIR$/../../libs/smtp.jar!/" />
+        </CLASSES>
+        <JAVADOC />
+        <SOURCES />
+      </library>
+    </orderEntry>
+    <orderEntry type="module-library">
+      <library>
+        <CLASSES>
           <root url="jar://$MODULE_DIR$/../../libs/jython-standalone-2.7.0.jar!/" />
         </CLASSES>
         <JAVADOC />
@@ -64,7 +64,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/selenium-server-standalone-3.6.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/javassist-3.20.0-GA.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -73,7 +73,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/websocket-servlet-9.4.7.v20170914.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/jdom.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -119,7 +119,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/jetty-http-9.4.7.v20170914.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/websocket-api-9.4.7.v20170914.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -137,7 +137,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/usb-api-1.0.2.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/typetools-0.5.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -146,7 +146,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/pi4j-device.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/jul-to-slf4j-1.7.25.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -254,7 +254,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/jetty-util-9.4.7.v20170914.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/selenium-server-standalone-3.6.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -281,7 +281,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/cucumber-core-4.3.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/usb-api-1.0.2.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -290,7 +290,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/typetools-0.5.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/cucumber-core-4.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -497,7 +497,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/jsplitbutton-1.3.1.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/javax.servlet-api-3.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -506,7 +506,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/mqtt-client-0.4.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/jsplitbutton-1.3.1.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -524,7 +524,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/commons-io-2.6.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/jetty-http-9.4.7.v20170914.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -551,7 +551,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/javassist-3.20.0-GA.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/spotbugs-annotations.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -569,7 +569,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/jul-to-slf4j-1.7.25.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/libusb4java-1.2.0-osx-x86.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -578,7 +578,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/libusb4java-1.2.0-osx-x86.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/pi4j-device.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -785,7 +785,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/websocket-client-9.4.7.v20170914.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/ecj.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -794,7 +794,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/ecj.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/libusb4java-1.2.0-osx-x86_64.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -821,7 +821,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/byte-buddy-1.7.10.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/gherkin-5.1.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -929,7 +929,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/javax.servlet-api-3.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/mqtt-client-0.4.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -938,7 +938,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/libusb4java-1.2.0-osx-x86_64.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/websocket-client-9.4.7.v20170914.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -956,7 +956,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/spotbugs-annotations.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/commons-io-2.6.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -1010,7 +1010,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/libusb4java-1.2.0-windows-x86.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/jna-platform-4.4.0.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -1019,7 +1019,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/gherkin-5.1.0.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/jetty-util-9.4.7.v20170914.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />
@@ -1037,7 +1037,7 @@
     <orderEntry type="module-library">
       <library>
         <CLASSES>
-          <root url="jar://$MODULE_DIR$/../../libs/jackson-databind-2.9.8.jar!/" />
+          <root url="jar://$MODULE_DIR$/../../libs/websocket-servlet-9.4.7.v20170914.jar!/" />
         </CLASSES>
         <JAVADOC />
         <SOURCES />

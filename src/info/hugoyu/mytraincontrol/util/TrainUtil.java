@@ -6,9 +6,9 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 
 public class TrainUtil {
 
-    public static void setSpeed(int address, double speed) throws Exception {
+    public static void move(int address, int dist) throws Exception {
         Trainset trainset = TrainsetRegistry.getInstance().getTrainset(address);
-        trainset.setSpeed(speed);
+        trainset.move(dist);
     }
 
     public static void registerTrainset(int address, String name, String profileFilename) throws Exception {

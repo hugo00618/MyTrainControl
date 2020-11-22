@@ -6,7 +6,7 @@ public class CommandStationRunnable implements Runnable {
 
     private static final long MIN_UPDATE_INTERVAL = 20;
 
-    private static long lastUpdated = 0;
+    private static long lastExecutedTime = 0;
     private static CommandStation commandStation;
 
     private CommandStationRunnable() {
@@ -26,14 +26,15 @@ public class CommandStationRunnable implements Runnable {
     public void run() {
         while (true) {
 
-            if (System.currentTimeMillis() - lastUpdated >= MIN_UPDATE_INTERVAL) {
-                if (commandStation.hasTasks()) {
-                    commandStation.getTask().execute();
-                    lastUpdated = System.currentTimeMillis();
+            if (System.currentTimeMillis() - lastExecutedTime >= MIN_UPDATE_INTERVAL) {
+                CommandStationTask task = commandStation.getAvailableTask();
+                if (task != null) {
+                    task.execute();
+                    lastExecutedTime = System.currentTimeMillis();
                 }
             } else {
                 try {
-                    long sleepTime = lastUpdated + MIN_UPDATE_INTERVAL - System.currentTimeMillis();
+                    long sleepTime = lastExecutedTime + MIN_UPDATE_INTERVAL - System.currentTimeMillis();
                     if (sleepTime > 0) {
                         Thread.sleep(sleepTime);
                     }

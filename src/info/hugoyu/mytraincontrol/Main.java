@@ -10,6 +10,8 @@ import jmri.InstanceManager;
 import jmri.JmriException;
 import jmri.implementation.JmriConfigurationManager;
 import jmri.jmrix.dccpp.serial.DCCppAdapter;
+import lombok.extern.log4j.Log4j;
+import org.apache.log4j.PropertyConfigurator;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -18,11 +20,17 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Vector;
 
+@Log4j
 public class Main {
+
+    private static final String LOG4J_CONFIG_PATH = "log4j.properties";
 
     private static Map<Integer, Trainset> locomotives = new HashMap<>();
 
     public static void main(String[] args) throws Exception {
+        PropertyConfigurator.configure(LOG4J_CONFIG_PATH);
+        log.info("System start");
+
         selectPort();
         BaseStationPowerUtil.turnOnPower();
 
@@ -70,9 +78,9 @@ public class Main {
                 String[] args = line.split(" +");
                 CommandProvider.runCommand(args);
             } catch (CommandInvalidUsageException e) {
-                System.err.println(e.getMessage());
+                System.err.println("Usage: " + e.getMessage());
             } catch (CommandNotFoundException e) {
-
+                System.err.println("Command not found");
             } catch (Exception e) {
                 // should not run into this case
             }

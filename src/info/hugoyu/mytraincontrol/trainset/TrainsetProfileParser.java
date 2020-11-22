@@ -12,7 +12,8 @@ public class TrainsetProfileParser {
         Gson gson = new Gson();
         JsonReader reader = new JsonReader(new FileReader("trainset-profiles/" + filename));
         TrainsetProfile profile = gson.fromJson(reader, TrainsetProfile.class);
+        profile.postDeserialization();
         return profile;
     }
 
-}
+    }
