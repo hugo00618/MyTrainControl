@@ -11,20 +11,35 @@ repositories {
 sourceSets {
     main {
         java {
-            srcDir 'src'
+            srcDirs 'src/main'
+        }
+    }
+    test {
+        java {
+            srcDirs 'src/tst'
         }
     }
 }
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'junit:junit:4.12'
+    testImplementation(platform('org.junit:junit-bom:5.7.0'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
 
     compileOnly 'org.projectlombok:lombok:1.18.16'
     annotationProcessor 'org.projectlombok:lombok:1.18.16'
 
     implementation 'com.google.code.gson:gson:2.8.6'
 
+    implementation("com.google.guava:guava:30.0-jre")
+
     testCompileOnly 'org.projectlombok:lombok:1.18.16'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
+}
+
+test {
+    useJUnitPlatform()
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
 }
