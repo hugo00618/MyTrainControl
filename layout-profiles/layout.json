@@ -17,84 +17,73 @@
       "id1": "6809"
     }
   ],
-  "stations": [
-    {
+  "stations": {
+    "s1": {
       "name": "Station 1",
-      "id": "s1",
       "tracks": [
         {
+          "name": "Track 1",
           "id": "t1",
           "length": 992,
-          "inboundNodes": [
-            {
-              "id": "3017",
-              "cost": 0
-            }
-          ],
-          "outboundNodes": [
-            {
-              "id": "0",
-              "cost": 0
-            }
-          ]
+          "isPassingTrack": true,
+          "isPlatformTrack": true,
+          "inboundNode": {
+            "id": "3017",
+            "cost": 0
+          },
+          "outboundNode": {
+            "id": "0",
+            "cost": 0
+          }
         },
         {
           "id": "t2",
           "length": 992,
-          "inboundNodes": [
-            {
-              "id": "6809",
-              "cost": 0
-            }
-          ],
-          "outboundNodes": [
-            {
-              "id": "4000",
-              "cost": 0
-            }
-          ]
+          "isPassingTrack": true,
+          "isPlatformTrack": true,
+          "inboundNode": {
+            "id": "6809",
+            "cost": 0
+          },
+          "outboundNode": {
+            "id": "4000",
+            "cost": 0
+          }
         }
       ]
     },
-
-
-    {
+    "s2": {
       "name": "Station 2",
-      "id": "s2",
       "tracks": [
         {
           "id": "t3",
           "length": 992,
-          "inboundNodes": [
-            {
-              "id": "1508",
-              "cost": 0
-            }
-          ],
-          "outboundNodes": [
-            {
-              "id": "1509",
-              "cost": 0
-            }
-          ]
+          "isPassingTrack": true,
+          "isPlatformTrack": true,
+          "inboundNode": {
+            "id": "1508",
+            "cost": 0
+          },
+          "outboundNode": {
+            "id": "1509",
+            "cost": 0
+          }
         },
         {
           "id": "t4",
           "length": 992,
-          "inboundNodes": [
-            {
-              "id": "5405",
-              "cost": 0
-            }
-          ],
-          "outboundNodes": [
-            {
-              "id": "5405",
-              "cost": 0
-            }
-          ]
+          "isPassingTrack": true,
+          "isPlatformTrack": true,
+          "inboundNode": {
+            "id": "5404",
+            "cost": 0
+          },
+          "outboundNode": {
+            "id": "5405",
+            "cost": 0
+          }
         }
       ]
     }
-  ]
+  }
 }

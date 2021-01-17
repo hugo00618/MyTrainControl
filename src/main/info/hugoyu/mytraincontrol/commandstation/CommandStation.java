@@ -1,5 +1,7 @@
 package info.hugoyu.mytraincontrol.commandstation;
 
+import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
+
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -8,6 +10,7 @@ public class CommandStation {
     private static CommandStation instance;
 
     private static volatile Queue<AbstractCommandStationTask> tasks;
+    private static final Object tasksLock = new Object();
 
     private CommandStation() {
         tasks = new PriorityQueue<>();
@@ -21,13 +24,13 @@ public class CommandStation {
     }
 
     public void addTask(AbstractCommandStationTask task) {
-        synchronized (tasks) {
+        synchronized (tasksLock) {
             tasks.add(task);
         }
     }
 
     public AbstractCommandStationTask getAvailableTask() {
-        synchronized (tasks) {
+        synchronized (tasksLock) {
             AbstractCommandStationTask task = tasks.peek();
             if (task != null && System.currentTimeMillis() >= task.getScheduledExecutionTime()) {
                 return tasks.poll();

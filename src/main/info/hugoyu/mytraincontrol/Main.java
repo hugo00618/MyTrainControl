@@ -1,8 +1,9 @@
 package info.hugoyu.mytraincontrol;
 
+import info.hugoyu.mytraincontrol.util.CommandProvider;
 import info.hugoyu.mytraincontrol.commandstation.CommandStationRunnable;
-import info.hugoyu.mytraincontrol.exceptions.CommandInvalidUsageException;
-import info.hugoyu.mytraincontrol.exceptions.CommandNotFoundException;
+import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
+import info.hugoyu.mytraincontrol.exception.CommandNotFoundException;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.BaseStationPowerUtil;
 import jmri.ConfigureManager;
@@ -34,10 +35,13 @@ public class Main {
         selectPort();
         BaseStationPowerUtil.turnOnPower();
 
-        // register N700A
-        CommandProvider.runCommand(new String[]{"r", "3", "N700A", "n700a-6000.json"});
-        CommandProvider.runCommand(new String[]{"r", "4", "500 Series", "500-4000.json"});
-        CommandProvider.runCommand(new String[]{"r", "5", "E6 Series", "e6.json"});
+        // register trains
+        CommandProvider.runCommand(new String[]{"reg", "3", "N700A", "n700a-6000.json"});
+        CommandProvider.runCommand(new String[]{"reg", "4", "500 Series", "500-4000.json"});
+        CommandProvider.runCommand(new String[]{"reg", "5", "E6 Series", "e6.json"});
+
+        // alloc
+        CommandProvider.runCommand(new String[]{"alloc", "3", "t1"});
 
         CommandStationRunnable.getInstance();
 
@@ -73,13 +77,13 @@ public class Main {
         System.out.println("Type command: ");
 
         while ((line = br.readLine()) != null) {
+            String[] args = line.split(" +");
             try {
-                String[] args = line.split(" +");
                 CommandProvider.runCommand(args);
-            } catch (CommandInvalidUsageException e) {
-                System.err.println("Usage: " + e.getMessage());
             } catch (CommandNotFoundException e) {
                 System.err.println("Command not found");
+            } catch (CommandInvalidUsageException e) {
+                System.err.println("Usage: " + args[0] + " " + e.getMessage());
             } catch (Exception e) {
                 // should not run into this case
             }

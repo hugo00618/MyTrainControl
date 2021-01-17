@@ -3,11 +3,10 @@
   "passengerCarLength": 0,
   "numControlCars": 0,
   "numPassengerCars": 0,
-  "accRate": 1.71,
+  "accRate": 1.6,
   "decRate": -2.7,
-  "topSpeed": 360,
+  "topSpeed": 275,
   "throttleSpeedMap": {
-    "0": 0,
-    "80": 465.4044
+    "0": 0
   }
 }

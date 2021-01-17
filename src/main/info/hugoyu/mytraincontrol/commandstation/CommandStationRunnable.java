@@ -1,5 +1,7 @@
 package info.hugoyu.mytraincontrol.commandstation;
 
+import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
+
 public class CommandStationRunnable implements Runnable {
 
     private static CommandStationRunnable instance;
@@ -25,7 +27,6 @@ public class CommandStationRunnable implements Runnable {
     @Override
     public void run() {
         while (true) {
-
             if (System.currentTimeMillis() - lastExecutedTime >= MIN_UPDATE_INTERVAL) {
                 AbstractCommandStationTask task = commandStation.getAvailableTask();
                 if (task != null) {
@@ -38,7 +39,6 @@ public class CommandStationRunnable implements Runnable {
                     if (sleepTime > 0) {
                         Thread.sleep(sleepTime);
                     }
-
                 } catch (InterruptedException e) {
 
                 }

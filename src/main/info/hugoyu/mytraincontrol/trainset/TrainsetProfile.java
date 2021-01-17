@@ -42,6 +42,10 @@ public class TrainsetProfile implements JsonParsable {
         decRate *= DEC_RATE_COEF;
     }
 
+    public int getTotalLength() {
+        return controlCarLength * numControlCars + passengerCarLength * numPassengerCars;
+    }
+
     public float getThrottle(double speed) {
         int minThrottle = throttleList.get(0);
         double minSpeed = throttleSpeedMap.get(minThrottle);
