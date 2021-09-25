@@ -1,9 +1,7 @@
 package info.hugoyu.mytraincontrol.command;
 
-public interface ICommand {
+public interface Command {
     void execute(String[] args) throws Exception;
-
     String argList();
-
     int numberOfArgs();
 }

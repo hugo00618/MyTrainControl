@@ -1,10 +1,10 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
-import info.hugoyu.mytraincontrol.command.ICommand;
+import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
-public class MoveCommand implements ICommand {
+public class MoveCommand implements Command {
 
     @Override
     public void execute(String[] args) throws Exception {
@@ -14,6 +14,8 @@ public class MoveCommand implements ICommand {
             TrainUtil.moveTo(address, stationId);
         } catch (NumberFormatException e) {
             throw new CommandInvalidUsageException(this);
+        } catch (RuntimeException e) {
+            e.printStackTrace();
         }
     }
 

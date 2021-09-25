@@ -1,11 +1,11 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
-import info.hugoyu.mytraincontrol.command.ICommand;
+import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.BaseStationPowerUtil;
 import jmri.JmriException;
 
-public class PowerControlCommand implements ICommand {
+public class PowerControlCommand implements Command {
     @Override
     public void execute(String[] args) throws CommandInvalidUsageException, JmriException {
         String powerStatus = args[1].toLowerCase();

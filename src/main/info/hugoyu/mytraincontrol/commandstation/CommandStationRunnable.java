@@ -35,6 +35,7 @@ public class CommandStationRunnable implements Runnable {
                 }
             } else {
                 try {
+                    // sleep till next execution window opens
                     long sleepTime = lastExecutedTime + MIN_UPDATE_INTERVAL - System.currentTimeMillis();
                     if (sleepTime > 0) {
                         Thread.sleep(sleepTime);

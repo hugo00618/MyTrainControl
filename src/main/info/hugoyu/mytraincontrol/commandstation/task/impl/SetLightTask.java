@@ -7,11 +7,8 @@ import jmri.DccThrottle;
 
 public class SetLightTask extends AbstractCommandStationTask {
 
-    private Trainset trainset;
-
     public SetLightTask(Trainset trainset) {
-        super(System.currentTimeMillis());
-        this.trainset = trainset;
+        super(trainset, System.currentTimeMillis());
     }
 
     @Override
@@ -19,4 +16,5 @@ public class SetLightTask extends AbstractCommandStationTask {
         DccThrottle throttle = ThrottleRegistry.getInstance().getThrottle(trainset.getAddress());
         throttle.setF0(trainset.isLightOn());
     }
+
 }

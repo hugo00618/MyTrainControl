@@ -1,0 +1,85 @@
+{
+  "regularTracks": [
+    {
+      "id0": 10002,
+      "id1": 10004,
+      "length": 1508
+    },
+    {
+      "id0": 10006,
+      "id1": 10000,
+      "length": 1508
+    },
+    {
+      "id0": 10003,
+      "id1": 10005,
+      "length": 1404
+    },
+    {
+      "id0": 10007,
+      "id1": 10001,
+      "length": 1404
+    }
+  ],
+  "turnouts": [
+
+  ],
+  "stations": [
+    {
+      "id": "s1",
+      "name": "Station 1",
+      "entryNodeIds": [
+        10000,
+        10001
+      ],
+      "tracks": [
+        {
+          "id0": 10000,
+          "id1": 10002,
+          "name": "Track 1",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 992,
+          "platformLength": 992
+        },
+        {
+          "id0": 10001,
+          "id1": 10003,
+          "name": "Track 2",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 992,
+          "platformLength": 992
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "name": "Station 2",
+      "entryNodeIds": [
+        10004,
+        10005
+      ],
+      "tracks": [
+        {
+          "id0": 10004,
+          "id1": 10006,
+          "name": "Track 1",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 992,
+          "platformLength": 992
+        },
+        {
+          "id0": 10005,
+          "id1": 10007,
+          "name": "Track 2",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 992,
+          "platformLength": 992
+        }
+      ]
+    }
+  ]
+}

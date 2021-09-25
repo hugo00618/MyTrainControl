@@ -1,9 +1,11 @@
-package info.hugoyu.mytraincontrol.command;
+package info.hugoyu.mytraincontrol.command.debug;
+
+import info.hugoyu.mytraincontrol.command.Command;
 
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 
-public abstract class AbstractDebugCommand implements ICommand {
+public abstract class AbstractDebugCommand implements Command {
 
     @Override
     public final void execute(String[] args) throws Exception {
@@ -15,6 +17,7 @@ public abstract class AbstractDebugCommand implements ICommand {
             System.out.println("Command aborted");
             return;
         }
+
         executeCommand(args);
     }
 

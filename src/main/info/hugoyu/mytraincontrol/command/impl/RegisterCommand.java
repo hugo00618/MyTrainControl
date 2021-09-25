@@ -1,12 +1,12 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
-import info.hugoyu.mytraincontrol.command.ICommand;
+import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
-public class RegisterCommand implements ICommand {
+public class RegisterCommand implements Command {
 
     @Override
     public void execute(String[] args) throws CommandInvalidUsageException {

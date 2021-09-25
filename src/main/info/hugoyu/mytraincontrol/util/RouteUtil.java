@@ -1,81 +1,50 @@
 package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.layout.Route;
-import info.hugoyu.mytraincontrol.layout.Station;
-import info.hugoyu.mytraincontrol.layout.node.AbstractGraphNode;
-import info.hugoyu.mytraincontrol.layout.node.impl.StationNode;
-import info.hugoyu.mytraincontrol.trainset.Trainset;
+import info.hugoyu.mytraincontrol.layout.alias.Station;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
 
 public class RouteUtil {
 
-    private static Map<String, AbstractGraphNode> nodes;
-    private static Map<String, Station> stations;
-
-    static {
-        nodes = LayoutUtil.getNodes();
-        stations = LayoutUtil.getStations();
+    public static Route findRouteToNode(long from, long to) {
+        return findRouteRecur(from, to, new ArrayList<>(), 0);
     }
 
-    private static Route findRouteToNode(String fromNode, String toNode) {
-        if (nodes.get(fromNode).getMinCostToNode(toNode) == Integer.MAX_VALUE) {
-            if (calculateCost(fromNode, toNode, new HashSet<>()) == -1) {
-                return null;
-            }
-        }
+    public static Route findRouteToStation(long from, String to) {
+        Station station = LayoutUtil.getStation(to);
 
-        Route res = new Route(fromNode);
-        String it = fromNode;
-        while (!it.equals(toNode)) {
-            String minCostNodeId = nodes.get(it).getMinCostNextNode(toNode);
-            res.add(minCostNodeId);
-            it = minCostNodeId;
-        }
-        return res;
-    }
-
-    public static Route findRouteToStation(Trainset trainset, String fromNode, String toStation) {
-        int trainLength = trainset.getProfile().getTotalLength();
-        return stations.get(toStation).getInboundNodes().stream()
-                .filter(inboundNode -> isTrackFitTrain(String.valueOf(inboundNode.getId()), trainLength))
-                .map(inboundNode -> findRouteToNode(fromNode, String.valueOf(inboundNode.getId())))
-                .filter(Objects::nonNull)
+        return station.getEntryNodeIds().stream()
+                .map(entryNodeId -> findRouteRecur(from, entryNodeId, new ArrayList<>(), 0))
+                .filter(route -> route != null)
                 .sorted()
                 .findFirst()
                 .orElse(null);
     }
 
-    private static boolean isTrackFitTrain(String nodeId, int trainLength) {
-        StationNode stationNode = (StationNode) LayoutUtil.getNode(nodeId);
-        return stationNode.getLength() >= trainLength;
-    }
+    private static Route findRouteRecur(long nodeId, long destinationId, List<Long> visited, int cost) {
+        if (visited.contains(nodeId)) {
+            return null;
+        }
+        visited.add(nodeId);
 
-    private static int calculateCost(String from, String to, Set<String> visited) {
-        if (from.equals(to)) {
-            return 0;
+        if (nodeId == destinationId) {
+            return new Route(new ArrayList<>(visited), cost);
         }
 
-        if (visited.contains(from)) {
-            return -1;
-        }
-
-        visited.add(from);
-        AbstractGraphNode fromNode = nodes.get(from);
-        for (String next : fromNode.getNextNodes()) {
-            int cost = fromNode.getCostToNextNode(next);
-            int nextCost = calculateCost(next, to, visited);
-            if (nextCost == -1) { // unreachable
-                return -1;
+        Route result = null;
+        for (Map.Entry<Long, Integer> nextNode : LayoutUtil.getNode(nodeId).getNextNodes().entrySet()) {
+            Route route = findRouteRecur(nextNode.getKey(), destinationId, visited, cost + nextNode.getValue());
+            if (route != null && (result == null || result.getCost() > route.getCost())) {
+                result = route;
             }
-            fromNode.setMinCostToNode(to, next, cost + nextCost);
         }
-        visited.remove(from);
 
-        return fromNode.getMinCostToNode(to);
+        visited.remove(visited.size() - 1);
+
+        return result;
     }
 
 }

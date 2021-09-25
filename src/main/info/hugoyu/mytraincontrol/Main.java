@@ -37,11 +37,12 @@ public class Main {
 
         // register trains
         CommandProvider.runCommand(new String[]{"reg", "3", "N700A", "n700a-6000.json"});
-        CommandProvider.runCommand(new String[]{"reg", "4", "500 Series", "500-4000.json"});
-        CommandProvider.runCommand(new String[]{"reg", "5", "E6 Series", "e6.json"});
+//        CommandProvider.runCommand(new String[]{"reg", "4", "500", "500-4000.json"});
+        CommandProvider.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
 
         // alloc
-        CommandProvider.runCommand(new String[]{"alloc", "3", "t1"});
+        CommandProvider.runCommand(new String[]{"alloc", "3", "10000"});
+        CommandProvider.runCommand(new String[]{"alloc", "5", "10001"});
 
         CommandStationRunnable.getInstance();
 

@@ -1,11 +1,8 @@
-package info.hugoyu.mytraincontrol.command.impl;
+package info.hugoyu.mytraincontrol.command.debug.impl;
 
-import info.hugoyu.mytraincontrol.command.AbstractDebugCommand;
+import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 
-/**
- * For debug only
- */
 public class SetThrottleCommand extends AbstractDebugCommand {
 
     @Override

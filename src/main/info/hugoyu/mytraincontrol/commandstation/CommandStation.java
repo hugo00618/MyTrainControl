@@ -1,7 +1,9 @@
 package info.hugoyu.mytraincontrol.commandstation;
 
+import com.google.common.annotations.VisibleForTesting;
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 
+import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
 
@@ -23,9 +25,27 @@ public class CommandStation {
         return instance;
     }
 
-    public void addTask(AbstractCommandStationTask task) {
+    @VisibleForTesting
+    static CommandStation getNewInstance() {
+        instance = new CommandStation();
+        return instance;
+    }
+
+    public void addTask(AbstractCommandStationTask newTask) {
         synchronized (tasksLock) {
-            tasks.add(task);
+            Optional<AbstractCommandStationTask> existingTaskOptional = tasks.stream()
+                    .filter(task -> task.getTrainset().equals(newTask.getTrainset()) &&
+                            task.getClass().equals(newTask.getClass()))
+                    .findFirst();
+
+            if (existingTaskOptional.isPresent()) {
+                AbstractCommandStationTask existingTask = existingTaskOptional.get();
+                removeFromTasks(existingTask);
+                existingTask.dedupe(newTask);
+                tasks.add(existingTask);
+            } else {
+                tasks.add(newTask);
+            }
         }
     }
 
@@ -38,5 +58,23 @@ public class CommandStation {
                 return null;
             }
         }
+    }
+
+    private void removeFromTasks(AbstractCommandStationTask removingTask) {
+        synchronized (tasksLock) {
+            Queue<AbstractCommandStationTask> newTasks = new PriorityQueue<>();
+            while (!tasks.isEmpty()) {
+                AbstractCommandStationTask task = tasks.poll();
+                if (task != removingTask) {
+                    newTasks.add(task);
+                }
+            }
+            tasks = newTasks;
+        }
+    }
+
+    @VisibleForTesting
+    Queue<AbstractCommandStationTask> getTasks() {
+        return tasks;
     }
 }

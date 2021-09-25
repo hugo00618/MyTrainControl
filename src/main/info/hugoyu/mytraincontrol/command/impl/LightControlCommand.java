@@ -1,10 +1,10 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
-import info.hugoyu.mytraincontrol.command.ICommand;
+import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
-public class LightControlCommand implements ICommand {
+public class LightControlCommand implements Command {
     private static final String LIGHT_STATUS_OFF = "off";
     private static final String LIGHT_STATUS_ON = "on";
 

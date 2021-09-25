@@ -7,16 +7,12 @@ import jmri.DccThrottle;
 
 public class SetSpeedTask extends AbstractCommandStationTask {
 
-    private Trainset trainset;
-
     public SetSpeedTask(Trainset trainset, long taskCreationTime) {
-        super(taskCreationTime);
-        this.trainset = trainset;
+        super(trainset, taskCreationTime);
     }
 
     public SetSpeedTask(Trainset trainset, long taskCreationTime, long delay) {
-        super(taskCreationTime, delay);
-        this.trainset = trainset;
+        super(trainset, taskCreationTime, delay);
     }
 
     @Override

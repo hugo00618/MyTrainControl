@@ -1,17 +1,12 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
-import info.hugoyu.mytraincontrol.command.ICommand;
+import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
-import info.hugoyu.mytraincontrol.layout.Station;
-import info.hugoyu.mytraincontrol.layout.StationTrack;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 
-import java.util.Collection;
-import java.util.Map;
-
-public class ListCommand implements ICommand {
+public class ListCommand implements Command {
 
     private static final String LIST_TYPE_TRAINS = "trains";
     private static final String LIST_TYPE_STATIONS = "stations";
@@ -42,26 +37,24 @@ public class ListCommand implements ICommand {
     }
 
     private void printTrains() {
-        Map<Integer, Trainset> trainsets = TrainsetRegistry.getInstance().getTrainsets();
         System.out.println("Registered trains:");
-        for (Map.Entry<Integer, Trainset> trainsetEntry : trainsets.entrySet()) {
-            Trainset trainset = trainsetEntry.getValue();
-            System.out.println(String.format("%d %s", trainsetEntry.getKey(), trainset.getName()));
-        }
+        TrainsetRegistry.getInstance().getTrainsets().entrySet().forEach(entry -> {
+            Trainset trainset = entry.getValue();
+            System.out.println(String.format("%d %s", entry.getKey(), trainset.getName()));
+        });
         System.out.println();
     }
 
     private void printStations() {
-        Collection<Station> stations = LayoutUtil.getStations().values();
         System.out.println("Stations:");
-        for (Station station : stations) {
+        LayoutUtil.getStations().values().forEach(station -> {
             System.out.println(station.getName());
 
             System.out.println("\tTracks:");
-            for (StationTrack track : station.getTracks()) {
-                System.out.println("\t\t" + track.getId());
-            }
-        }
+            station.getStationTackNodes().forEach(stationTrackNode -> {
+                System.out.println("\t\t" + stationTrackNode.getId());
+            });
+        });
         System.out.println();
     }
 }

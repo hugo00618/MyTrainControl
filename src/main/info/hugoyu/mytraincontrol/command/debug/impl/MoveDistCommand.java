@@ -1,6 +1,6 @@
-package info.hugoyu.mytraincontrol.command.impl;
+package info.hugoyu.mytraincontrol.command.debug.impl;
 
-import info.hugoyu.mytraincontrol.command.AbstractDebugCommand;
+import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
