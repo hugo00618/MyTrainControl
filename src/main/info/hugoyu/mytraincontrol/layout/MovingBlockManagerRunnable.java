@@ -43,31 +43,31 @@ public class MovingBlockManagerRunnable implements Runnable {
         trainset.resetMovedDist();
         double totalMovedDist = 0;
 
-        synchronized (trainset.distLock) {
-            try {
-                // allocate initial buffer space
-                allocate();
+        try {
+            // allocate initial buffer space
+            allocate();
 //                allocate(TRAIN_BUFFER_DISTANCE, true);
 //                allocate(TRAIN_BUFFER_DISTANCE + INITIAL_MOVE_DISTANCE, false);
 
-                while (distToMove > 0) {
-                    trainset.waitDistUpdate();
+            while (distToMove > 0) {
+                trainset.waitDistUpdate();
 
-                    double movedDist = trainset.resetMovedDist();
-                    log.debug("movedDist: " + movedDist);
+                double movedDist = trainset.resetMovedDist();
+                log.debug("movedDist: " + movedDist);
 
-                    distToMove -= movedDist;
-                    totalMovedDist += movedDist;
-                    System.out.println("totalMovedDist: " + totalMovedDist);
+                distToMove -= movedDist;
+                totalMovedDist += movedDist;
+                System.out.println("totalMovedDist: " + totalMovedDist);
 
-                    allocatedMoveDist -= movedDist;
-                    movedDistToFree += movedDist;
+                allocatedMoveDist -= movedDist;
+                movedDistToFree += movedDist;
 
-                    // free movedDistToFree
-                    free();
+                // free movedDistToFree
+                free();
 
-                    // allocate distance if needed
-                    allocate();
+                // allocate distance if needed
+                // todo: fix bug - if this blocks, it still holds trainset's distLock
+                allocate();
 //                    int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance()) + trainset.getCSpeed() * 0.5);
 //                    int minAllocateDist = minStoppingDist + TRAIN_BUFFER_DISTANCE;
 //
@@ -77,10 +77,9 @@ public class MovingBlockManagerRunnable implements Runnable {
 //                    if (allocatedMoveDist < minAllocateDist) {
 //                        allocate(minAllocateDist, false);
 //                    }
-                }
-            } catch (NodeAllocationException e) {
-                e.printStackTrace();
             }
+        } catch (NodeAllocationException e) {
+            e.printStackTrace();
         }
     }
 

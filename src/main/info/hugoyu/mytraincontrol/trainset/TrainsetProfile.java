@@ -22,11 +22,10 @@ public class TrainsetProfile implements JsonParsable {
     private Map<Integer, Double> throttleSpeedMap;
 
     private List<Integer> throttleList;
-    private double maxSpeed;
 
     @Override
     public void postDeserialization() {
-        // convert speed from kilometer/hour to scale-equivalent millimeter/sec
+        // convert speed from km/h to scale-equivalent mm/s
         topSpeed = SpeedUtil.toMMps(topSpeed);
         for (Map.Entry<Integer, Double> entry : throttleSpeedMap.entrySet()) {
             double mmps = SpeedUtil.toMMps(entry.getValue());
@@ -35,8 +34,6 @@ public class TrainsetProfile implements JsonParsable {
 
         throttleList = new ArrayList<>(throttleSpeedMap.keySet());
         Collections.sort(throttleList);
-
-        maxSpeed = throttleSpeedMap.get(throttleList.get(throttleList.size() - 1));
 
         accRate *= ACC_RATE_COEF;
         decRate *= DEC_RATE_COEF;

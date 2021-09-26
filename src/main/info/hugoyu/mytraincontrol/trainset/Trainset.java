@@ -37,7 +37,7 @@ public class Trainset implements TaskExecutionListener {
 
     private volatile double distToMove;
     private volatile double movedDist;
-    public final Object distLock = new Object();
+    private final Object distLock = new Object();
 
     private TrainsetProfile profile;
 
@@ -84,9 +84,11 @@ public class Trainset implements TaskExecutionListener {
     }
 
     public double addDistToMove(int addDist) {
-        double newDistToMove = distToMove + addDist;
-        setDistToMove(newDistToMove);
-        return newDistToMove;
+        synchronized (distLock) {
+            double newDistToMove = this.distToMove + addDist;
+            setDistToMove(newDistToMove);
+            return newDistToMove;
+        }
     }
 
     public void setDistToMove(double distToMove) {
@@ -130,7 +132,7 @@ public class Trainset implements TaskExecutionListener {
 
                 // update target speed
                 if (distToMove > minimumStoppingDistance) {
-                    tSpeed = profile.getMaxSpeed();
+                    tSpeed = profile.getTopSpeed();
                 } else {
                     tSpeed = 0;
                 }

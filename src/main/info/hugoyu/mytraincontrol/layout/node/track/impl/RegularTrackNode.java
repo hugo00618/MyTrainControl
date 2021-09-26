@@ -101,7 +101,8 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         synchronized (ownersLock) {
             return owners.entrySet().stream()
                     .filter(entry -> entry.getKey() != trainsetAddress)
-                    .allMatch(entry -> entry.getValue().intersection(allocatingRange).isEmpty());
+                    .allMatch(entry -> !entry.getValue().isConnected(allocatingRange) ||
+                            entry.getValue().intersection(allocatingRange).isEmpty());
         }
     }
 
