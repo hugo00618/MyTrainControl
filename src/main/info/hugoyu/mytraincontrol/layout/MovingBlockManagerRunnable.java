@@ -39,9 +39,7 @@ public class MovingBlockManagerRunnable implements Runnable {
 
     @Override
     public void run() {
-        System.out.println("distToMove:" + distToMove);
         trainset.resetMovedDist();
-        double totalMovedDist = 0;
 
         try {
             // allocate initial buffer space
@@ -56,8 +54,6 @@ public class MovingBlockManagerRunnable implements Runnable {
                 log.debug("movedDist: " + movedDist);
 
                 distToMove -= movedDist;
-                totalMovedDist += movedDist;
-                System.out.println("totalMovedDist: " + totalMovedDist);
 
                 allocatedMoveDist -= movedDist;
                 movedDistToFree += movedDist;

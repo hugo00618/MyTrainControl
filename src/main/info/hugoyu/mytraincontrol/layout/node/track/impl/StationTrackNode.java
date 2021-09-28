@@ -5,6 +5,8 @@ import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 
+import java.util.Map;
+
 @Getter
 public class StationTrackNode extends RegularTrackNode {
 
@@ -13,9 +15,9 @@ public class StationTrackNode extends RegularTrackNode {
     private int platformLength;
     private boolean isPlatformTrack, isPassingTrack;
 
-    public StationTrackNode(long id0, long id1, String name, int trackLength, int platformLength,
-                            boolean isPlatformTrack, boolean isPassingTrack) {
-        super(id0, isPassingTrack ? id1 : null, trackLength);
+    public StationTrackNode(long id0, long id1, String name, int trackLength, Map<Integer, Integer> sensors,
+                            int platformLength, boolean isPlatformTrack, boolean isPassingTrack) {
+        super(id0, isPassingTrack ? id1 : null, trackLength, sensors);
 
         this.id1 = id1;
         this.name = name;

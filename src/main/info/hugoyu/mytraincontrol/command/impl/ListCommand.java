@@ -5,6 +5,7 @@ import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
+import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 public class ListCommand implements Command {
 
@@ -38,7 +39,7 @@ public class ListCommand implements Command {
 
     private void printTrains() {
         System.out.println("Registered trains:");
-        TrainsetRegistry.getInstance().getTrainsets().entrySet().forEach(entry -> {
+        TrainUtil.getTrainsets().entrySet().forEach(entry -> {
             Trainset trainset = entry.getValue();
             System.out.println(String.format("%d %s", entry.getKey(), trainset.getName()));
         });

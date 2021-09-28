@@ -40,7 +40,10 @@
           "isPlatformTrack": true,
           "isPassingTrack": true,
           "trackLength": 992,
-          "platformLength": 992
+          "platformLength": 992,
+          "sensors": {
+            "14": 0
+          }
         },
         {
           "id0": 10001,

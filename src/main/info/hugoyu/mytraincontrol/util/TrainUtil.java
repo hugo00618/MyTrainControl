@@ -8,11 +8,12 @@ import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 
 import java.util.List;
+import java.util.Map;
 
 public class TrainUtil {
 
     public static void moveDist(int address, int dist) {
-        Trainset trainset = TrainsetRegistry.getInstance().getTrainset(address);
+        Trainset trainset = getTrainset(address);
         trainset.move(dist);
     }
 
@@ -21,13 +22,21 @@ public class TrainUtil {
         ThrottleRegistry.getInstance().registerThrottle(address);
     }
 
+    public static Trainset getTrainset(Integer address) {
+        return TrainsetRegistry.getInstance().getTrainset(address);
+    }
+
+    public static Map<Integer, Trainset> getTrainsets() {
+        return TrainsetRegistry.getInstance().getTrainsets();
+    }
+
     public static void setLight(int address, boolean on) {
-        Trainset trainset = TrainsetRegistry.getInstance().getTrainset(address);
+        Trainset trainset = getTrainset(address);
         trainset.setIsLightOn(on);
     }
 
     public static boolean allocateStationTrackImmediate(int address, long trackNodeId) {
-        Trainset trainset = TrainsetRegistry.getInstance().getTrainset(address);
+        Trainset trainset = getTrainset(address);
 
         AbstractTrackNode node = LayoutUtil.getNode(trackNodeId);
         if (!(node instanceof StationTrackNode)) {
@@ -39,7 +48,7 @@ public class TrainUtil {
     }
 
     public static void moveTo(int address, String stationId) {
-        Trainset trainset = TrainsetRegistry.getInstance().getTrainset(address);
+        Trainset trainset = getTrainset(address);
 
         List<Long> allocatedNodes = trainset.getAllocatedNodes();
         if (allocatedNodes.isEmpty()) {

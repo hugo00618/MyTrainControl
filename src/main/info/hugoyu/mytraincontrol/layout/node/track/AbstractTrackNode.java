@@ -23,6 +23,4 @@ public abstract class AbstractTrackNode implements Allocatable {
         nextNodes.put(nextNode, cost);
     }
 
-
-
 }

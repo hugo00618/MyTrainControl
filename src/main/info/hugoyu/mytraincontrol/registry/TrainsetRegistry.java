@@ -38,7 +38,11 @@ public class TrainsetRegistry {
         }
     }
 
-    public Trainset getTrainset(int address) {
+    public Trainset getTrainset(Integer address) {
+        if (address == null) {
+            return null;
+        }
+
         return trainsets.get(address);
     }
 

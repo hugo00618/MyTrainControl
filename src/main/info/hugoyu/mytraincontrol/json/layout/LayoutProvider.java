@@ -21,11 +21,12 @@ public class LayoutProvider {
         LayoutRegistry layoutRegistry = LayoutRegistry.getInstance();
 
         // regular nodes
-        for (TrackJson regularTrackJson : layoutJson.getRegularTracks()) {
+        for (RegularTrackJson regularTrackJson : layoutJson.getRegularTracks()) {
             AbstractTrackNode regularTrackNode = new RegularTrackNode(
                     regularTrackJson.getId0(),
                     regularTrackJson.getId1(),
-                    regularTrackJson.getLength());
+                    regularTrackJson.getLength(),
+                    regularTrackJson.getSensors());
             layoutRegistry.registerGraphNode(regularTrackNode);
         }
 
@@ -60,6 +61,7 @@ public class LayoutProvider {
                             stationTrackJson.getId1(),
                             stationTrackJson.getName(),
                             stationTrackJson.getTrackLength(),
+                            stationTrackJson.getSensors(),
                             stationTrackJson.getPlatformLength(),
                             stationTrackJson.isPlatformTrack(),
                             stationTrackJson.isPassingTrack());

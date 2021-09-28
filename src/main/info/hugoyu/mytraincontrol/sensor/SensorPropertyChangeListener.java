@@ -9,6 +9,8 @@ import java.beans.PropertyChangeListener;
 @AllArgsConstructor
 public class SensorPropertyChangeListener implements PropertyChangeListener {
 
+    private Sensor sensor;
+
     private SensorChangeListener listener;
 
     @Override
@@ -16,9 +18,9 @@ public class SensorPropertyChangeListener implements PropertyChangeListener {
         int newVal = (int) evt.getNewValue();
 
         if (newVal == Sensor.ACTIVE) {
-            listener.onEnter();
+            listener.onEnter(sensor);
         } else if (newVal == Sensor.INACTIVE) {
-            listener.onExit();
+            listener.onExit(sensor);
         }
     }
 

@@ -8,10 +8,6 @@ import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
 import info.hugoyu.mytraincontrol.json.TrainsetProfileJsonProvider;
 import info.hugoyu.mytraincontrol.layout.MovingBlockManagerRunnable;
 import info.hugoyu.mytraincontrol.layout.Route;
-import info.hugoyu.mytraincontrol.sensor.SensorChangeListener;
-import info.hugoyu.mytraincontrol.sensor.SensorPropertyChangeListener;
-import jmri.InstanceManager;
-import jmri.Sensor;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
@@ -52,27 +48,6 @@ public class Trainset implements TaskExecutionListener {
         this.name = name;
 
         profile = TrainsetProfileJsonProvider.parseJSON(profileFilename);
-
-        Sensor sensor = InstanceManager.sensorManagerInstance().
-                provideSensor("22");
-
-        sensor.addPropertyChangeListener(new SensorPropertyChangeListener(new SensorChangeListener() {
-            @Override
-            public void onEnter() {
-                if (address == 3) {
-                    log.debug("Calibrating distance to 976");
-                    updateDistToMove(976);
-                }
-            }
-
-            @Override
-            public void onExit() {
-                if (address == 3) {
-                    log.debug("Calibrating distance to 16");
-                    updateDistToMove(16);
-                }
-            }
-        }));
     }
 
     public void move(Route route) {
@@ -164,7 +139,6 @@ public class Trainset implements TaskExecutionListener {
                     if (coastingDistance > 0) {
                         long coastingTime = (long) (coastingDistance / cSpeed * 1000);
                         log.debug(String.format("%s: coasting for %dms", name, coastingTime));
-                        System.out.println(String.format("%s: coasting for %dms", name, coastingTime));
                         sendSetSpeedTask(currentTime, coastingTime);
                     }
                 }
