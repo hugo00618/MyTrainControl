@@ -18,12 +18,7 @@ public class MoveDistCommand extends AbstractDebugCommand {
     }
 
     @Override
-    public String argList() {
-        return "{address} {distance}";
-    }
-
-    @Override
-    public int numberOfArgs() {
-        return 3;
+    public String[] expectedArgs() {
+        return new String[]{"address", "distance"};
     }
 }

@@ -22,8 +22,12 @@ public class TrainUtil {
         ThrottleRegistry.getInstance().registerThrottle(address);
     }
 
-    public static Trainset getTrainset(Integer address) {
-        return TrainsetRegistry.getInstance().getTrainset(address);
+    public static Trainset getTrainset(int address) {
+        Trainset trainset = TrainsetRegistry.getInstance().getTrainset(address);
+        if (trainset == null) {
+            throw new RuntimeException("No trainset is not registered at address: " + address);
+        }
+        return trainset;
     }
 
     public static Map<Integer, Trainset> getTrainsets() {

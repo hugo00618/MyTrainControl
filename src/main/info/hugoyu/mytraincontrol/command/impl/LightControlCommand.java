@@ -5,6 +5,7 @@ import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 public class LightControlCommand implements Command {
+
     private static final String LIGHT_STATUS_OFF = "off";
     private static final String LIGHT_STATUS_ON = "on";
 
@@ -26,12 +27,8 @@ public class LightControlCommand implements Command {
     }
 
     @Override
-    public String argList() {
-        return "{address} {on/off}";
+    public String[] expectedArgs() {
+        return new String[]{"address", "on/off"};
     }
 
-    @Override
-    public int numberOfArgs() {
-        return 3;
-    }
 }

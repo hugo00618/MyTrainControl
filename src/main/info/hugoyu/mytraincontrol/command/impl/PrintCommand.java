@@ -2,12 +2,12 @@ package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
-import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
-import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
-public class ListCommand implements Command {
+import java.util.stream.Collectors;
+
+public class PrintCommand implements Command {
 
     private static final String LIST_TYPE_TRAINS = "trains";
     private static final String LIST_TYPE_STATIONS = "stations";
@@ -28,20 +28,23 @@ public class ListCommand implements Command {
     }
 
     @Override
-    public String argList() {
-        return "{trains/stations}";
-    }
-
-    @Override
-    public int numberOfArgs() {
-        return 2;
+    public String[] expectedArgs() {
+        return new String[]{"trains/stations"};
     }
 
     private void printTrains() {
         System.out.println("Registered trains:");
-        TrainUtil.getTrainsets().entrySet().forEach(entry -> {
-            Trainset trainset = entry.getValue();
-            System.out.println(String.format("%d %s", entry.getKey(), trainset.getName()));
+        TrainUtil.getTrainsets().forEach((address, trainset) -> {
+                System.out.println(String.format("%d: %s", address, trainset.getName()));
+
+                System.out.println("\tOwned sections:");
+                trainset.getAllocatedNodes().stream()
+                        .collect(Collectors.toMap(
+                                nodeId -> nodeId,
+                                nodeId -> LayoutUtil.getNode(nodeId).getOwnerStatus(address)
+                        ))
+                        .forEach((nodeId, ownerDetails) ->
+                                System.out.println(String.format("\t\t%d: %s", nodeId, ownerDetails)));
         });
         System.out.println();
     }
@@ -52,9 +55,8 @@ public class ListCommand implements Command {
             System.out.println(station.getName());
 
             System.out.println("\tTracks:");
-            station.getStationTackNodes().forEach(stationTrackNode -> {
-                System.out.println("\t\t" + stationTrackNode.getId());
-            });
+            station.getStationTackNodes().forEach(stationTrackNode ->
+                    System.out.println("\t\t" + stationTrackNode.getId()));
         });
         System.out.println();
     }

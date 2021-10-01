@@ -13,12 +13,7 @@ public class SetThrottleCommand extends AbstractDebugCommand {
     }
 
     @Override
-    public String argList() {
-        return "{throttle:0-100}";
-    }
-
-    @Override
-    public int numberOfArgs() {
-        return 3;
+    public String[] expectedArgs() {
+        return new String[]{"throttle:0-100"};
     }
 }

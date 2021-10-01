@@ -1,8 +1,8 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.util.TrainUtil;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
+import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
@@ -23,12 +23,7 @@ public class RegisterCommand implements Command {
     }
 
     @Override
-    public String argList() {
-        return "{address} {name} {configFileName}";
-    }
-
-    @Override
-    public int numberOfArgs() {
-        return 4;
+    public String[] expectedArgs() {
+        return new String[]{"address", "name", "configFileName"};
     }
 }

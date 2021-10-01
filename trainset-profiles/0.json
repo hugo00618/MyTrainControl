@@ -5,7 +5,7 @@
   "numPassengerCars": 0,
   "accRate": 1.2,
   "decRate": -2.84,
-  "topSpeed": 220,
+  "topSpeed": 250,
   "throttleSpeedMap": {
   }
 }

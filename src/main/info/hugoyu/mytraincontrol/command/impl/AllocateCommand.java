@@ -29,12 +29,8 @@ public class AllocateCommand implements Command {
     }
 
     @Override
-    public String argList() {
-        return "{address} {trackNodeId}";
+    public String[] expectedArgs() {
+        return new String[]{"address", "trackNodeId"};
     }
 
-    @Override
-    public int numberOfArgs() {
-        return 3;
-    }
 }

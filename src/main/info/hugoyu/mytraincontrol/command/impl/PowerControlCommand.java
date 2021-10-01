@@ -19,12 +19,8 @@ public class PowerControlCommand implements Command {
     }
 
     @Override
-    public String argList() {
-        return "{on/off}";
+    public String[] expectedArgs() {
+        return new String[]{"on/off"};
     }
 
-    @Override
-    public int numberOfArgs() {
-        return 2;
-    }
 }

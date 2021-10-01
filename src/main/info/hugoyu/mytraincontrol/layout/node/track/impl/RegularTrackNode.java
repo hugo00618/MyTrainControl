@@ -155,4 +155,12 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
                     .orElse(null);
         }
     }
+
+    @Override
+    public String getOwnerStatus(int ownerId) {
+        if (!owners.containsKey(ownerId)) {
+            return null;
+        }
+        return owners.get(ownerId).toString();
+    }
 }

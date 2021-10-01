@@ -1,14 +1,15 @@
 package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.command.Command;
+import info.hugoyu.mytraincontrol.command.debug.impl.MoveDistCommand;
+import info.hugoyu.mytraincontrol.command.debug.impl.SetThrottleCommand;
 import info.hugoyu.mytraincontrol.command.impl.AllocateCommand;
 import info.hugoyu.mytraincontrol.command.impl.LightControlCommand;
-import info.hugoyu.mytraincontrol.command.impl.ListCommand;
+import info.hugoyu.mytraincontrol.command.impl.PrintCommand;
 import info.hugoyu.mytraincontrol.command.impl.MoveCommand;
-import info.hugoyu.mytraincontrol.command.debug.impl.MoveDistCommand;
 import info.hugoyu.mytraincontrol.command.impl.PowerControlCommand;
 import info.hugoyu.mytraincontrol.command.impl.RegisterCommand;
-import info.hugoyu.mytraincontrol.command.debug.impl.SetThrottleCommand;
+import info.hugoyu.mytraincontrol.command.impl.ResetTotalDistCommand;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.exception.CommandNotFoundException;
 
@@ -32,22 +33,20 @@ public class CommandProvider {
             }
 
             @Override
-            public String argList() {
-                return "";
+            public String[] expectedArgs() {
+                return new String[0];
             }
 
-            @Override
-            public int numberOfArgs() {
-                return 1;
-            }
         });
 
         commands.put("alloc", new AllocateCommand());
         commands.put("light", new LightControlCommand());
-        commands.put("list", new ListCommand());
+        commands.put("print", new PrintCommand());
         commands.put("mv", new MoveCommand());
         commands.put("pwr", new PowerControlCommand());
         commands.put("reg", new RegisterCommand());
+
+        commands.put("reset", new ResetTotalDistCommand());
 
         // debug
         commands.put("st", new SetThrottleCommand());
@@ -61,7 +60,7 @@ public class CommandProvider {
         if (command == null) {
             throw new CommandNotFoundException(commandKey);
         }
-        if (command.numberOfArgs() != args.length) {
+        if (command.expectedArgs().length != args.length - 1) {
             throw new CommandInvalidUsageException(command);
         }
 

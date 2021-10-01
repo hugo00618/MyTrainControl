@@ -57,4 +57,9 @@ public class TurnoutNode extends AbstractTrackNode {
     public BlockSectionResult free(Trainset trainset, int dist) throws NodeAllocationException {
         return null;
     }
+
+    @Override
+    public String getOwnerStatus(int ownerId) {
+        return null;
+    }
 }

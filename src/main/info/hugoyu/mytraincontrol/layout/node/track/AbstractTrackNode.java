@@ -19,8 +19,9 @@ public abstract class AbstractTrackNode implements Allocatable {
         this.id = id;
     }
 
+    public abstract String getOwnerStatus(int ownerId);
+
     public void addConnection(long nextNode, int cost) {
         nextNodes.put(nextNode, cost);
     }
-
 }
