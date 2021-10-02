@@ -21,15 +21,19 @@ public class MovingBlockManagerRunnable implements Runnable {
     private Long previousNode;
 
     private double distToMove; // total distance to move
+    private double distToAlloc; // total distance to alloc
 
     private double movedDistToFree;
     private int allocatedMoveDist;
+
+    private boolean isBufferReleased;
 
     public MovingBlockManagerRunnable(Trainset trainset, Route route) {
         this.trainset = trainset;
         this.allocatedNodes = trainset.getAllocatedNodes();
         this.nodesToAllocate = route.getNodes();
         this.distToMove = route.getCost();
+        this.distToAlloc = route.getCost();
     }
 
     @Override
@@ -38,62 +42,88 @@ public class MovingBlockManagerRunnable implements Runnable {
 
         try {
             // allocate initial buffer space
-            allocate();
+            allocateInitialDistance();
 
             while (distToMove > 0) {
-                trainset.waitDistUpdate();
-
                 double movedDist = trainset.resetMovedDist();
-                log.debug("movedDist: " + movedDist);
+                if (movedDist > 0) {
+                    distToMove -= movedDist;
+                    allocatedMoveDist -= movedDist;
+                    movedDistToFree += movedDist;
 
-                distToMove -= movedDist;
+                    // free movedDistToFree
+                    free();
 
-                allocatedMoveDist -= movedDist;
-                movedDistToFree += movedDist;
-
-                // free movedDistToFree
-                free();
-
-                // allocate distance if needed
-                allocate();
+                    // allocate more distance if needed
+                    allocate();
+                } else {
+                    trainset.waitDistUpdate();
+                }
             }
         } catch (NodeAllocationException e) {
             e.printStackTrace();
         }
     }
 
+    private void allocateInitialDistance() throws NodeAllocationException {
+        allocate(TRAIN_BUFFER_DISTANCE + INITIAL_MOVE_DISTANCE);
+        isBufferReleased = false;
+        trainset.addDistToMove(INITIAL_MOVE_DISTANCE);
+    }
+
     private void allocate() throws NodeAllocationException {
-        int minAllocateDist = getMinAllocateDistance();
-        if (allocatedMoveDist < minAllocateDist) {
-            int allocatedMovedDistBefore = allocatedMoveDist;
-            while (allocatedMoveDist < minAllocateDist && !nodesToAllocate.isEmpty()) {
-                long nodeId = nodesToAllocate.get(0);
-                Long nextNode = nodesToAllocate.size() > 1 ? nodesToAllocate.get(1) : null;
+        while (allocatedMoveDist < getMinAllocateDistance()) {
+            int remainingDist = allocate(1);
+            if (remainingDist == 0) {
+                trainset.addDistToMove(1);
+            } else {
+                break;
+            }
+        }
 
-                BlockSectionResult allocRes = LayoutUtil.allocNode(nodeId, trainset, 1, nextNode, previousNode);
-                int distanceAllocated = allocRes.getConsumedDist();
-                allocatedMoveDist += distanceAllocated;
+        if (distToAlloc == 0 && !isBufferReleased) {
+            trainset.addDistToMove(TRAIN_BUFFER_DISTANCE);
+            isBufferReleased = true;
+        }
+    }
 
-                if (!allocatedNodes.contains(nodeId)) {
-                    allocatedNodes.add(nodeId);
-                }
+    /**
+     * @param distance
+     * @return remaining distance
+     * @throws NodeAllocationException
+     */
+    private int allocate(int distance) throws NodeAllocationException {
+        while (distToAlloc > 0 && distance > 0 && !nodesToAllocate.isEmpty()) {
+            long nodeId = nodesToAllocate.get(0);
+            Long nextNode = nodesToAllocate.size() > 1 ? nodesToAllocate.get(1) : null;
 
-                // remove from nodesToAllocate if the entire section has been allocated
-                if (allocRes.isEntireSectionConsumed()) {
-                    previousNode = nodesToAllocate.remove(0);
-                    if (nodesToAllocate.isEmpty()) { // add inbound distance if the last node is an entry node for a station
-                        Station station = LayoutUtil.getStation(previousNode);
-                        if (station != null) {
-                            // TODO: do this
+            BlockSectionResult allocRes = LayoutUtil.allocNode(nodeId, trainset, distance, nextNode, previousNode);
+            int distanceAllocated = allocRes.getConsumedDist();
+            distance -= distanceAllocated;
+            distToAlloc -= distanceAllocated;
+            allocatedMoveDist += distanceAllocated;
+
+            if (!allocatedNodes.contains(nodeId)) {
+                allocatedNodes.add(nodeId);
+            }
+
+            // remove from nodesToAllocate if the entire section has been allocated
+            if (allocRes.isEntireSectionConsumed()) {
+                previousNode = nodesToAllocate.remove(0);
+
+                // if the last remaining node is an entry node for a station,
+                // find an available track and perform stopping routine
+                if (nodesToAllocate.size() == 1) {
+                    Station station = LayoutUtil.getStation(previousNode);
+                    if (station != null) {
+                        // TODO: do this
 //                    distToMove += stationNode.getInboundMoveDist(trainset);
-                        }
                     }
                 }
-
-                trainset.addDistToMove(1);
             }
-//            trainset.addDistToMove(allocatedMoveDist - allocatedMovedDistBefore);
         }
+
+        return distance;
     }
 
     private void free() throws NodeAllocationException {
@@ -105,9 +135,6 @@ public class MovingBlockManagerRunnable implements Runnable {
 
             int distanceFreed = freeRes.getConsumedDist();
             movedDistToFree -= distanceFreed;
-
-            log.debug("free'ed " + nodeId + " for distance " + distanceFreed);
-
             allocatedMoveDist -= distanceFreed;
 
             // remove from allocatedNodes if the entire section has been freed

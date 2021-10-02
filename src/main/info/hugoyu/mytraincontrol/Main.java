@@ -1,11 +1,11 @@
 package info.hugoyu.mytraincontrol;
 
-import info.hugoyu.mytraincontrol.util.CommandProvider;
 import info.hugoyu.mytraincontrol.commandstation.CommandStationRunnable;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.exception.CommandNotFoundException;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.BaseStationPowerUtil;
+import info.hugoyu.mytraincontrol.util.CommandUtil;
 import jmri.ConfigureManager;
 import jmri.InstanceManager;
 import jmri.JmriException;
@@ -36,13 +36,13 @@ public class Main {
         BaseStationPowerUtil.turnOnPower();
 
         // register trains
-        CommandProvider.runCommand(new String[]{"reg", "3", "N700A", "n700a-6000.json"});
-        CommandProvider.runCommand(new String[]{"reg", "4", "500", "500-4000.json"});
-        CommandProvider.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "3", "N700A", "n700a-6000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "4", "500", "500-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
 
         // alloc
-        CommandProvider.runCommand(new String[]{"alloc", "3", "10000"});
-        CommandProvider.runCommand(new String[]{"alloc", "5", "10004"});
+        CommandUtil.runCommand(new String[]{"alloc", "3", "10000"});
+        CommandUtil.runCommand(new String[]{"alloc", "5", "10004"});
 
         CommandStationRunnable.getInstance();
 
@@ -63,7 +63,10 @@ public class Main {
         int selectedPort = Integer.parseInt(new BufferedReader(new InputStreamReader(System.in)).readLine());
         String selectedPortName = portNames.get(selectedPort);
 
-        adapter.openPort(selectedPortName, "JMRI");
+        String errorMessage = adapter.openPort(selectedPortName, "JMRI");
+        if (errorMessage != null) {
+            System.err.println("Failed to open port: " + errorMessage);
+        }
         adapter.configure();
 
         ConfigureManager cm = new JmriConfigurationManager();
@@ -80,7 +83,7 @@ public class Main {
         while ((line = br.readLine()) != null) {
             String[] args = line.split(" +");
             try {
-                CommandProvider.runCommand(args);
+                CommandUtil.runCommand(args);
             } catch (CommandNotFoundException e) {
                 System.err.println("Command not found");
             } catch (CommandInvalidUsageException e) {
