@@ -1,4 +1,4 @@
-package info.hugoyu.mytraincontrol.layout.node.track;
+package info.hugoyu.mytraincontrol.layout.node;
 
 import info.hugoyu.mytraincontrol.layout.Allocatable;
 import lombok.Getter;

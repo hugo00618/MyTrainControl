@@ -1,6 +1,6 @@
 package info.hugoyu.mytraincontrol.layout.alias;
 
-import info.hugoyu.mytraincontrol.layout.node.track.impl.StationTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

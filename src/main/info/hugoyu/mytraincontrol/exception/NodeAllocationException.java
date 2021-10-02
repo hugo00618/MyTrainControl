@@ -1,6 +1,6 @@
 package info.hugoyu.mytraincontrol.exception;
 
-import info.hugoyu.mytraincontrol.layout.node.track.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j;

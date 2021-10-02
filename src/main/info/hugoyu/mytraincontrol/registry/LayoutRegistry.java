@@ -2,7 +2,7 @@ package info.hugoyu.mytraincontrol.registry;
 
 import com.google.common.annotations.VisibleForTesting;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
-import info.hugoyu.mytraincontrol.layout.node.track.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 
 import java.util.HashMap;
 import java.util.Map;

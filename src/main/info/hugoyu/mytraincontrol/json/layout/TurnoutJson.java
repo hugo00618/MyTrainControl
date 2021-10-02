@@ -1,6 +1,6 @@
 package info.hugoyu.mytraincontrol.json.layout;
 
-import info.hugoyu.mytraincontrol.layout.node.track.impl.TurnoutNode;
+import info.hugoyu.mytraincontrol.layout.node.impl.TurnoutNode;
 import lombok.Getter;
 
 @Getter

@@ -1,10 +1,11 @@
-package info.hugoyu.mytraincontrol.layout.node.track.impl;
+package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import info.hugoyu.mytraincontrol.LayoutTestBase;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
+import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
@@ -34,7 +35,7 @@ public class RegularTrackNodeTest extends LayoutTestBase {
     @Test
     public void testLayoutProvider() {
         RegularTrackNode node = (RegularTrackNode) LayoutUtil.getNode(10002);
-        assertEquals(10002, node.getId());
+        Assertions.assertEquals(10002, node.getId());
     }
 
     @Test

@@ -1,4 +1,4 @@
-package info.hugoyu.mytraincontrol.layout.node.track.impl;
+package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import info.hugoyu.mytraincontrol.LayoutTestBase;
 import info.hugoyu.mytraincontrol.trainset.Trainset;

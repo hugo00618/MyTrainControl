@@ -5,14 +5,13 @@ import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask
 import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
-import info.hugoyu.mytraincontrol.json.TrainsetProfileJsonProvider;
 import info.hugoyu.mytraincontrol.layout.MovingBlockManagerRunnable;
 import info.hugoyu.mytraincontrol.layout.Route;
+import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,11 +42,10 @@ public class Trainset implements TaskExecutionListener {
     @Getter
     private List<Long> allocatedNodes = new ArrayList<>();
 
-    public Trainset(int address, String name, String profileFilename) throws FileNotFoundException {
+    public Trainset(int address, String name, String profileFilename) {
         this.address = address;
         this.name = name;
-
-        profile = TrainsetProfileJsonProvider.parseJSON(profileFilename);
+        profile = TrainUtil.getTrainsetProfile(profileFilename);
     }
 
     public void move(Route route) {

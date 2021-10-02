@@ -6,7 +6,7 @@ import info.hugoyu.mytraincontrol.json.layout.LayoutJson;
 import info.hugoyu.mytraincontrol.json.layout.LayoutProvider;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
-import info.hugoyu.mytraincontrol.layout.node.track.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.extern.log4j.Log4j;

@@ -8,7 +8,7 @@ import lombok.extern.log4j.Log4j;
 
 import java.util.List;
 
-import static info.hugoyu.mytraincontrol.constant.LayoutConstants.TRAIN_BUFFER_DISTANCE;
+import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE;
 
 @Log4j
 public class MovingBlockManagerRunnable implements Runnable {

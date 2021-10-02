@@ -1,9 +1,9 @@
-package info.hugoyu.mytraincontrol.layout.node.track.impl;
+package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
-import info.hugoyu.mytraincontrol.layout.node.track.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.sensor.SensorChangeListener;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SensorUtil;

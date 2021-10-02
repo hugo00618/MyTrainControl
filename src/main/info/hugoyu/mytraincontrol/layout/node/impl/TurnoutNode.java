@@ -1,8 +1,8 @@
-package info.hugoyu.mytraincontrol.layout.node.track.impl;
+package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
-import info.hugoyu.mytraincontrol.layout.node.track.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 
