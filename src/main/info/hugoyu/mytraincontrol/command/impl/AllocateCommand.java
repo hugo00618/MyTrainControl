@@ -15,10 +15,9 @@ public class AllocateCommand implements Command {
             int address = Integer.parseInt(args[1]);
             long trackNodeId = Long.parseLong(args[2]);
             Trainset trainset = TrainUtil.getTrainset(address);
-            if (TrainUtil.allocateStationTrackImmediate(address, trackNodeId)) {
+            if (TrainUtil.allocateStationTrackImmediately(address, trackNodeId)) {
                 System.out.println(trainset.getName() + ": allocation succeeded for track node " + trackNodeId);
             } else {
-                System.err.println(trainset.getName() + ": allocation failed for track node " + trackNodeId);
                 System.err.println(trainset.getName() + ": allocation failed for track node " + trackNodeId);
             }
         } catch (NumberFormatException e) {

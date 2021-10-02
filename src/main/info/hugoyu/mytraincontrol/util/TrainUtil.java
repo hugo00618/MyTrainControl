@@ -52,7 +52,7 @@ public class TrainUtil {
         trainset.setIsLightOn(on);
     }
 
-    public static boolean allocateStationTrackImmediate(int address, long trackNodeId) {
+    public static boolean allocateStationTrackImmediately(int address, long trackNodeId) {
         Trainset trainset = getTrainset(address);
 
         AbstractTrackNode node = LayoutUtil.getNode(trackNodeId);
