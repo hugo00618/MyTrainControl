@@ -35,16 +35,16 @@ public class PrintCommand implements Command {
     private void printTrains() {
         System.out.println("Registered trains:");
         TrainUtil.getTrainsets().forEach((address, trainset) -> {
-                System.out.println(String.format("%d: %s", address, trainset.getName()));
+            System.out.println(String.format("%d: %s", address, trainset.getName()));
 
-                System.out.println("\tOwned sections:");
-                trainset.getAllocatedNodes().stream()
-                        .collect(Collectors.toMap(
-                                nodeId -> nodeId,
-                                nodeId -> LayoutUtil.getNode(nodeId).getOwnerStatus(address)
-                        ))
-                        .forEach((nodeId, ownerDetails) ->
-                                System.out.println(String.format("\t\t%d: %s", nodeId, ownerDetails)));
+            System.out.println("\tOwned sections:");
+            trainset.getAllocatedNodes().stream()
+                    .collect(Collectors.toMap(
+                            nodeId -> nodeId,
+                            nodeId -> LayoutUtil.getNode(nodeId).getOwnerStatus(address)
+                    ))
+                    .forEach((nodeId, ownerDetails) ->
+                            System.out.println(String.format("\t\t%d: %s", nodeId, ownerDetails)));
         });
         System.out.println();
     }
@@ -55,7 +55,7 @@ public class PrintCommand implements Command {
             System.out.println(station.getName());
 
             System.out.println("\tTracks:");
-            station.getStationTackNodes().forEach(stationTrackNode ->
+            station.getStationTrackNodes().forEach(stationTrackNode ->
                     System.out.println("\t\t" + stationTrackNode.getId()));
         });
         System.out.println();

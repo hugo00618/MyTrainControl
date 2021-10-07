@@ -4,10 +4,9 @@ import info.hugoyu.mytraincontrol.json.JsonParsable;
 import info.hugoyu.mytraincontrol.util.SpeedUtil;
 import lombok.Getter;
 
-import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Getter
 public class TrainsetProfile implements JsonParsable {
@@ -27,13 +26,15 @@ public class TrainsetProfile implements JsonParsable {
     public void postDeserialization() {
         // convert speed from km/h to scale-equivalent mm/s
         topSpeed = SpeedUtil.toMMps(topSpeed);
-        for (Map.Entry<Integer, Double> entry : throttleSpeedMap.entrySet()) {
-            double mmps = SpeedUtil.toMMps(entry.getValue());
-            throttleSpeedMap.put(entry.getKey(), mmps);
-        }
+        throttleSpeedMap = throttleSpeedMap.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> SpeedUtil.toMMps(entry.getValue())
+                ));
 
-        throttleList = new ArrayList<>(throttleSpeedMap.keySet());
-        Collections.sort(throttleList);
+        throttleList = throttleSpeedMap.keySet().stream()
+                .sorted()
+                .collect(Collectors.toList());
 
         accRate *= ACC_RATE_COEF;
         decRate *= DEC_RATE_COEF;

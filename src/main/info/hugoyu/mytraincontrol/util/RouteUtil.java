@@ -2,45 +2,49 @@ package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
+import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
+import java.util.Objects;
 
 public class RouteUtil {
 
-    public static Route findRouteToNode(long from, long to) {
-        return findRouteRecur(from, to, new ArrayList<>(), 0);
-    }
-
-    public static Route findRouteToStation(long from, String to) {
+    public static Route findRouteToStation(long fromStationTrackNodeId, String to) {
         Station station = LayoutUtil.getStation(to);
 
         return station.getEntryNodeIds().stream()
-                .map(entryNodeId -> findRouteRecur(from, entryNodeId, new ArrayList<>(), 0))
-                .filter(route -> route != null)
-                .sorted()
-                .findFirst()
+                .map(entryNodeId -> findRoute(fromStationTrackNodeId, entryNodeId))
+                .filter(Objects::nonNull)
+                .min(Route::compareTo)
                 .orElse(null);
     }
 
-    private static Route findRouteRecur(long nodeId, long destinationId, List<Long> visited, int cost) {
-        if (visited.contains(nodeId)) {
+    public static Route findInboundRoute(long entryNodeId, StationTrackNode stationTrackNode) {
+        return findRoute(entryNodeId, stationTrackNode.getId1());
+    }
+
+    private static Route findRoute(long from, long to) {
+        return findRouteRecur(LayoutUtil.getNode(from), LayoutUtil.getNode(to), new ArrayList<>(), 0);
+    }
+
+    private static Route findRouteRecur(AbstractTrackNode node, AbstractTrackNode destination,
+                                        List<Long> visited, int cost) {
+        if (visited.contains(node.getId())) {
             return null;
         }
-        visited.add(nodeId);
+        visited.add(node.getId());
 
-        if (nodeId == destinationId) {
+        if (node == destination) {
             return new Route(new ArrayList<>(visited), cost);
         }
 
-        Route result = null;
-        for (Map.Entry<Long, Integer> nextNode : LayoutUtil.getNode(nodeId).getNextNodes().entrySet()) {
-            Route route = findRouteRecur(nextNode.getKey(), destinationId, visited, cost + nextNode.getValue());
-            if (route != null && (result == null || result.getCost() > route.getCost())) {
-                result = route;
-            }
-        }
+        Route result = node.getNextNodes().entrySet().stream()
+                .map(entry -> findRouteRecur(LayoutUtil.getNode(entry.getKey()), destination, visited, cost + entry.getValue()))
+                .filter(Objects::nonNull)
+                .min(Route::compareTo)
+                .orElse(null);
 
         visited.remove(visited.size() - 1);
 

@@ -39,15 +39,15 @@ public class StationTrackNode extends RegularTrackNode {
             return false;
         }
 
-        Range<Integer> allocatingRange = Range.closedOpen(0, (int) getInboundMoveDist(trainset));
+        Range<Integer> allocatingRange = Range.closedOpen(0, getInboundMoveDist(trainset));
         if (!isFree(trainset, allocatingRange)) {
             return false;
         }
 
         try {
             // allocate the centering section
-            alloc(trainset, (int) getInboundMoveDist(trainset), null, null);
-            free(trainset, (int) getInboundMargin(trainset));
+            alloc(trainset, getInboundMoveDist(trainset), null, null);
+            free(trainset, getInboundMargin(trainset));
 
             trainset.addAllocatedNode(this.id);
             return true;
@@ -59,6 +59,7 @@ public class StationTrackNode extends RegularTrackNode {
 
     /**
      * non-blocking call, may return inaccurate result
+     *
      * @return whether the current track is free
      */
     public boolean isFree() {
@@ -70,19 +71,27 @@ public class StationTrackNode extends RegularTrackNode {
      * @param trainset
      * @return distance to move so that the train is at the center of the track section
      */
-    public float getInboundMoveDist(Trainset trainset) {
+    public int getInboundMoveDist(Trainset trainset) {
         // divide the entire track section into margin, trainLength, margin
-        float trainLength = trainset.getTotalLength();
+        int trainLength = trainset.getTotalLength();
         return trainLength + getInboundMargin(trainset);
+    }
+
+    /**
+     * @param trainset
+     * @return distance to move the train out of the section
+     */
+    public int getOutboundMoveDist(Trainset trainset) {
+        return length - getInboundMoveDist(trainset);
     }
 
     /**
      * @param trainset
      * @return length of the one-side margin for a train to be at the center of the track section
      */
-    private float getInboundMargin(Trainset trainset) {
+    private int getInboundMargin(Trainset trainset) {
         int trainLength = trainset.getTotalLength();
-        return (super.length - trainLength) / 2f;
+        return (length - trainLength) / 2;
     }
 
 }

@@ -19,10 +19,10 @@ import java.util.List;
 @Log4j
 public class Trainset implements TaskExecutionListener {
     @Getter
-    private int address;
+    private final int address;
 
     @Getter
-    private String name;
+    private final String name;
 
     @Getter
     private double cSpeed; // current speed
@@ -39,8 +39,11 @@ public class Trainset implements TaskExecutionListener {
     @Getter
     private boolean isLightOn = true;
 
-    @Getter
     private List<Long> allocatedNodes = new ArrayList<>();
+    private final Object allocatedNodesLock = new Object();
+
+    private final MovingBlockManagerRunnable movingBlockManagerRunnable = new MovingBlockManagerRunnable(this);
+    private Thread runningMovingBlockManager;
 
     public Trainset(int address, String name, String profileFilename) {
         this.address = address;
@@ -49,7 +52,12 @@ public class Trainset implements TaskExecutionListener {
     }
 
     public void move(Route route) {
-        new Thread(new MovingBlockManagerRunnable(this, route)).start();
+        if (runningMovingBlockManager != null && runningMovingBlockManager.isAlive()) {
+            throw new RuntimeException("Train is still running");
+        }
+        movingBlockManagerRunnable.prepareToMove(route);
+        runningMovingBlockManager = new Thread(movingBlockManagerRunnable);
+        runningMovingBlockManager.start();
     }
 
     public void move(int distToMove) {
@@ -96,14 +104,13 @@ public class Trainset implements TaskExecutionListener {
                 movedDist += deltaD;
                 distToMove -= deltaD;
                 distToMove = Math.max(0, distToMove);
-                double minimumStoppingDistance = getCurrentMinimumStoppingDistance();
 
                 log.debug(String.format("%s: deltaT %f", name, deltaT));
                 log.debug(String.format("%s: deltaD %f", name, deltaD));
                 log.debug(String.format("%s: remaining distance %f", name, distToMove));
-                log.debug(String.format("%s: min stop distance %f", name, minimumStoppingDistance));
 
                 // update target speed
+                double minimumStoppingDistance = getCurrentMinimumStoppingDistance();
                 if (distToMove > minimumStoppingDistance) {
                     tSpeed = profile.getTopSpeed();
                 } else {
@@ -128,16 +135,19 @@ public class Trainset implements TaskExecutionListener {
                     }
                 }
                 log.debug(String.format("%s: cSpeed %f", name, cSpeed));
+                log.debug(String.format("%s: min stop distance %f", name, minimumStoppingDistance));
 
                 // send next speed task
-                if (cSpeed != tSpeed) {
-                    sendSetSpeedTask(currentTime);
-                } else {
-                    double coastingDistance = distToMove - minimumStoppingDistance;
-                    if (coastingDistance > 0) {
-                        long coastingTime = (long) (coastingDistance / cSpeed * 1000);
-                        log.debug(String.format("%s: coasting for %dms", name, coastingTime));
-                        sendSetSpeedTask(currentTime, coastingTime);
+                if (distToMove > 0) {
+                    if (cSpeed == 0 || cSpeed != tSpeed) {
+                        sendSetSpeedTask(currentTime);
+                    } else {
+                        double coastingDistance = distToMove - minimumStoppingDistance;
+                        if (coastingDistance > 0) {
+                            long coastingTime = (long) (coastingDistance / cSpeed * 1000);
+                            log.debug(String.format("%s: coasting for %dms", name, coastingTime));
+                            sendSetSpeedTask(currentTime, coastingTime);
+                        }
                     }
                 }
 
@@ -182,7 +192,48 @@ public class Trainset implements TaskExecutionListener {
     }
 
     public void addAllocatedNode(long nodeId) {
-        allocatedNodes.add(nodeId);
+        synchronized (allocatedNodesLock) {
+            if (!allocatedNodes.contains(nodeId)) {
+                allocatedNodes.add(nodeId);
+            }
+        }
+    }
+
+    public void removeAllocatedNode(Long nodeId) {
+        synchronized (allocatedNodesLock) {
+            allocatedNodes.remove(nodeId);
+        }
+    }
+
+    public Long getFirstAllocatedNode() {
+        synchronized (allocatedNodesLock) {
+            return getAllocatedNode(0);
+        }
+    }
+
+    public Long getLastAllocatedNode() {
+        synchronized (allocatedNodesLock) {
+            return getAllocatedNode(allocatedNodes.size() - 1);
+        }
+    }
+
+    private Long getAllocatedNode(int idx) {
+        synchronized (allocatedNodesLock) {
+            try {
+                return allocatedNodes.get(idx);
+            } catch (IndexOutOfBoundsException e) {
+                return null;
+            }
+        }
+    }
+
+    /**
+     * Not thread-safe. Should only be called by PrintCommand.
+     *
+     * @return
+     */
+    public List<Long> getAllocatedNodes() {
+        return allocatedNodes;
     }
 
 }

@@ -21,23 +21,20 @@ public class TrainsetRegistry {
         if (instance == null) {
             instance = new TrainsetRegistry();
         }
-
         return instance;
     }
 
-    public void registerTrainset(int address, String name, String profileFilename) throws Exception {
+    public void registerTrainset(int address, Trainset trainset) {
         if (trainsets.containsKey(address)) {
-            throw new Exception(String.format("ERROR: address %d already registered", address));
+            throw new RuntimeException(String.format("ERROR: address %d already registered", address));
         }
-
-        trainsets.put(address, new Trainset(address, name, profileFilename));
+        trainsets.put(address, trainset);
     }
 
     public Trainset getTrainset(Integer address) {
         if (address == null) {
             return null;
         }
-
         return trainsets.get(address);
     }
 

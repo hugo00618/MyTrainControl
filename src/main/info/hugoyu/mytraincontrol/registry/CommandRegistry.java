@@ -31,9 +31,9 @@ public class CommandRegistry {
             @Override
             public void execute(String[] args) throws Exception {
                 System.out.println("List of commands: ");
-                for (String command : commands.keySet()) {
-                    System.out.println(command);
-                }
+                commands.keySet().forEach(
+                        System.out::println
+                );
             }
 
             @Override

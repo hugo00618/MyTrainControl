@@ -10,7 +10,6 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.trainset.TrainsetProfile;
 
 import java.io.IOException;
-import java.util.List;
 import java.util.Map;
 
 public class TrainUtil {
@@ -23,7 +22,7 @@ public class TrainUtil {
     }
 
     public static void registerTrainset(int address, String name, String profileFilename) throws Exception {
-        TrainsetRegistry.getInstance().registerTrainset(address, name, profileFilename);
+        TrainsetRegistry.getInstance().registerTrainset(address, new Trainset(address, name, profileFilename));
         ThrottleRegistry.getInstance().registerThrottle(address);
     }
 
@@ -37,7 +36,9 @@ public class TrainUtil {
 
     public static TrainsetProfile getTrainsetProfile(String fileName) {
         try {
-            return MyJsonReader.parseJSON(TRAINSET_PROFILE_DIR + "/" + fileName, TrainsetProfile.class);
+            TrainsetProfile trainsetProfile = MyJsonReader.parseJSON(TRAINSET_PROFILE_DIR + "/" + fileName, TrainsetProfile.class);
+            trainsetProfile.postDeserialization();
+            return trainsetProfile;
         } catch (IOException e) {
             throw new RuntimeException("Error parsing trainset profile: " + fileName);
         }
@@ -67,14 +68,17 @@ public class TrainUtil {
     public static void moveTo(int address, String stationId) {
         Trainset trainset = getTrainset(address);
 
-        List<Long> allocatedNodes = trainset.getAllocatedNodes();
-        if (allocatedNodes.isEmpty()) {
-            throw new RuntimeException("Trainset does not own any node");
+        Long fromNodeId = trainset.getLastAllocatedNode();
+        if (fromNodeId == null) {
+            throw new RuntimeException(String.format("Trainset %s does not own any node", trainset.getName()));
         }
-        long fromNodeId = allocatedNodes.get(allocatedNodes.size() - 1);
+
         Route route = RouteUtil.findRouteToStation(fromNodeId, stationId);
         if (route == null) {
             throw new RuntimeException("No route to station");
+        }
+        if (route.getNodes().size() == 1) {
+            throw new RuntimeException("Train is already at station: " + stationId);
         }
 
         trainset.move(route);

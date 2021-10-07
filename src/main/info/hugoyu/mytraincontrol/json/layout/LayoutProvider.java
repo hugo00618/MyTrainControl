@@ -1,7 +1,6 @@
 package info.hugoyu.mytraincontrol.json.layout;
 
 import info.hugoyu.mytraincontrol.layout.alias.Station;
-import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.TurnoutNode;
@@ -21,36 +20,37 @@ public class LayoutProvider {
         LayoutRegistry layoutRegistry = LayoutRegistry.getInstance();
 
         // regular nodes
-        for (RegularTrackJson regularTrackJson : layoutJson.getRegularTracks()) {
-            AbstractTrackNode regularTrackNode = new RegularTrackNode(
-                    regularTrackJson.getId0(),
-                    regularTrackJson.getId1(),
-                    regularTrackJson.getLength(),
-                    regularTrackJson.getSensors());
-            layoutRegistry.registerGraphNode(regularTrackNode);
-        }
+        layoutJson.getRegularTracks().forEach(
+                regularTrackJson ->
+                        layoutRegistry.registerGraphNode(new RegularTrackNode(
+                                regularTrackJson.getId0(),
+                                regularTrackJson.getId1(),
+                                regularTrackJson.getLength(),
+                                regularTrackJson.getSensors())));
 
         // turnouts
-        for (TurnoutJson turnoutJson : layoutJson.getTurnouts()) {
-            AbstractTrackNode turnoutNode = new TurnoutNode(
-                    turnoutJson.getId0(),
-                    turnoutJson.getId1(),
-                    turnoutJson.getId2(),
-                    turnoutJson.getId3(),
-                    turnoutJson.getDist1(),
-                    turnoutJson.getDist2(),
-                    turnoutJson.getType()
-            );
-            layoutRegistry.registerGraphNode(turnoutNode);
-        }
+        layoutJson.getTurnouts().forEach(
+                turnoutJson ->
+                        layoutRegistry.registerGraphNode(new TurnoutNode(
+                                turnoutJson.getId0(),
+                                turnoutJson.getId1(),
+                                turnoutJson.getId2(),
+                                turnoutJson.getId3(),
+                                turnoutJson.getDist1(),
+                                turnoutJson.getDist2(),
+                                turnoutJson.getType())));
 
         // stations
-        for (StationJson stationJson : layoutJson.getStations()) {
-            List<StationTrackNode> stationTrackNodes = registerStationTracks(stationJson, layoutRegistry);
-
-            Station station = new Station(stationJson.getId(), stationJson.getName(), stationTrackNodes, stationJson.getEntryNodeIds());
-            layoutRegistry.registerAlias(station);
-        }
+        layoutJson.getStations().forEach(
+                stationJson -> {
+                    List<StationTrackNode> stationTrackNodes = registerStationTracks(stationJson, layoutRegistry);
+                    layoutRegistry.registerAlias(new Station(
+                            stationJson.getId(),
+                            stationJson.getName(),
+                            stationTrackNodes,
+                            stationJson.getEntryNodeIds()));
+                }
+        );
     }
 
     private static List<StationTrackNode> registerStationTracks(StationJson stationJson, LayoutRegistry layoutRegistry) {
