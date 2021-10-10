@@ -1,6 +1,5 @@
 package info.hugoyu.mytraincontrol.layout;
 
-import com.google.common.annotations.VisibleForTesting;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
@@ -11,39 +10,29 @@ import lombok.extern.log4j.Log4j;
 
 import java.util.List;
 
-import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE;
+import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_HEADING;
+import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_TRAILING;
 
 @Log4j
-public class MovingBlockManagerRunnable implements Runnable {
+public class MovingBlockRunnable implements Runnable {
 
     private static final int INITIAL_MOVE_DISTANCE = 20;
 
+    private MovingBlockManager movingBlockManager;
     private Trainset trainset;
-
     private List<Long> nodesToAllocate;
+
     private Long previousNode;
-
-    private double distToMove; // total distance to move
-    private int distToAlloc; // total distance to alloc
-    private int distToFree; // total distance to free
-
-    private double movedDistToFree;
-    private double allocatedMoveDist;
 
     private boolean isBufferReleased;
     private boolean isStopRoutineInitiated;
 
-    public MovingBlockManagerRunnable(Trainset trainset) {
-        this.trainset = trainset;
-    }
+    private Thread allocThread;
 
-    public void prepareToMove(Route route) {
-        this.nodesToAllocate = route.getNodes();
-
-        int distToMove = calcDistToMove(trainset, route);
-        this.distToMove += distToMove;
-        this.distToAlloc += distToMove;
-        this.distToFree += distToMove;
+    public MovingBlockRunnable(MovingBlockManager movingBlockManager) {
+        this.movingBlockManager = movingBlockManager;
+        this.trainset = movingBlockManager.getTrainset();
+        this.nodesToAllocate = movingBlockManager.getNodesToAllocate();
     }
 
     @Override
@@ -55,12 +44,12 @@ public class MovingBlockManagerRunnable implements Runnable {
             // allocate initial buffer space
             allocateInitialDistance();
 
-            while (distToMove >= 1) {
+            while (movingBlockManager.getDistToMove() >= 1) {
                 double movedDist = trainset.resetMovedDist();
                 if (movedDist > 0) {
-                    distToMove -= movedDist;
-                    allocatedMoveDist -= movedDist;
-                    movedDistToFree += movedDist;
+                    movingBlockManager.addDistToMove(-movedDist);
+                    movingBlockManager.addAllocatedMoveDist(-movedDist);
+                    movingBlockManager.addMovedDistToFree(movedDist);
 
                     // free movedDistToFree
                     free();
@@ -71,31 +60,48 @@ public class MovingBlockManagerRunnable implements Runnable {
                     trainset.waitDistUpdate();
                 }
             }
+
+            // free trailing buffer at the end of the journey
+            movingBlockManager.addMovedDistToFree(TRAIN_BUFFER_DISTANCE_TRAILING);
+            free();
         } catch (NodeAllocationException e) {
-            e.printStackTrace();
+            throw new RuntimeException("Track allocation error");
         }
     }
 
     private void allocateInitialDistance() throws NodeAllocationException {
-        allocate(TRAIN_BUFFER_DISTANCE + INITIAL_MOVE_DISTANCE);
+        movingBlockManager.addMovedDistToFree(-TRAIN_BUFFER_DISTANCE_TRAILING);
+        allocate(TRAIN_BUFFER_DISTANCE_HEADING + INITIAL_MOVE_DISTANCE);
         isBufferReleased = false;
         trainset.addDistToMove(INITIAL_MOVE_DISTANCE);
     }
 
-    private void allocate() throws NodeAllocationException {
-        while (allocatedMoveDist < getMinAllocateDistance()) {
-            int remainingDist = allocate(1);
-            if (remainingDist == 0) {
-                trainset.addDistToMove(1);
-            } else {
-                break;
-            }
+    private void allocate() {
+        if (allocThread != null && allocThread.isAlive()) {
+            return;
         }
 
-        if (distToAlloc == 0 && !isBufferReleased) {
-            trainset.addDistToMove(TRAIN_BUFFER_DISTANCE);
-            isBufferReleased = true;
-        }
+        allocThread = new Thread(() -> {
+            try {
+                while (movingBlockManager.getAllocatedMoveDist() < getMinAllocateDistance()) {
+                    int remainingDist = allocate(1);
+                    if (remainingDist == 0) {
+                        trainset.addDistToMove(1);
+                    } else {
+                        break;
+                    }
+                }
+
+                // release heading buffer at the end of the journey
+                if (movingBlockManager.getDistToAlloc() == 0 && !isBufferReleased) {
+                    trainset.addDistToMove(TRAIN_BUFFER_DISTANCE_HEADING);
+                    isBufferReleased = true;
+                }
+            } catch (NodeAllocationException e) {
+                e.printStackTrace();
+            }
+        });
+        allocThread.start();
     }
 
     /**
@@ -104,15 +110,16 @@ public class MovingBlockManagerRunnable implements Runnable {
      * @throws NodeAllocationException
      */
     private int allocate(int distance) throws NodeAllocationException {
-        while (distToAlloc > 0 && distance > 0 && nodesToAllocate.size() > 1) {
+        while (movingBlockManager.getDistToAlloc() > 0 && distance > 0 && nodesToAllocate.size() > 1) {
             long nodeId = nodesToAllocate.get(0);
             long nextNode = nodesToAllocate.get(1);
 
-            BlockSectionResult allocRes = LayoutUtil.allocNode(nodeId, trainset, distance, nextNode, previousNode);
+            BlockSectionResult allocRes =
+                    LayoutUtil.allocNode(nodeId, trainset, distance, nextNode, previousNode);
             int distanceAllocated = allocRes.getConsumedDist();
             distance -= distanceAllocated;
-            distToAlloc -= distanceAllocated;
-            allocatedMoveDist += distanceAllocated;
+            movingBlockManager.addDistToAlloc(-distanceAllocated);
+            movingBlockManager.addAllocatedMoveDist(distanceAllocated);
 
             trainset.addAllocatedNode(nodeId);
 
@@ -122,7 +129,7 @@ public class MovingBlockManagerRunnable implements Runnable {
 
                 // if only one node remaining, perform stop routine if not done already
                 if (nodesToAllocate.size() == 1 && !isStopRoutineInitiated) {
-                   initiateStopRoutine();
+                    initiateStopRoutine();
                 }
             }
         }
@@ -131,17 +138,17 @@ public class MovingBlockManagerRunnable implements Runnable {
     }
 
     private void free() throws NodeAllocationException {
-        while (distToFree > 0 && movedDistToFree >= 1) {
+        while (movingBlockManager.getDistToFree() > 0 && movingBlockManager.getMovedDistToFree() >= 1) {
             Long nodeId = trainset.getFirstAllocatedNode();
             if (nodeId == null) {
                 throw new RuntimeException("Error freeing node");
             }
 
-            BlockSectionResult freeRes = LayoutUtil.freeNode(nodeId, trainset, (int) movedDistToFree);
+            BlockSectionResult freeRes = LayoutUtil.freeNode(nodeId, trainset, (int) movingBlockManager.getMovedDistToFree());
 
             int distanceFreed = freeRes.getConsumedDist();
-            distToFree -= distanceFreed;
-            movedDistToFree -= distanceFreed;
+            movingBlockManager.addDistToFree(-distanceFreed);
+            movingBlockManager.addMovedDistToFree(-distanceFreed);
 
             // remove from allocatedNodes if the entire section has been freed
             if (freeRes.isEntireSectionConsumed()) {
@@ -151,9 +158,9 @@ public class MovingBlockManagerRunnable implements Runnable {
     }
 
     private int getMinAllocateDistance() {
-        int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance() + trainset.getCSpeed() * 0.3));
-        int minAllocateDist = Math.max(minStoppingDist, INITIAL_MOVE_DISTANCE) + TRAIN_BUFFER_DISTANCE;
-        minAllocateDist = Math.min(minAllocateDist, (int) Math.ceil(distToMove));
+        int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance() + trainset.getCSpeed() * 0.5));
+        int minAllocateDist = Math.max(minStoppingDist, INITIAL_MOVE_DISTANCE) + TRAIN_BUFFER_DISTANCE_HEADING;
+        minAllocateDist = Math.min(minAllocateDist, (int) Math.ceil(movingBlockManager.getDistToMove()));
         return minAllocateDist;
     }
 
@@ -170,19 +177,9 @@ public class MovingBlockManagerRunnable implements Runnable {
         nodesToAllocate.addAll(inboundRoute.getNodes());
 
         int inboundMoveDist = stationTrackNode.getInboundMoveDist(trainset);
-        distToMove += inboundMoveDist;
-        distToAlloc += inboundMoveDist;
-        distToFree += inboundMoveDist;
+        movingBlockManager.addDistToMove(inboundMoveDist);
+        movingBlockManager.addDistToAlloc(inboundMoveDist);
+        movingBlockManager.addDistToFree(inboundMoveDist);
     }
 
-    private int calcDistToMove(Trainset trainset, Route route) {
-        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(nodesToAllocate.get(0));
-        int outboundDist = stationTrackNode.getOutboundMoveDist(trainset);
-        return outboundDist + route.getMoveDist();
-    }
-
-    @VisibleForTesting
-    double getDistToMove() {
-        return distToMove;
-    }
 }

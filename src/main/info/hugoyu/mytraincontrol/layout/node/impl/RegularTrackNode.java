@@ -42,8 +42,8 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         if (sensors != null) {
             this.sensors = sensors.entrySet().stream()
                     .collect(Collectors.toMap(
-                            entry -> getSensor(entry.getKey()),
-                            entry -> entry.getValue()));
+                            entry -> constructSensor(entry.getKey()),
+                            Map.Entry::getValue));
         }
     }
 
@@ -127,7 +127,7 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         }
     }
 
-    private Sensor getSensor(int address) {
+    private Sensor constructSensor(int address) {
         return SensorUtil.getSensor(address, new SensorChangeListener() {
             @Override
             public void onEnter(Sensor sensor) {

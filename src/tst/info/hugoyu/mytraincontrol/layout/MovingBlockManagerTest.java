@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-class MovingBlockManagerRunnableTest extends LayoutTestBase {
+class MovingBlockManagerTest extends LayoutTestBase {
 
     @Mock
     Trainset trainset;
@@ -28,7 +28,7 @@ class MovingBlockManagerRunnableTest extends LayoutTestBase {
     @Test
     public void getDistToMove() {
         Route route = RouteUtil.findRouteToStation(10000, "s2");
-        MovingBlockManagerRunnable sut = new MovingBlockManagerRunnable(trainset);
+        MovingBlockManager sut = new MovingBlockManager(trainset);
         sut.prepareToMove(route);
 
         assertEquals(1524, sut.getDistToMove());

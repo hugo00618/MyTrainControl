@@ -5,7 +5,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask
 import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
-import info.hugoyu.mytraincontrol.layout.MovingBlockManagerRunnable;
+import info.hugoyu.mytraincontrol.layout.MovingBlockManager;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.Getter;
@@ -42,8 +42,8 @@ public class Trainset implements TaskExecutionListener {
     private List<Long> allocatedNodes = new ArrayList<>();
     private final Object allocatedNodesLock = new Object();
 
-    private final MovingBlockManagerRunnable movingBlockManagerRunnable = new MovingBlockManagerRunnable(this);
-    private Thread runningMovingBlockManager;
+    private final MovingBlockManager movingBlockManager = new MovingBlockManager(this);
+    private Thread movingBlockManagerThread;
 
     public Trainset(int address, String name, String profileFilename) {
         this.address = address;
@@ -52,12 +52,12 @@ public class Trainset implements TaskExecutionListener {
     }
 
     public void move(Route route) {
-        if (runningMovingBlockManager != null && runningMovingBlockManager.isAlive()) {
+        if (movingBlockManagerThread != null && movingBlockManagerThread.isAlive()) {
             throw new RuntimeException("Train is still running");
         }
-        movingBlockManagerRunnable.prepareToMove(route);
-        runningMovingBlockManager = new Thread(movingBlockManagerRunnable);
-        runningMovingBlockManager.start();
+        movingBlockManager.prepareToMove(route);
+        movingBlockManagerThread = new Thread(movingBlockManager.getMovingBlockRunnable());
+        movingBlockManagerThread.start();
     }
 
     public void move(int distToMove) {
