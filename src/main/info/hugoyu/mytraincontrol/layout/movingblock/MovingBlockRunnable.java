@@ -27,7 +27,6 @@ public class MovingBlockRunnable implements Runnable {
     private Long previousNode;
 
     private boolean isBufferReleased;
-    private boolean isStopRoutineInitiated;
 
     private Thread allocThread;
 
@@ -40,7 +39,7 @@ public class MovingBlockRunnable implements Runnable {
     @Override
     public void run() {
         trainset.resetMovedDist();
-        isStopRoutineInitiated = false;
+        movingBlockManager.setIsStopRoutineInitiated(false);
 
         try {
             // allocate initial buffer space
@@ -133,7 +132,7 @@ public class MovingBlockRunnable implements Runnable {
                 previousNode = nodesToAllocate.remove(0);
 
                 // if only one node remaining, perform stop routine if not done already
-                if (nodesToAllocate.size() == 1 && !isStopRoutineInitiated) {
+                if (nodesToAllocate.size() == 1 && !movingBlockManager.isStopRoutineInitiated()) {
                     initiateStopRoutine();
                 }
             }
@@ -170,7 +169,7 @@ public class MovingBlockRunnable implements Runnable {
     }
 
     private void initiateStopRoutine() {
-        isStopRoutineInitiated = true;
+        movingBlockManager.setIsStopRoutineInitiated(true);
 
         long entryNodeId = nodesToAllocate.get(0);
         Station station = LayoutUtil.getStation(entryNodeId);

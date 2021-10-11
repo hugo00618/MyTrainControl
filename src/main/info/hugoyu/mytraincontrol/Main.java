@@ -41,8 +41,8 @@ public class Main {
         CommandUtil.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
 
         // alloc
-        CommandUtil.runCommand(new String[]{"alloc", "3", "10004"});
-        CommandUtil.runCommand(new String[]{"alloc", "5", "10000"});
+        CommandUtil.runCommand(new String[]{"alloc", "3", "10000"});
+        CommandUtil.runCommand(new String[]{"alloc", "5", "10004"});
 
         CommandStationRunnable.getInstance();
 

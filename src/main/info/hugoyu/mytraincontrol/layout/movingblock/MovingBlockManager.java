@@ -34,6 +34,9 @@ public class MovingBlockManager {
 
     private double movedDistToFree;
 
+    private boolean isStopRoutineInitiated;
+    private final Object isStopRoutineInitiatedLock = new Object();
+
     public MovingBlockManager(Trainset trainset) {
         this.trainset = trainset;
     }
@@ -166,6 +169,18 @@ public class MovingBlockManager {
     public void addDistToFree(int dist) {
         synchronized (distToFreeLock) {
             distToFree += dist;
+        }
+    }
+
+    public void setIsStopRoutineInitiated(boolean isStopRoutineInitiated) {
+        synchronized (isStopRoutineInitiatedLock) {
+            this.isStopRoutineInitiated = isStopRoutineInitiated;
+        }
+    }
+
+    public boolean isStopRoutineInitiated() {
+        synchronized (isStopRoutineInitiatedLock) {
+            return isStopRoutineInitiated;
         }
     }
 
