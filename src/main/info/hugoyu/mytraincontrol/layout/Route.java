@@ -23,7 +23,11 @@ public class Route implements Comparable<Route> {
      *
      * @return move distance (disregarding the outbound distance)
      */
-    public int getMoveDist() {
+    public int getMinMoveDist() {
+        if (nodes.size() < 2) {
+            return 0;
+        }
+        
         int outboundDist = LayoutUtil.getNode(nodes.get(0)).getNextNodes().get(nodes.get(1));
         return cost - outboundDist;
     }

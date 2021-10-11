@@ -5,8 +5,10 @@ import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.sensor.SensorChangeListener;
+import info.hugoyu.mytraincontrol.sensor.SensorState;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SensorUtil;
+import info.hugoyu.mytraincontrol.util.TrainUtil;
 import jmri.Sensor;
 
 import java.util.HashMap;
@@ -21,7 +23,7 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     protected Map<Integer, Range<Integer>> owners = new HashMap<>();
     private final Object ownersLock = new Object();
 
-    // map of (sensorAddress, location)
+    // map of (sensorAddress, position)
     private Map<Sensor, Integer> sensors = new HashMap<>();
 
     /**
@@ -42,7 +44,7 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         if (sensors != null) {
             this.sensors = sensors.entrySet().stream()
                     .collect(Collectors.toMap(
-                            entry -> constructSensor(entry.getKey()),
+                            entry -> constructSensor(entry.getKey(), entry.getValue()),
                             Map.Entry::getValue));
         }
     }
@@ -127,30 +129,34 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         }
     }
 
-    private Sensor constructSensor(int address) {
+    private Sensor constructSensor(int address, int position) {
+        AbstractTrackNode nodeInstance = this;
         return SensorUtil.getSensor(address, new SensorChangeListener() {
             @Override
             public void onEnter(Sensor sensor) {
-                Map.Entry<Integer, Range<Integer>> owner = getOwner(sensor);
-                if (owner != null) {
-                    System.out.println("owned range: " + owner.getValue());
-                } else {
-                    System.out.println("owner is null");
-                }
+                calibrateOwnerMovingBlockManager(sensor, SensorState.ENTER);
             }
 
             @Override
             public void onExit(Sensor sensor) {
-                Map.Entry<Integer, Range<Integer>> owner = getOwner(sensor);
+                calibrateOwnerMovingBlockManager(sensor, SensorState.EXIT);
+            }
+
+            private void calibrateOwnerMovingBlockManager(Sensor sensor, SensorState sensorState) {
+                Trainset owner = getOwner(sensor);
+                if (owner != null) {
+                    owner.calibrate(nodeInstance.getId(), position, sensorState);
+                }
             }
         });
     }
 
-    private Map.Entry<Integer, Range<Integer>> getOwner(Sensor sensor) {
+    private Trainset getOwner(Sensor sensor) {
         int sensorLocation = sensors.get(sensor);
         synchronized (ownersLock) {
             return owners.entrySet().stream()
                     .filter(entry -> entry.getValue().contains(sensorLocation))
+                    .map(entry -> TrainUtil.getTrainset(entry.getKey()))
                     .findFirst()
                     .orElse(null);
         }

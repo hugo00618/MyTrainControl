@@ -25,8 +25,16 @@ public class RouteUtil {
         return findRoute(entryNodeId, stationTrackNode.getId1());
     }
 
-    private static Route findRoute(long from, long to) {
-        return findRouteRecur(LayoutUtil.getNode(from), LayoutUtil.getNode(to), new ArrayList<>(), 0);
+    public static Route findRoute(Object from, Object to) {
+        AbstractTrackNode fromNode = convertToNode(from);
+        AbstractTrackNode toNode = convertToNode(to);
+        return findRouteRecur(fromNode, toNode, new ArrayList<>(), 0);
+    }
+
+    private static AbstractTrackNode convertToNode(Object node) {
+        return node instanceof AbstractTrackNode ?
+                (AbstractTrackNode) node :
+                LayoutUtil.getNode((Long) node);
     }
 
     private static Route findRouteRecur(AbstractTrackNode node, AbstractTrackNode destination,

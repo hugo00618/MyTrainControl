@@ -1,6 +1,8 @@
-package info.hugoyu.mytraincontrol.layout;
+package info.hugoyu.mytraincontrol.layout.movingblock;
 
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
+import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
+import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
@@ -47,9 +49,12 @@ public class MovingBlockRunnable implements Runnable {
             while (movingBlockManager.getDistToMove() >= 1) {
                 double movedDist = trainset.resetMovedDist();
                 if (movedDist > 0) {
-                    movingBlockManager.addDistToMove(-movedDist);
-                    movingBlockManager.addAllocatedMoveDist(-movedDist);
-                    movingBlockManager.addMovedDistToFree(movedDist);
+                    double moveDistForBlockSection = movingBlockManager.logMovedDist(movedDist);
+
+                    if (moveDistForBlockSection > 0) {
+                        movingBlockManager.addAllocatedMoveDist(-moveDistForBlockSection);
+                        movingBlockManager.addMovedDistToFree(moveDistForBlockSection);
+                    }
 
                     // free movedDistToFree
                     free();

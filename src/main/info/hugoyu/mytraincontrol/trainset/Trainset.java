@@ -5,8 +5,9 @@ import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask
 import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
-import info.hugoyu.mytraincontrol.layout.MovingBlockManager;
+import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.layout.Route;
+import info.hugoyu.mytraincontrol.sensor.SensorState;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -56,15 +57,11 @@ public class Trainset implements TaskExecutionListener {
             throw new RuntimeException("Train is still running");
         }
         movingBlockManager.prepareToMove(route);
-        movingBlockManagerThread = new Thread(movingBlockManager.getMovingBlockRunnable());
+        movingBlockManagerThread = new Thread(movingBlockManager.getNewMovingBlockRunnable());
         movingBlockManagerThread.start();
     }
 
-    public void move(int distToMove) {
-        setDistToMove(distToMove);
-    }
-
-    public double addDistToMove(int addDist) {
+    public double addDistToMove(double addDist) {
         synchronized (distLock) {
             double newDistToMove = this.distToMove + addDist;
             setDistToMove(newDistToMove);
@@ -74,14 +71,10 @@ public class Trainset implements TaskExecutionListener {
 
     public void setDistToMove(double distToMove) {
         log.debug("setDistToMove " + distToMove);
-        updateDistToMove(distToMove);
-        sendSetSpeedTask(System.currentTimeMillis());
-    }
-
-    private void updateDistToMove(double distToMove) {
         synchronized (distLock) {
             this.distToMove = distToMove;
         }
+        sendSetSpeedTask(System.currentTimeMillis());
     }
 
     public void sendSetSpeedTask(long taskCreationTime) {
@@ -153,6 +146,12 @@ public class Trainset implements TaskExecutionListener {
 
                 distLock.notifyAll();
             }
+        }
+    }
+
+    public void calibrate(long nodeId, int sensorPosition, SensorState sensorState) {
+        if (movingBlockManagerThread != null && movingBlockManagerThread.isAlive()) {
+            movingBlockManager.calibrate(nodeId, sensorPosition, sensorState);
         }
     }
 

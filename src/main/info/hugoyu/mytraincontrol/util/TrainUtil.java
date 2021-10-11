@@ -18,7 +18,7 @@ public class TrainUtil {
 
     public static void moveDist(int address, int dist) {
         Trainset trainset = getTrainset(address);
-        trainset.move(dist);
+        trainset.setDistToMove(dist);
     }
 
     public static void registerTrainset(int address, String name, String profileFilename) throws Exception {

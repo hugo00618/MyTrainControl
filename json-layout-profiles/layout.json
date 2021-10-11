@@ -39,10 +39,10 @@
           "name": "Track 1",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992,
+          "trackLength": 1054,
+          "platformLength": 1054,
           "sensors": {
-            "14": 0
+            "15": 0
           }
         },
         {
@@ -51,8 +51,8 @@
           "name": "Track 2",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992
+          "trackLength": 1054,
+          "platformLength": 1054
         }
       ]
     },
@@ -70,8 +70,8 @@
           "name": "Track 1",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992
+          "trackLength": 1054,
+          "platformLength": 1054
         },
         {
           "id0": 10005,
@@ -79,8 +79,8 @@
           "name": "Track 2",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992
+          "trackLength": 1054,
+          "platformLength": 1054
         }
       ]
     }

@@ -1,6 +1,7 @@
 package info.hugoyu.mytraincontrol.layout;
 
 import info.hugoyu.mytraincontrol.LayoutTestBase;
+import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.RouteUtil;
