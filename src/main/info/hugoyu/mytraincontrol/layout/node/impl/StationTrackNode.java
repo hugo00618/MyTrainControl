@@ -2,6 +2,7 @@ package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
+import info.hugoyu.mytraincontrol.json.layout.StationTrackJson;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 
@@ -24,6 +25,17 @@ public class StationTrackNode extends RegularTrackNode {
         this.platformLength = platformLength;
         this.isPlatformTrack = isPlatformTrack;
         this.isPassingTrack = isPassingTrack;
+    }
+
+    public StationTrackNode(StationTrackJson stationTrackJson) {
+        this(stationTrackJson.getId0(),
+                stationTrackJson.getId1(),
+                stationTrackJson.getName(),
+                stationTrackJson.getTrackLength(),
+                stationTrackJson.getSensors(),
+                stationTrackJson.getPlatformLength(),
+                stationTrackJson.isPlatformTrack(),
+                stationTrackJson.isPassingTrack());
     }
 
     /**

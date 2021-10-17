@@ -14,10 +14,11 @@ public class CommandUtil {
         if (command == null) {
             throw new CommandNotFoundException(commandKey);
         }
-        if (command.expectedArgs().length != args.length - 1) {
+        if (command.expectedArgs().length != args.length - 1 ||
+                !command.parseArgs(args)) {
             throw new CommandInvalidUsageException(command);
         }
 
-        command.execute(args);
+        command.execute();
     }
 }

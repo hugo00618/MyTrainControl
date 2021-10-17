@@ -1,25 +1,34 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.extern.log4j.Log4j;
 
 @Log4j
 public class RegisterCommand implements Command {
 
+    private int address;
+    private String name, profileFileName;
+
     @Override
-    public void execute(String[] args) throws CommandInvalidUsageException {
+    public boolean parseArgs(String[] args) {
         try {
-            int address = Integer.parseInt(args[1]);
-            TrainUtil.registerTrainset(address, args[2], args[3]);
-            TrainUtil.setLight(address, true);
-            System.out.println("Trainset registered: " + args[2] + " at address " + address);
+            address = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            throw new CommandInvalidUsageException(this);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return false;
         }
+
+        name = args[2];
+        profileFileName = args[3];
+        return true;
+    }
+
+    @Override
+    public void execute() {
+        TrainUtil.registerTrainset(address, name, profileFileName);
+        TrainUtil.setLight(address, true);
+        System.out.println(String.format("Trainset registered: %s at address %s", name, address));
+
     }
 
     @Override

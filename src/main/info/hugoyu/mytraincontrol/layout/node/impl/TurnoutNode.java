@@ -1,6 +1,7 @@
 package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
+import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
@@ -19,11 +20,11 @@ public class TurnoutNode extends AbstractTrackNode {
         }
     }
 
-    private long id1,id2;
+    private long id1, id2;
     private int dist1, dist2;
     private Type type;
 
-    public TurnoutNode(long id, long id1, long id2, long id3, int dist1, int dist2, Type type) {
+    public TurnoutNode(long id, long id1, long id2, Long id3, int dist1, int dist2, Type type) {
         super(id);
 
         this.id1 = id1;
@@ -45,6 +46,16 @@ public class TurnoutNode extends AbstractTrackNode {
             default:
                 break;
         }
+    }
+
+    public TurnoutNode(TurnoutJson turnoutJson) {
+        this(turnoutJson.getId0(),
+                turnoutJson.getId1(),
+                turnoutJson.getId2(),
+                turnoutJson.getId3(),
+                turnoutJson.getDist1(),
+                turnoutJson.getDist2(),
+                turnoutJson.getType());
     }
 
 

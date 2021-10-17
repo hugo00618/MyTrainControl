@@ -1,6 +1,14 @@
 package info.hugoyu.mytraincontrol.command;
 
 public interface Command {
-    void execute(String[] args) throws Exception;
+    /**
+     * parse command arguments
+     * @param args
+     * @return true if args are valid, false otherwise
+     */
+    boolean parseArgs(String[] args);
+
+    void execute();
+
     String[] expectedArgs();
 }

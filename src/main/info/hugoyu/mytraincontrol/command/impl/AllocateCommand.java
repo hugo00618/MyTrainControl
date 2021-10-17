@@ -1,7 +1,6 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.extern.log4j.Log4j;
@@ -9,21 +8,27 @@ import lombok.extern.log4j.Log4j;
 @Log4j
 public class AllocateCommand implements Command {
 
+    private int address;
+    private long trackNodeId;
+
     @Override
-    public void execute(String[] args) throws CommandInvalidUsageException {
+    public boolean parseArgs(String[] args) {
         try {
-            int address = Integer.parseInt(args[1]);
-            long trackNodeId = Long.parseLong(args[2]);
-            Trainset trainset = TrainUtil.getTrainset(address);
-            if (TrainUtil.allocateStationTrackImmediately(address, trackNodeId)) {
-                System.out.println(trainset.getName() + ": allocation succeeded for track node " + trackNodeId);
-            } else {
-                System.err.println(trainset.getName() + ": allocation failed for track node " + trackNodeId);
-            }
+            address = Integer.parseInt(args[1]);
+            trackNodeId = Long.parseLong(args[2]);
         } catch (NumberFormatException e) {
-            throw new CommandInvalidUsageException(this);
-        } catch (Exception e) {
-            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public void execute() {
+        Trainset trainset = TrainUtil.getTrainset(address);
+        if (TrainUtil.allocateStationTrackImmediately(address, trackNodeId)) {
+            System.out.println(trainset.getName() + ": allocation succeeded for track node " + trackNodeId);
+        } else {
+            System.err.println(trainset.getName() + ": allocation failed for track node " + trackNodeId);
         }
     }
 

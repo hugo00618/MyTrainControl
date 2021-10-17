@@ -21,7 +21,7 @@ public class TrainUtil {
         trainset.setDistToMove(dist);
     }
 
-    public static void registerTrainset(int address, String name, String profileFilename) throws Exception {
+    public static void registerTrainset(int address, String name, String profileFilename) {
         TrainsetRegistry.getInstance().registerTrainset(address, new Trainset(address, name, profileFilename));
         ThrottleRegistry.getInstance().registerThrottle(address);
     }

@@ -1,22 +1,28 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 public class MoveCommand implements Command {
 
+    private int address;
+    private String stationId;
+
     @Override
-    public void execute(String[] args) throws Exception {
+    public boolean parseArgs(String[] args) {
         try {
-            int address = Integer.parseInt(args[1]);
-            String stationId = args[2];
-            TrainUtil.moveTo(address, stationId);
+            address = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            throw new CommandInvalidUsageException(this);
-        } catch (RuntimeException e) {
-            e.printStackTrace();
+            return false;
         }
+        stationId = args[2];
+
+        return true;
+    }
+
+    @Override
+    public void execute() {
+        TrainUtil.moveTo(address, stationId);
     }
 
     @Override

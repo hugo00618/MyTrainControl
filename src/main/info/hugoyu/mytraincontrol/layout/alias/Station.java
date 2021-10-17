@@ -1,6 +1,7 @@
 package info.hugoyu.mytraincontrol.layout.alias;
 
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
+import info.hugoyu.mytraincontrol.json.layout.StationJson;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import lombok.AllArgsConstructor;
@@ -15,6 +16,13 @@ public class Station {
     private String name;
     private List<StationTrackNode> stationTrackNodes;
     private List<Long> entryNodeIds;
+
+    public Station(StationJson stationJson, List<StationTrackNode> stationTrackNodes) {
+        this(stationJson.getId(),
+                stationJson.getName(),
+                stationTrackNodes,
+                stationJson.getEntryNodeIds());
+    }
 
     /**
      * Finds the station track that is most likely to be available

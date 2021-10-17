@@ -1,28 +1,39 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 public class LightControlCommand implements Command {
 
-    private static final String LIGHT_STATUS_OFF = "off";
-    private static final String LIGHT_STATUS_ON = "on";
+    private static final String LIGHT_STATE_OFF = "off";
+    private static final String LIGHT_STATE_ON = "on";
+
+    private int address;
+    private String lightStatus;
 
     @Override
-    public void execute(String[] args) throws Exception {
+    public boolean parseArgs(String[] args) {
         try {
-            int address = Integer.parseInt(args[1]);
-            String lightStatus = args[2].toLowerCase();
-            if (lightStatus.equals(LIGHT_STATUS_OFF)) {
-                TrainUtil.setLight(address, false);
-            } else if (lightStatus.equals(LIGHT_STATUS_ON)) {
-                TrainUtil.setLight(address, true);
-            } else {
-                throw new CommandInvalidUsageException(this);
-            }
+            address = Integer.parseInt(args[1]);
         } catch (NumberFormatException e) {
-            throw new CommandInvalidUsageException(this);
+            return false;
+        }
+
+        String lightStatus = args[2].toLowerCase();
+        if (!lightStatus.equals(LIGHT_STATE_OFF) && !lightStatus.equals(LIGHT_STATE_ON)) {
+            return false;
+        }
+        this.lightStatus = lightStatus;
+
+        return true;
+    }
+
+    @Override
+    public void execute() {
+        if (lightStatus.equals(LIGHT_STATE_OFF)) {
+            TrainUtil.setLight(address, false);
+        } else { // LIGHT_STATE_ON
+            TrainUtil.setLight(address, true);
         }
     }
 

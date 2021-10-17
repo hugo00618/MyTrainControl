@@ -10,6 +10,7 @@ import info.hugoyu.mytraincontrol.command.impl.MoveCommand;
 import info.hugoyu.mytraincontrol.command.impl.PowerControlCommand;
 import info.hugoyu.mytraincontrol.command.impl.PrintCommand;
 import info.hugoyu.mytraincontrol.command.impl.RegisterCommand;
+import info.hugoyu.mytraincontrol.command.impl.TurnoutControlCommand;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -29,11 +30,15 @@ public class CommandRegistry {
 
         commands.put("help", new Command() {
             @Override
-            public void execute(String[] args) throws Exception {
+            public boolean parseArgs(String[] args) {
+                return true;
+            }
+
+            @Override
+            public void execute() {
                 System.out.println("List of commands: ");
-                commands.keySet().forEach(
-                        System.out::println
-                );
+                commands.keySet()
+                        .forEach(System.out::println);
             }
 
             @Override
@@ -50,10 +55,11 @@ public class CommandRegistry {
         commands.put("print", new PrintCommand());
         commands.put("pwr", new PowerControlCommand());
         commands.put("reg", new RegisterCommand());
+        commands.put("turnout", new TurnoutControlCommand());
 
         // debug
-        commands.put("st", new SetThrottleCommand());
         commands.put("mvdist", new MoveDistCommand());
+        commands.put("throttle", new SetThrottleCommand());
     }
 
 }

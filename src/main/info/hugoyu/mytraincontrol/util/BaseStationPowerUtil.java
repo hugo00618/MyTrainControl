@@ -7,32 +7,23 @@ import jmri.PowerManager;
 public class BaseStationPowerUtil {
 
     public static void turnOnPower() throws JmriException {
-        PowerManager powerManager = InstanceManager.getNullableDefault(jmri.PowerManager.class);
-
-        if (powerManager.getPower() != PowerManager.ON) {
-            try {
-                powerManager.setPower(PowerManager.ON);
-            } catch (JmriException e) {
-                e.printStackTrace();
-            }
-        }
-
-        // retry
-        if (powerManager.getPower() != PowerManager.ON) {
-            powerManager.setPower(PowerManager.OFF);
-            powerManager.setPower(PowerManager.ON);
-        }
-
-        System.out.println("Power state: " + powerManager.getPower());
+        int powerState = setPower(true);
+        System.out.println("Power state: " + powerState);
     }
 
     public static void turnOffPower() throws JmriException {
-        PowerManager powerManager = InstanceManager.getNullableDefault(jmri.PowerManager.class);
+        setPower(false);
+        System.out.println("Power is off");
+    }
 
-        if (powerManager.getPower() != PowerManager.OFF) {
-            powerManager.setPower(PowerManager.OFF);
+    private static int setPower(boolean on) throws JmriException {
+        PowerManager powerManager = InstanceManager.getNullableDefault(jmri.PowerManager.class);
+        if (powerManager == null) {
+            throw new RuntimeException("jmri.PowerManager is null");
         }
 
-        System.out.println("Power off");
+        int powerState = on ? PowerManager.ON : PowerManager.OFF;
+        powerManager.setPower(powerState);
+        return powerManager.getPower();
     }
 }

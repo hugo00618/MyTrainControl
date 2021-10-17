@@ -1,7 +1,6 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
@@ -12,9 +11,21 @@ public class PrintCommand implements Command {
     private static final String LIST_TYPE_TRAINS = "trains";
     private static final String LIST_TYPE_STATIONS = "stations";
 
+    private String type;
+
     @Override
-    public void execute(String[] args) throws Exception {
+    public boolean parseArgs(String[] args) {
         String type = args[1];
+        if (!type.equals(LIST_TYPE_TRAINS) && !type.equals(LIST_TYPE_STATIONS)) {
+            return false;
+        }
+
+        this.type = type;
+        return true;
+    }
+
+    @Override
+    public void execute() {
         switch (type) {
             case LIST_TYPE_TRAINS:
                 printTrains();
@@ -23,7 +34,7 @@ public class PrintCommand implements Command {
                 printStations();
                 break;
             default:
-                throw new CommandInvalidUsageException(this);
+                break;
         }
     }
 

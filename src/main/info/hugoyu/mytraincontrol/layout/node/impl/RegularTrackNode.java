@@ -2,6 +2,7 @@ package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
+import info.hugoyu.mytraincontrol.json.layout.RegularTrackJson;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.sensor.SensorChangeListener;
@@ -47,6 +48,13 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
                             entry -> constructSensor(entry.getKey(), entry.getValue()),
                             Map.Entry::getValue));
         }
+    }
+
+    public RegularTrackNode(RegularTrackJson regularTrackJson) {
+        this(regularTrackJson.getId0(),
+                regularTrackJson.getId1(),
+                regularTrackJson.getLength(),
+                regularTrackJson.getSensors());
     }
 
     @Override

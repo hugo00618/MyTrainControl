@@ -1,20 +1,37 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.BaseStationPowerUtil;
 import jmri.JmriException;
 
 public class PowerControlCommand implements Command {
+
+    private static final String POWER_STATE_OFF = "off";
+    private static final String POWER_STATE_ON = "on";
+
+    private String powerStatus;
+
     @Override
-    public void execute(String[] args) throws CommandInvalidUsageException, JmriException {
+    public boolean parseArgs(String[] args) {
         String powerStatus = args[1].toLowerCase();
-        if (powerStatus.equals("on")) {
-            BaseStationPowerUtil.turnOnPower();
-        } else if (powerStatus.equals("off")) {
-            BaseStationPowerUtil.turnOffPower();
-        } else {
-            throw new CommandInvalidUsageException(this);
+        if (!powerStatus.equals(POWER_STATE_OFF) && !powerStatus.equals(POWER_STATE_ON)) {
+            return false;
+        }
+        this.powerStatus = powerStatus;
+
+        return true;
+    }
+
+    @Override
+    public void execute() {
+        try {
+            if (powerStatus.equals(POWER_STATE_OFF)) {
+                BaseStationPowerUtil.turnOffPower();
+            } else { // POWER_STATE_ON
+                BaseStationPowerUtil.turnOnPower();
+            }
+        } catch (JmriException e) {
+            throw new RuntimeException(e);
         }
     }
 

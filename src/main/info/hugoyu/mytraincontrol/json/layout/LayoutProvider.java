@@ -21,50 +21,24 @@ public class LayoutProvider {
 
         // regular nodes
         layoutJson.getRegularTracks().forEach(
-                regularTrackJson ->
-                        layoutRegistry.registerGraphNode(new RegularTrackNode(
-                                regularTrackJson.getId0(),
-                                regularTrackJson.getId1(),
-                                regularTrackJson.getLength(),
-                                regularTrackJson.getSensors())));
-
-        // turnouts
-        layoutJson.getTurnouts().forEach(
-                turnoutJson ->
-                        layoutRegistry.registerGraphNode(new TurnoutNode(
-                                turnoutJson.getId0(),
-                                turnoutJson.getId1(),
-                                turnoutJson.getId2(),
-                                turnoutJson.getId3(),
-                                turnoutJson.getDist1(),
-                                turnoutJson.getDist2(),
-                                turnoutJson.getType())));
+                regularTrackJson -> layoutRegistry.registerGraphNode(new RegularTrackNode(regularTrackJson)));
 
         // stations
         layoutJson.getStations().forEach(
                 stationJson -> {
                     List<StationTrackNode> stationTrackNodes = registerStationTracks(stationJson, layoutRegistry);
-                    layoutRegistry.registerAlias(new Station(
-                            stationJson.getId(),
-                            stationJson.getName(),
-                            stationTrackNodes,
-                            stationJson.getEntryNodeIds()));
-                }
-        );
+                    layoutRegistry.registerAlias(new Station(stationJson, stationTrackNodes));
+                });
+
+        // turnouts
+        layoutJson.getTurnouts().forEach(
+                turnoutJson -> layoutRegistry.registerGraphNode(new TurnoutNode(turnoutJson)));
     }
 
     private static List<StationTrackNode> registerStationTracks(StationJson stationJson, LayoutRegistry layoutRegistry) {
         return stationJson.getTracks().stream()
                 .map(stationTrackJson -> {
-                    StationTrackNode stationTrackNode = new StationTrackNode(
-                            stationTrackJson.getId0(),
-                            stationTrackJson.getId1(),
-                            stationTrackJson.getName(),
-                            stationTrackJson.getTrackLength(),
-                            stationTrackJson.getSensors(),
-                            stationTrackJson.getPlatformLength(),
-                            stationTrackJson.isPlatformTrack(),
-                            stationTrackJson.isPassingTrack());
+                    StationTrackNode stationTrackNode = new StationTrackNode(stationTrackJson);
                     layoutRegistry.registerGraphNode(stationTrackNode);
                     return stationTrackNode;
                 })

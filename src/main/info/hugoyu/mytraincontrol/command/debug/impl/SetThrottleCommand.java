@@ -5,10 +5,23 @@ import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 
 public class SetThrottleCommand extends AbstractDebugCommand {
 
+    private int address;
+    private double throttle;
+
     @Override
-    public void executeCommand(String[] args) {
-        int address = Integer.parseInt(args[1]);
-        double throttle = Integer.parseInt(args[2]);
+    public boolean parseArgs(String[] args) {
+        try {
+            address = Integer.parseInt(args[1]);
+            throttle = Integer.parseInt(args[2]);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+
+        return true;
+    }
+
+    @Override
+    public void executeCommand() {
         ThrottleRegistry.getInstance().getThrottle(address).setSpeedSetting((float) (throttle / 100.0));
     }
 

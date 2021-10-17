@@ -1,25 +1,26 @@
 package info.hugoyu.mytraincontrol.commandstation.task;
 
-import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 
 @Getter
 public abstract class AbstractCommandStationTask implements Comparable<AbstractCommandStationTask> {
-    protected Trainset trainset;
     private long taskCreationTime;
     private long scheduledExecutionTime;
     private boolean isDelayedTask;
 
-    public AbstractCommandStationTask(Trainset trainset, long taskCreationTime) {
-        this.trainset = trainset;
-        this.taskCreationTime = taskCreationTime;
-        scheduledExecutionTime = taskCreationTime;
+    public AbstractCommandStationTask() {
+        this(System.currentTimeMillis());
     }
 
-    public AbstractCommandStationTask(Trainset trainset, long taskCreationTime, long delay) {
-        this(trainset, taskCreationTime);
-        scheduledExecutionTime += delay;
-        isDelayedTask = true;
+    public AbstractCommandStationTask(long taskCreationTime) {
+        this.taskCreationTime = taskCreationTime;
+        this.scheduledExecutionTime = taskCreationTime;
+    }
+    
+    public AbstractCommandStationTask(long taskCreationTime, long delay) {
+        this(taskCreationTime);
+        this.scheduledExecutionTime += delay;
+        this.isDelayedTask = true;
     }
 
     public void dedupe(AbstractCommandStationTask task) {

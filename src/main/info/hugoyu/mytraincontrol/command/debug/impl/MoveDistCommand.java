@@ -1,20 +1,27 @@
 package info.hugoyu.mytraincontrol.command.debug.impl;
 
 import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
-import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 public class MoveDistCommand extends AbstractDebugCommand {
 
+    private int address, dist;
+
     @Override
-    public void executeCommand(String[] args) throws Exception {
+    public boolean parseArgs(String[] args) {
         try {
-            int address = Integer.parseInt(args[1]);
-            int dist = Integer.parseInt(args[2]);
-            TrainUtil.moveDist(address, dist);
+            address = Integer.parseInt(args[1]);
+            dist = Integer.parseInt(args[2]);
         } catch (NumberFormatException e) {
-            throw new CommandInvalidUsageException(this);
+            return false;
         }
+
+        return true;
+    }
+
+    @Override
+    public void executeCommand() {
+        TrainUtil.moveDist(address, dist);
     }
 
     @Override
