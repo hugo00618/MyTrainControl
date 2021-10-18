@@ -12,14 +12,14 @@ class LayoutUtilTest extends LayoutTestBase {
 
     @Test
     public void isReachable() {
-        assertTrue(LayoutUtil.isReachable(10000, 10000));
-        assertTrue(LayoutUtil.isReachable(10000, 10002));
-        assertTrue(LayoutUtil.isReachable(10000, 10004));
+        assertTrue(LayoutUtil.isReachable(10101, 10101));
+        assertTrue(LayoutUtil.isReachable(10101, 11101));
+        assertTrue(LayoutUtil.isReachable(10101, 11103));
 
-        assertFalse(LayoutUtil.isReachable(10000, 10001));
+        assertFalse(LayoutUtil.isReachable(10101, 10100));
 
-        assertThrows(InvalidIdException.class, ()-> LayoutUtil.isReachable(-1, 10000));
-        assertThrows(InvalidIdException.class, ()-> LayoutUtil.isReachable(10000, -1));
+        assertThrows(InvalidIdException.class, ()-> LayoutUtil.isReachable(-1, 10101));
+        assertThrows(InvalidIdException.class, ()-> LayoutUtil.isReachable(10101, -1));
         assertThrows(InvalidIdException.class, ()-> LayoutUtil.isReachable(-1, -2));
     }
 

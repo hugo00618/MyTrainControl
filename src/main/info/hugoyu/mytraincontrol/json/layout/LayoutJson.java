@@ -6,7 +6,7 @@ import java.util.List;
 
 @Getter
 public class LayoutJson {
-    private List<RegularTrackJson> regularTracks;
-    private List<TurnoutJson> turnouts;
+    private List<RegularTrackJson> uplinkRegularTracks, downlinkRegularTracks;
+    private List<TurnoutJson> uplinkTurnouts, downlinkTurnouts;
     private List<StationJson> stations;
 }

@@ -10,7 +10,7 @@ import info.hugoyu.mytraincontrol.command.impl.MoveCommand;
 import info.hugoyu.mytraincontrol.command.impl.PowerControlCommand;
 import info.hugoyu.mytraincontrol.command.impl.PrintCommand;
 import info.hugoyu.mytraincontrol.command.impl.RegisterCommand;
-import info.hugoyu.mytraincontrol.command.impl.TurnoutControlCommand;
+import info.hugoyu.mytraincontrol.command.debug.impl.TurnoutControlCommand;
 import lombok.Getter;
 
 import java.util.HashMap;
@@ -55,11 +55,11 @@ public class CommandRegistry {
         commands.put("print", new PrintCommand());
         commands.put("pwr", new PowerControlCommand());
         commands.put("reg", new RegisterCommand());
-        commands.put("turnout", new TurnoutControlCommand());
 
         // debug
         commands.put("mvdist", new MoveDistCommand());
         commands.put("throttle", new SetThrottleCommand());
+        commands.put("turnout", new TurnoutControlCommand());
     }
 
 }

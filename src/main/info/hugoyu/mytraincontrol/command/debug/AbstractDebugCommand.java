@@ -10,7 +10,7 @@ public abstract class AbstractDebugCommand implements Command {
 
     @Override
     public final void execute() {
-        System.out.println("Warning: This is a debugging command which violates track isolation and may result in vehicle collision.");
+        System.out.println("Warning: This is a debugging command which violates block section and may result in vehicle collision.");
         System.out.println("Do you want to proceed? (yes/no)");
 
         try {

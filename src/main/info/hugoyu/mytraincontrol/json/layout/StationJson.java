@@ -9,5 +9,5 @@ public class StationJson {
     private String id;
     private String name;
     private List<Long> entryNodeIds;
-    private List<StationTrackJson> tracks;
+    private List<StationTrackJson> uplinkTracks, downlinkTracks;
 }

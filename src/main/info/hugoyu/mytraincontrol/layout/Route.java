@@ -1,34 +1,20 @@
 package info.hugoyu.mytraincontrol.layout;
 
-import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 import java.util.List;
 
 @AllArgsConstructor
+@Getter
 public class Route implements Comparable<Route> {
 
-    @Getter
     private List<Long> nodes;
-
     private int cost;
+    private boolean isUplink;
 
     @Override
     public int compareTo(Route o) {
         return this.cost - o.cost;
-    }
-
-    /**
-     *
-     * @return move distance (disregarding the outbound distance)
-     */
-    public int getMinMoveDist() {
-        if (nodes.size() < 2) {
-            return 0;
-        }
-        
-        int outboundDist = LayoutUtil.getNode(nodes.get(0)).getNextNodes().get(nodes.get(1));
-        return cost - outboundDist;
     }
 }

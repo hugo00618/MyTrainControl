@@ -25,11 +25,12 @@ public class Station {
     }
 
     /**
-     * Finds the station track that is most likely to be available
+     * Finds the station track that is currently available
      *
      * @param isPassingTrackRequired
      * @return
      */
+    // todo: change this to return route directly
     public StationTrackNode findAvailableTrack(long entryNodeId, boolean isPassingTrackRequired) {
         if (!entryNodeIds.contains(entryNodeId)) {
             throw new InvalidIdException(entryNodeId);
@@ -39,28 +40,17 @@ public class Station {
             return stationTrackNodes.stream()
                     .filter(stationTrackNode ->
                             stationTrackNode.isPassingTrack() &&
+                                    stationTrackNode.isFree() &&
                                     LayoutUtil.isReachable(entryNodeId, stationTrackNode.getId()))
-                    // no sorting required since an entry node should map to only one passing track
                     .findFirst()
-                    .orElseThrow(() ->
-                            new InvalidIdException(entryNodeId)
-                    );
+                    .orElse(null);
         } else {
             return stationTrackNodes.stream()
-                    .filter(stationTrackNode -> LayoutUtil.isReachable(entryNodeId, stationTrackNode.getId()))
-                    // sort the stream to
-                    // a. favour available tracks over non-available tracks
-                    // b. favour non-passing track over passing tracks, if their availabilities are the same
-                    .min((o1, o2) -> {
-                        int free = Boolean.compare(o2.isFree(), o1.isFree());
-                        if (free != 0) {
-                            return free;
-                        }
-                        return Boolean.compare(o1.isPassingTrack(), o2.isPassingTrack());
-                    })
-                    .orElseThrow(() ->
-                            new InvalidIdException(entryNodeId)
-                    );
+                    .filter(stationTrackNode -> stationTrackNode.isFree() &&
+                            LayoutUtil.isReachable(entryNodeId, stationTrackNode.getId()))
+                    // sort the stream to favour non-passing track over passing tracks
+                    .min((o1, o2) -> Boolean.compare(o1.isPassingTrack(), o2.isPassingTrack()))
+                    .orElse(null);
         }
     }
 }

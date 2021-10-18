@@ -18,7 +18,13 @@ public class TrainUtil {
 
     public static void moveDist(int address, int dist) {
         Trainset trainset = getTrainset(address);
-        trainset.setDistToMove(dist);
+        if (dist > 0) {
+            trainset.setIsForward(true);
+        } else {
+            trainset.setIsForward(false);
+        }
+
+        trainset.setDistToMove(Math.abs(dist));
     }
 
     public static void registerTrainset(int address, String name, String profileFilename) {

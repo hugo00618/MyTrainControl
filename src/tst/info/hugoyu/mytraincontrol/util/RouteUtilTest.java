@@ -12,16 +12,30 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 class RouteUtilTest extends LayoutTestBase {
 
     @Test
-    public void findRouteToStation() {
-        Route route = RouteUtil.findRouteToStation(10000, "s2");
+    public void findRouteToStationViaMergingTurnout() {
+        Route route = RouteUtil.findRouteToStation(10103, "s2");
+
+        List<Long> nodes = route.getNodes();
+        assertEquals(4, nodes.size());
+        assertEquals(Long.valueOf(10103), nodes.get(0));
+        assertEquals(Long.valueOf(10003), nodes.get(1));
+        assertEquals(Long.valueOf(10401), nodes.get(2));
+        assertEquals(Long.valueOf(11101), nodes.get(3));
+
+        assertEquals(1592, route.getMinMoveDist());
+    }
+
+    @Test
+    public void findRouteToStationViaDivergingTurnout() {
+        Route route = RouteUtil.findRouteToStation(11101, "s1");
 
         List<Long> nodes = route.getNodes();
         assertEquals(3, nodes.size());
-        assertEquals(Long.valueOf(10000), nodes.get(0));
-        assertEquals(Long.valueOf(10002), nodes.get(1));
-        assertEquals(Long.valueOf(10004), nodes.get(2));
+        assertEquals(Long.valueOf(11101), nodes.get(0));
+        assertEquals(Long.valueOf(11103), nodes.get(1));
+        assertEquals(Long.valueOf(10001), nodes.get(2));
 
-        assertEquals(1508, route.getMinMoveDist());
+        assertEquals(1404, route.getMinMoveDist());
     }
 
     @Test
@@ -32,11 +46,11 @@ class RouteUtilTest extends LayoutTestBase {
 
     @Test
     public void findInboundRoute() {
-        Route route = RouteUtil.findInboundRoute(10000, LayoutUtil.getStationTrackNode(10000));
+        Route route = RouteUtil.findInboundRoute(10001, LayoutUtil.getStationTrackNode(10103));
 
         assertEquals(2, route.getNodes().size());
-        assertEquals(10000, route.getNodes().get(0));
-        assertEquals(10002, route.getNodes().get(1));
+        assertEquals(10001, route.getNodes().get(0));
+        assertEquals(10103, route.getNodes().get(1));
     }
 
 }

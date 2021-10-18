@@ -96,7 +96,7 @@ public class MovingBlockRunnable implements Runnable {
                     }
                 }
 
-                // release heading buffer at the end of the journey
+                // release heading buffer at the end of the trip
                 if (movingBlockManager.getDistToAlloc() == 0 && !isBufferReleased) {
                     trainset.addDistToMove(TRAIN_BUFFER_DISTANCE_HEADING);
                     isBufferReleased = true;
@@ -114,9 +114,9 @@ public class MovingBlockRunnable implements Runnable {
      * @throws NodeAllocationException
      */
     private int allocate(int distance) throws NodeAllocationException {
-        while (movingBlockManager.getDistToAlloc() > 0 && distance > 0 && nodesToAllocate.size() > 1) {
+        while (movingBlockManager.getDistToAlloc() > 0 && distance > 0 && nodesToAllocate.size() > 0) {
             long nodeId = nodesToAllocate.get(0);
-            long nextNode = nodesToAllocate.get(1);
+            Long nextNode = nodesToAllocate.size() > 1 ? nodesToAllocate.get(1) : null;
 
             BlockSectionResult allocRes =
                     LayoutUtil.allocNode(nodeId, trainset, distance, nextNode, previousNode);
@@ -125,7 +125,9 @@ public class MovingBlockRunnable implements Runnable {
             movingBlockManager.addDistToAlloc(-distanceAllocated);
             movingBlockManager.addAllocatedMoveDist(distanceAllocated);
 
-            trainset.addAllocatedNode(nodeId);
+            if (trainset.getLastAllocatedNode() != nodeId) {
+                trainset.addAllocatedNode(nodeId);
+            }
 
             // remove from nodesToAllocate if the entire section has been allocated
             if (allocRes.isEntireSectionConsumed()) {
@@ -173,6 +175,7 @@ public class MovingBlockRunnable implements Runnable {
 
         long entryNodeId = nodesToAllocate.get(0);
         Station station = LayoutUtil.getStation(entryNodeId);
+        // todo: hang when no track available
         StationTrackNode stationTrackNode = station.findAvailableTrack(entryNodeId, false);
         Route inboundRoute = RouteUtil.findInboundRoute(entryNodeId, stationTrackNode);
 
@@ -180,7 +183,7 @@ public class MovingBlockRunnable implements Runnable {
         nodesToAllocate.remove(0);
         nodesToAllocate.addAll(inboundRoute.getNodes());
 
-        int inboundMoveDist = stationTrackNode.getInboundMoveDist(trainset);
+        int inboundMoveDist = inboundRoute.getCost() + stationTrackNode.getInboundMoveDist(trainset);
         movingBlockManager.addDistToMove(inboundMoveDist);
         movingBlockManager.addDistToAlloc(inboundMoveDist);
         movingBlockManager.addDistToFree(inboundMoveDist);

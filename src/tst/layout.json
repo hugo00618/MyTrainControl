@@ -1,55 +1,65 @@
 {
-  "regularTracks": [
+  "uplinkRegularTracks": [
     {
-      "id0": 10002,
-      "id1": 10004,
-      "length": 1508
-    },
-    {
-      "id0": 10006,
-      "id1": 10000,
-      "length": 1508
-    },
-    {
-      "id0": 10003,
-      "id1": 10005,
+      "id0": 10401,
+      "id1": 11101,
       "length": 1404
     },
     {
-      "id0": 10007,
+      "id0": 11103,
       "id1": 10001,
       "length": 1404
     }
   ],
-  "turnouts": [
-
+  "downlinkRegularTracks": [
+    {
+      "id0": 10400,
+      "id1": 11100,
+      "length": 1508
+    },
+    {
+      "id0": 11102,
+      "id1": 10100,
+      "length": 1508
+    }
   ],
   "stations": [
     {
       "id": "s1",
       "name": "Station 1",
       "entryNodeIds": [
-        10000,
+        10100,
         10001
       ],
-      "tracks": [
+      "uplinkTracks": [
         {
-          "id0": 10000,
-          "id1": 10002,
-          "name": "Track 1",
-          "isPlatformTrack": true,
-          "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992
-        },
-        {
-          "id0": 10001,
+          "id0": 10101,
           "id1": 10003,
           "name": "Track 2",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992
+          "trackLength": 744,
+          "platformLength": 744
+        },
+        {
+          "id0": 10103,
+          "id1": 10003,
+          "name": "Track 1",
+          "isPlatformTrack": true,
+          "isPassingTrack": false,
+          "trackLength": 752,
+          "platformLength": 752
+        }
+      ],
+      "downlinkTracks": [
+        {
+          "id0": 10100,
+          "id1": 10400,
+          "name":"Track 3",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 1116,
+          "platformLength": 1116
         }
       ]
     },
@@ -57,29 +67,55 @@
       "id": "s2",
       "name": "Station 2",
       "entryNodeIds": [
-        10004,
-        10005
+        11100,
+        11101
       ],
-      "tracks": [
+      "uplinkTracks": [
         {
-          "id0": 10004,
-          "id1": 10006,
+          "id0": 11101,
+          "id1": 11103,
           "name": "Track 1",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992
-        },
+          "trackLength": 1116,
+          "platformLength": 1116
+        }
+      ],
+      "downlinkTracks": [
         {
-          "id0": 10005,
-          "id1": 10007,
+          "id0": 11100,
+          "id1": 11102,
           "name": "Track 2",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 992,
-          "platformLength": 992
+          "trackLength": 1116,
+          "platformLength": 1116
         }
       ]
     }
+  ],
+  "uplinkTurnouts": [
+    {
+      "id": 10001,
+      "idClosed": 10101,
+      "idThrown": 10103,
+      "distClosed": 186,
+      "distThrown": 188,
+      "type": "DIVERGE",
+      "address": 50
+    },
+    {
+      "id": 10003,
+      "idClosed": 10101,
+      "idThrown": 10103,
+      "idDummy": 10401,
+      "distClosed": 186,
+      "distThrown": 188,
+      "type": "MERGE",
+      "address": 51
+    }
+  ],
+  "downlinkTurnouts": [
+
   ]
 }

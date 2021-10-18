@@ -17,7 +17,7 @@ class LayoutRegistryTest extends LayoutTestBase {
         Map<Long, AbstractTrackNode> nodes = layoutRegistry.getNodes();
         Map<String, Station> stations = layoutRegistry.getStations();
 
-        assertEquals(8, nodes.size());
+        assertEquals(11, nodes.size());
         assertEquals(2, stations.size());
     }
 }

@@ -56,8 +56,15 @@ public class MovingBlockManager {
     }
 
     public void calibrate(long nodeId, int sensorPosition, SensorState sensorState) {
-        Route remainingRoute = RouteUtil.findRoute(nodeId, destinationId);
+        long viaNode = nodeId;
+        int nextNodeIdx = nodesToAllocate.indexOf(nodeId) + 1;
+        if(nextNodeIdx < nodesToAllocate.size()) {
+            viaNode = nodesToAllocate.get(nextNodeIdx);
+        }
+        Route remainingRoute = RouteUtil.findRoute(nodeId, destinationId, viaNode);
         List<Long> remainingNodes = remainingRoute.getNodes();
+
+        // todo support other use cases
         if (remainingNodes.size() == 1 && LayoutUtil.isStationTrackNode(remainingNodes.get(0))) {
             int calibratedDistToMove = calcCalibratedDistToMove(
                     trainset,
@@ -79,8 +86,7 @@ public class MovingBlockManager {
 
     private int calcDistToMove(Trainset trainset, Route route) {
         StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(nodesToAllocate.get(0));
-        int outboundDist = stationTrackNode.getOutboundMoveDist(trainset);
-        return outboundDist + route.getMinMoveDist();
+        return route.getCost() - stationTrackNode.getInboundMoveDist(trainset);
     }
 
     public double getDistToMove() {

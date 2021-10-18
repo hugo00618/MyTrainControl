@@ -8,6 +8,7 @@ import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
 
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class LayoutProvider {
 
@@ -20,8 +21,10 @@ public class LayoutProvider {
         LayoutRegistry layoutRegistry = LayoutRegistry.getInstance();
 
         // regular nodes
-        layoutJson.getRegularTracks().forEach(
-                regularTrackJson -> layoutRegistry.registerGraphNode(new RegularTrackNode(regularTrackJson)));
+        layoutJson.getUplinkRegularTracks().forEach(
+                regularTrackJson -> layoutRegistry.registerGraphNode(new RegularTrackNode(regularTrackJson, true)));
+        layoutJson.getDownlinkRegularTracks().forEach(
+                regularTrackJson -> layoutRegistry.registerGraphNode(new RegularTrackNode(regularTrackJson, false)));
 
         // stations
         layoutJson.getStations().forEach(
@@ -31,17 +34,26 @@ public class LayoutProvider {
                 });
 
         // turnouts
-        layoutJson.getTurnouts().forEach(
-                turnoutJson -> layoutRegistry.registerGraphNode(new TurnoutNode(turnoutJson)));
+        layoutJson.getUplinkTurnouts().forEach(
+                turnoutJson -> layoutRegistry.registerGraphNode(new TurnoutNode(turnoutJson, true)));
+        layoutJson.getDownlinkTurnouts().forEach(
+                turnoutJson -> layoutRegistry.registerGraphNode(new TurnoutNode(turnoutJson, false)));
     }
 
     private static List<StationTrackNode> registerStationTracks(StationJson stationJson, LayoutRegistry layoutRegistry) {
-        return stationJson.getTracks().stream()
+        Stream<StationTrackNode> uplinkTrackNodes = registerStationTrackNodes(stationJson.getUplinkTracks(), layoutRegistry, true),
+                downlinkTrackNodes = registerStationTrackNodes(stationJson.getDownlinkTracks(), layoutRegistry, false);
+        return Stream.concat(uplinkTrackNodes, downlinkTrackNodes)
+                .collect(Collectors.toList());
+    }
+
+    private static Stream<StationTrackNode> registerStationTrackNodes(List<StationTrackJson> stationTrackJsons,
+                                                                      LayoutRegistry layoutRegistry, boolean isUplink) {
+        return stationTrackJsons.stream()
                 .map(stationTrackJson -> {
-                    StationTrackNode stationTrackNode = new StationTrackNode(stationTrackJson);
+                    StationTrackNode stationTrackNode = new StationTrackNode(stationTrackJson, isUplink);
                     layoutRegistry.registerGraphNode(stationTrackNode);
                     return stationTrackNode;
-                })
-                .collect(Collectors.toList());
+                });
     }
 }

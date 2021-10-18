@@ -28,11 +28,14 @@ class MovingBlockManagerTest extends LayoutTestBase {
 
     @Test
     public void getDistToMove() {
-        Route route = RouteUtil.findRouteToStation(10000, "s2");
+        // station track length: 1116
+        Route route = RouteUtil.findRouteToStation(10100, "s2");
         MovingBlockManager sut = new MovingBlockManager(trainset);
         sut.prepareToMove(route);
 
-        assertEquals(1524, sut.getDistToMove());
+        // outbound dist = (1116-960)/2 = 78
+        // 78 + 1508 = 1586
+        assertEquals(1586, sut.getDistToMove());
     }
 
 }

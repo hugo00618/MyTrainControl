@@ -1,10 +1,10 @@
-package info.hugoyu.mytraincontrol.command.impl;
+package info.hugoyu.mytraincontrol.command.debug.impl;
 
-import info.hugoyu.mytraincontrol.command.Command;
+import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
 import info.hugoyu.mytraincontrol.util.TurnoutUtil;
 import info.hugoyu.mytraincontrol.util.TurnoutUtil.TurnoutState;
 
-public class TurnoutControlCommand implements Command {
+public class TurnoutControlCommand extends AbstractDebugCommand {
 
     private static final String TURNOUT_STATE_THROWN = "thrown";
     private static final String TURNOUT_STATE_CLOSED = "closed";
@@ -30,7 +30,7 @@ public class TurnoutControlCommand implements Command {
     }
 
     @Override
-    public void execute() {
+    public void executeCommand() {
         TurnoutState turnoutState = turnoutStateStr.equals(TURNOUT_STATE_THROWN) ?
                 TurnoutState.THROWN : TurnoutState.CLOSED;
         TurnoutUtil.setTurnoutState(String.valueOf(address), turnoutState);

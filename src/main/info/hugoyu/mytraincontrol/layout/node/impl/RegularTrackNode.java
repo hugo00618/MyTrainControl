@@ -33,13 +33,13 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
      * @param length  length of the current section
      * @param sensors map of (sensorAddress, location)
      */
-    public RegularTrackNode(long id0, Long id1, int length, Map<Integer, Integer> sensors) {
+    public RegularTrackNode(long id0, Long id1, int length, boolean isUplink, Map<Integer, Integer> sensors) {
         super(id0);
 
         this.length = length;
 
         if (id1 != null) {
-            addConnection(id1, length);
+            addConnection(id1, length, isUplink);
         }
 
         if (sensors != null) {
@@ -50,10 +50,11 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         }
     }
 
-    public RegularTrackNode(RegularTrackJson regularTrackJson) {
+    public RegularTrackNode(RegularTrackJson regularTrackJson, boolean isUplink) {
         this(regularTrackJson.getId0(),
                 regularTrackJson.getId1(),
                 regularTrackJson.getLength(),
+                isUplink,
                 regularTrackJson.getSensors());
     }
 
@@ -176,5 +177,10 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
             return null;
         }
         return owners.get(ownerId).toString();
+    }
+
+    @Override
+    public int getCostToNode(long toNode, Long previousNode) {
+        return costs.get(toNode);
     }
 }

@@ -16,9 +16,9 @@ public class StationTrackNode extends RegularTrackNode {
     private int platformLength;
     private boolean isPlatformTrack, isPassingTrack;
 
-    public StationTrackNode(long id0, long id1, String name, int trackLength, Map<Integer, Integer> sensors,
+    public StationTrackNode(long id0, long id1, String name, int trackLength, boolean isUplink, Map<Integer, Integer> sensors,
                             int platformLength, boolean isPlatformTrack, boolean isPassingTrack) {
-        super(id0, isPassingTrack ? id1 : null, trackLength, sensors);
+        super(id0, id1, trackLength, isUplink, sensors);
 
         this.id1 = id1;
         this.name = name;
@@ -27,11 +27,12 @@ public class StationTrackNode extends RegularTrackNode {
         this.isPassingTrack = isPassingTrack;
     }
 
-    public StationTrackNode(StationTrackJson stationTrackJson) {
+    public StationTrackNode(StationTrackJson stationTrackJson, boolean isUplink) {
         this(stationTrackJson.getId0(),
                 stationTrackJson.getId1(),
                 stationTrackJson.getName(),
                 stationTrackJson.getTrackLength(),
+                isUplink,
                 stationTrackJson.getSensors(),
                 stationTrackJson.getPlatformLength(),
                 stationTrackJson.isPlatformTrack(),

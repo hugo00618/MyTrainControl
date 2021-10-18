@@ -8,18 +8,21 @@ public class TurnoutJson {
     /**
      * Turnout id
      */
-    private long id0;
+    private long id;
 
     /**
      * Destination node ids
      */
-    private long id1, id2;
+    private long idClosed, idThrown;
 
     /**
      * Dummy outbound id, if the turnout is a merging turnout
      */
-    private Long id3;
+    private Long idDummy;
 
-    private int dist1, dist2;
+    private int distClosed, distThrown;
+
     private TurnoutNode.Type type;
+
+    private int address;
 }

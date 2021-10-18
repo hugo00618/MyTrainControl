@@ -1,6 +1,7 @@
 package info.hugoyu.mytraincontrol.commandstation;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
+import info.hugoyu.mytraincontrol.commandstation.task.AbstractTrainsetTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import org.junit.jupiter.api.BeforeEach;
@@ -39,8 +40,8 @@ class CommandStationTest {
 
         List<AbstractCommandStationTask> tasks = getTasksList();
         assertEquals(2, tasks.size());
-        assertEquals(trainset1, tasks.get(0).getTrainset());
-        assertEquals(trainset2, tasks.get(1).getTrainset());
+        assertEquals(trainset1, ((AbstractTrainsetTask) tasks.get(0)).getTrainset());
+        assertEquals(trainset2, ((AbstractTrainsetTask) tasks.get(1)).getTrainset());
     }
 
     @Test
@@ -53,12 +54,12 @@ class CommandStationTest {
         List<AbstractCommandStationTask> tasks = getTasksList();
         assertEquals(2, tasks.size());
 
-        assertEquals(trainset2, tasks.get(0).getTrainset());
+        assertEquals(trainset2, ((AbstractTrainsetTask) tasks.get(0)).getTrainset());
         assertEquals(t2, tasks.get(0).getTaskCreationTime());
         assertEquals(t2, tasks.get(0).getScheduledExecutionTime());
         assertFalse(tasks.get(0).isDelayedTask());
 
-        assertEquals(trainset1, tasks.get(1).getTrainset());
+        assertEquals(trainset1, ((AbstractTrainsetTask) tasks.get(1)).getTrainset());
         assertEquals(t1, tasks.get(1).getTaskCreationTime());
         assertEquals(t1 + 5000, tasks.get(1).getScheduledExecutionTime());
         assertTrue(tasks.get(1).isDelayedTask());
@@ -75,11 +76,11 @@ class CommandStationTest {
         List<AbstractCommandStationTask> tasks = getTasksList();
         assertEquals(2, tasks.size());
 
-        assertEquals(trainset2, tasks.get(0).getTrainset());
+        assertEquals(trainset2, ((AbstractTrainsetTask) tasks.get(0)).getTrainset());
         assertEquals(t2, tasks.get(0).getTaskCreationTime());
         assertEquals(t2 + 2500, tasks.get(0).getScheduledExecutionTime());
 
-        assertEquals(trainset1, tasks.get(1).getTrainset());
+        assertEquals(trainset1, ((AbstractTrainsetTask) tasks.get(1)).getTrainset());
         assertEquals(t1, tasks.get(1).getTaskCreationTime());
         assertEquals(t1 + 5000, tasks.get(1).getScheduledExecutionTime());
 
@@ -89,12 +90,12 @@ class CommandStationTest {
         tasks = getTasksList();
         assertEquals(2, tasks.size());
 
-        assertEquals(trainset1, tasks.get(0).getTrainset());
+        assertEquals(trainset1, ((AbstractTrainsetTask) tasks.get(0)).getTrainset());
         assertEquals(t1, tasks.get(0).getTaskCreationTime());
         assertEquals(t3, tasks.get(0).getScheduledExecutionTime());
         assertTrue(tasks.get(0).isDelayedTask());
 
-        assertEquals(trainset2, tasks.get(1).getTrainset());
+        assertEquals(trainset2, ((AbstractTrainsetTask) tasks.get(1)).getTrainset());
         assertEquals(t2, tasks.get(1).getTaskCreationTime());
         assertEquals(t2 + 2500, tasks.get(1).getScheduledExecutionTime());
     }
