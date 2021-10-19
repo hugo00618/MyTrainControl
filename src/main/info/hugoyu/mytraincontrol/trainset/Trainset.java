@@ -1,6 +1,5 @@
 package info.hugoyu.mytraincontrol.trainset;
 
-import info.hugoyu.mytraincontrol.commandstation.CommandStation;
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
@@ -9,6 +8,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
+import info.hugoyu.mytraincontrol.util.CommandStationUtil;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.Getter;
@@ -87,11 +87,11 @@ public class Trainset implements TaskExecutionListener {
     }
 
     public void sendSetSpeedTask(long taskCreationTime) {
-        CommandStation.getInstance().addTask(new SetSpeedTask(this, taskCreationTime));
+        CommandStationUtil.addTask(new SetSpeedTask(this, taskCreationTime));
     }
 
     private void sendSetSpeedTask(long taskCreationTime, long delay) {
-        CommandStation.getInstance().addTask(new SetSpeedTask(this, taskCreationTime, delay));
+        CommandStationUtil.addTask(new SetSpeedTask(this, taskCreationTime, delay));
     }
 
     @Override
@@ -196,13 +196,12 @@ public class Trainset implements TaskExecutionListener {
 
     public void setIsLightOn(boolean isLightOn) {
         this.isLightOn = isLightOn;
-        CommandStation.getInstance().addTask(new SetLightTask(this));
+        CommandStationUtil.addTask(new SetLightTask(this));
     }
 
     public void setIsForward(boolean isForward) {
         this.isForward = isForward;
-        CommandStation.getInstance().addTask(new SetLightTask(this));
-        CommandStation.getInstance().addTask(new SetDirectionTask(this));
+        CommandStationUtil.addTask(new SetDirectionTask(this));
     }
 
     public void addAllocatedNode(long nodeId) {

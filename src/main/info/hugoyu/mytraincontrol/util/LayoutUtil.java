@@ -14,10 +14,7 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.extern.log4j.Log4j;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @Log4j
 public class LayoutUtil {
@@ -89,30 +86,6 @@ public class LayoutUtil {
 
     public static BlockSectionResult freeNode(long nodeId, Trainset trainset, int dist) throws NodeAllocationException {
         return getNode(nodeId).free(trainset, dist);
-    }
-
-    public static boolean isReachable(long fromId, long toId) {
-        AbstractTrackNode fromNode = getNode(fromId), toNode = getNode(toId);
-        return isReachableRecur(fromNode, toNode, true, new ArrayList<>()) ||
-                isReachableRecur(fromNode, toNode, false, new ArrayList<>());
-    }
-
-    private static boolean isReachableRecur(AbstractTrackNode node, AbstractTrackNode toNode, boolean isUplink, List<Long> visited) {
-        if (visited.contains(node.getId())) {
-            return false;
-        }
-
-        if (node == toNode) {
-            return true;
-        }
-
-        visited.add(node.getId());
-        Set<Long> nextNodes = isUplink ? node.getUplinkNextNodes() : node.getDownlinkNextNodes();
-        boolean isReachable = nextNodes.stream()
-                .anyMatch(nextNodeId -> isReachableRecur(getNode(nextNodeId), toNode, isUplink, visited));
-        visited.remove(visited.size() - 1);
-
-        return isReachable;
     }
 
 }

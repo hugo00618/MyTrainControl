@@ -1,6 +1,5 @@
 package info.hugoyu.mytraincontrol.util;
 
-import info.hugoyu.mytraincontrol.commandstation.CommandStation;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.TurnoutControlTask;
 import jmri.Turnout;
 
@@ -18,6 +17,6 @@ public class TurnoutUtil {
     }
 
     public static void setTurnoutState(String address, TurnoutState state) {
-        CommandStation.getInstance().addTask(new TurnoutControlTask(address, state));
+        CommandStationUtil.addTask(new TurnoutControlTask(address, state));
     }
 }
