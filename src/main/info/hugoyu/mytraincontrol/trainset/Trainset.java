@@ -6,9 +6,10 @@ import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
-import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.layout.Route;
+import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
+import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +17,8 @@ import lombok.extern.log4j.Log4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Setter
 @Log4j
@@ -238,13 +241,13 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    /**
-     * Not thread-safe. Should only be called by PrintCommand.
-     *
-     * @return
-     */
-    public List<Long> getAllocatedNodes() {
-        return allocatedNodes;
+    public Map<Long, String> getAllocatedNodes() {
+        synchronized (allocatedNodesLock) {
+            return allocatedNodes.stream()
+                    .collect(Collectors.toMap(
+                            nodeId -> nodeId,
+                            nodeId -> LayoutUtil.getNode(nodeId).getOwnerStatus(address)));
+        }
     }
 
 }

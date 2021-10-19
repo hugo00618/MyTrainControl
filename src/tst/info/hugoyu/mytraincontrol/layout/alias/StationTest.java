@@ -14,13 +14,13 @@ class StationTest extends LayoutTestBase {
     public void findAvailableTrack() {
         Station station = LayoutUtil.getStation("s1");
 
-        assertEquals(10103, station.findAvailableTrack(10001, false).getId());
-        assertEquals(10101, station.findAvailableTrack(10001, true).getId());
+        assertEquals(10103, station.findRouteToAvailableTrack(10001, false).getDestinationNode());
+        assertEquals(10101, station.findRouteToAvailableTrack(10001, true).getDestinationNode());
 
-        assertEquals(10100, station.findAvailableTrack(10100, false).getId());
-        assertEquals(10100, station.findAvailableTrack(10100, true).getId());
+        assertEquals(10100, station.findRouteToAvailableTrack(10100, false).getDestinationNode());
+        assertEquals(10100, station.findRouteToAvailableTrack(10100, true).getDestinationNode());
 
         assertThrows(InvalidIdException.class, () ->
-                station.findAvailableTrack(10002, false));
+                station.findRouteToAvailableTrack(10002, false));
     }
 }

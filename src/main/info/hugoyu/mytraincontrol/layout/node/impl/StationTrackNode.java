@@ -3,8 +3,11 @@ package info.hugoyu.mytraincontrol.layout.node.impl;
 import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.json.layout.StationTrackJson;
+import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
+import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.Map;
 
@@ -15,6 +18,9 @@ public class StationTrackNode extends RegularTrackNode {
     private String name;
     private int platformLength;
     private boolean isPlatformTrack, isPassingTrack;
+
+    @Setter
+    private Station station;
 
     public StationTrackNode(long id0, long id1, String name, int trackLength, boolean isUplink, Map<Integer, Integer> sensors,
                             int platformLength, boolean isPlatformTrack, boolean isPassingTrack) {
@@ -37,6 +43,17 @@ public class StationTrackNode extends RegularTrackNode {
                 stationTrackJson.getPlatformLength(),
                 stationTrackJson.isPlatformTrack(),
                 stationTrackJson.isPassingTrack());
+    }
+
+    @Override
+    public BlockSectionResult free(Trainset trainset, int dist) throws NodeAllocationException {
+        BlockSectionResult blockSectionResult = super.free(trainset, dist);
+
+        if (blockSectionResult.isEntireSectionConsumed() && station != null) {
+            station.broadcast();
+        }
+
+        return blockSectionResult;
     }
 
     /**
@@ -76,8 +93,7 @@ public class StationTrackNode extends RegularTrackNode {
      * @return whether the current track is free
      */
     public boolean isFree() {
-        return super.owners.entrySet().stream()
-                .allMatch(entry -> entry.getValue().isEmpty());
+        return owners.isEmpty();
     }
 
     /**

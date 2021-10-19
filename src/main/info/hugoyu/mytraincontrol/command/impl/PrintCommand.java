@@ -4,8 +4,6 @@ import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
-import java.util.stream.Collectors;
-
 public class PrintCommand implements Command {
 
     private static final String LIST_TYPE_TRAINS = "trains";
@@ -49,11 +47,7 @@ public class PrintCommand implements Command {
             System.out.println(String.format("%d: %s", address, trainset.getName()));
 
             System.out.println("\tOwned sections:");
-            trainset.getAllocatedNodes().stream()
-                    .collect(Collectors.toMap(
-                            nodeId -> nodeId,
-                            nodeId -> LayoutUtil.getNode(nodeId).getOwnerStatus(address)
-                    ))
+            trainset.getAllocatedNodes()
                     .forEach((nodeId, ownerDetails) ->
                             System.out.println(String.format("\t\t%d: %s", nodeId, ownerDetails)));
         });

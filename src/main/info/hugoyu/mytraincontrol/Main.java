@@ -36,13 +36,13 @@ public class Main {
         BaseStationPowerUtil.turnOnPower();
 
         // register trains
-        CommandUtil.runCommand(new String[]{"reg", "3", "N700A", "n700a-6000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "3", "N700A", "n700a-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "4", "500", "500-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
 
         // alloc
-        CommandUtil.runCommand(new String[]{"alloc", "3", "10000"});
-        CommandUtil.runCommand(new String[]{"alloc", "5", "10004"});
+//        CommandUtil.runCommand(new String[]{"alloc", "3", "11101"});
+//        CommandUtil.runCommand(new String[]{"alloc", "5", "10103"});
 
         CommandStationRunnable.getInstance();
 
@@ -89,7 +89,7 @@ public class Main {
             } catch (CommandInvalidUsageException e) {
                 System.err.println("Usage: " + args[0] + " " + e.getMessage());
             } catch (Exception e) {
-                // should not run into this case
+                e.printStackTrace();
             }
 
             System.out.println("Type command: ");

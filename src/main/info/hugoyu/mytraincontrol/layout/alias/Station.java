@@ -2,20 +2,31 @@ package info.hugoyu.mytraincontrol.layout.alias;
 
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.json.layout.StationJson;
+import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
-import info.hugoyu.mytraincontrol.util.LayoutUtil;
-import lombok.AllArgsConstructor;
+import info.hugoyu.mytraincontrol.util.RouteUtil;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Stream;
 
-@AllArgsConstructor
 @Getter
 public class Station {
     private String id;
     private String name;
     private List<StationTrackNode> stationTrackNodes;
     private List<Long> entryNodeIds;
+    private final Object stationLock = new Object();
+
+    public Station(String id, String name, List<StationTrackNode> stationTrackNodes, List<Long> entryNodeIds) {
+        this.id = id;
+        this.name = name;
+        this.stationTrackNodes = stationTrackNodes;
+        this.entryNodeIds = entryNodeIds;
+
+        stationTrackNodes.forEach(stationTrackNode -> stationTrackNode.setStation(this));
+    }
 
     public Station(StationJson stationJson, List<StationTrackNode> stationTrackNodes) {
         this(stationJson.getId(),
@@ -25,32 +36,54 @@ public class Station {
     }
 
     /**
-     * Finds the station track that is currently available
+     * Finds the route to the station track that is currently available
+     * Will block if no track is available
      *
      * @param isPassingTrackRequired
      * @return
      */
-    // todo: change this to return route directly
-    public StationTrackNode findAvailableTrack(long entryNodeId, boolean isPassingTrackRequired) {
+    public Route findRouteToAvailableTrack(long entryNodeId, boolean isPassingTrackRequired) {
+        while (true) {
+            Route route = getRouteToAvailableTrack(entryNodeId, isPassingTrackRequired);
+            if (route == null) {
+                synchronized (stationLock) {
+                    try {
+                        stationLock.wait();
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                return route;
+            }
+        }
+    }
+
+    private Route getRouteToAvailableTrack(long entryNodeId, boolean isPassingTrackRequired) {
         if (!entryNodeIds.contains(entryNodeId)) {
             throw new InvalidIdException(entryNodeId);
         }
 
+        Stream<StationTrackNode> stationTrackNodesStream = stationTrackNodes.stream();
         if (isPassingTrackRequired) {
-            return stationTrackNodes.stream()
-                    .filter(stationTrackNode ->
-                            stationTrackNode.isPassingTrack() &&
-                                    stationTrackNode.isFree() &&
-                                    LayoutUtil.isReachable(entryNodeId, stationTrackNode.getId()))
-                    .findFirst()
-                    .orElse(null);
+            stationTrackNodesStream = stationTrackNodesStream
+                    .filter(stationTrackNode -> stationTrackNode.isPassingTrack() && stationTrackNode.isFree());
         } else {
-            return stationTrackNodes.stream()
-                    .filter(stationTrackNode -> stationTrackNode.isFree() &&
-                            LayoutUtil.isReachable(entryNodeId, stationTrackNode.getId()))
-                    // sort the stream to favour non-passing track over passing tracks
-                    .min((o1, o2) -> Boolean.compare(o1.isPassingTrack(), o2.isPassingTrack()))
-                    .orElse(null);
+            stationTrackNodesStream = stationTrackNodesStream
+                    .filter(StationTrackNode::isFree);
+        }
+        return stationTrackNodesStream
+                // put non-passing track at the front
+                .sorted((o1, o2) -> Boolean.compare(o1.isPassingTrack(), o2.isPassingTrack()))
+                .map(stationTrackNode -> RouteUtil.findRoute(entryNodeId, stationTrackNode))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public void broadcast() {
+        synchronized (stationLock) {
+            stationLock.notifyAll();
         }
     }
 }

@@ -17,14 +17,14 @@ public class RouteUtil {
         Station station = LayoutUtil.getStation(to);
 
         return station.getEntryNodeIds().stream()
-                .map(entryNodeId -> findFastestRoute(fromStationTrackNodeId, entryNodeId))
+                .map(entryNodeId -> findRoute(fromStationTrackNodeId, entryNodeId))
                 .filter(Objects::nonNull)
                 .min(Route::compareTo)
                 .orElse(null);
     }
 
     public static Route findInboundRoute(long entryNodeId, StationTrackNode stationTrackNode) {
-        return findFastestRoute(entryNodeId, stationTrackNode);
+        return findRoute(entryNodeId, stationTrackNode);
     }
 
     /**
@@ -45,7 +45,7 @@ public class RouteUtil {
         }
     }
 
-    private static Route findFastestRoute(Object from, Object to) {
+    public static Route findRoute(Object from, Object to) {
         Route uplinkRoute = findRoute(from, to, true), downlinkRoute = findRoute(from, to, false);
 
         if (uplinkRoute == null) {

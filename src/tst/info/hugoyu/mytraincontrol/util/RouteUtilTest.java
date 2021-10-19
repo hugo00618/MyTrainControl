@@ -22,7 +22,7 @@ class RouteUtilTest extends LayoutTestBase {
         assertEquals(Long.valueOf(10401), nodes.get(2));
         assertEquals(Long.valueOf(11101), nodes.get(3));
 
-        assertEquals(1592, route.getMinMoveDist());
+        assertEquals(2344, route.getCost());
     }
 
     @Test
@@ -35,7 +35,7 @@ class RouteUtilTest extends LayoutTestBase {
         assertEquals(Long.valueOf(11103), nodes.get(1));
         assertEquals(Long.valueOf(10001), nodes.get(2));
 
-        assertEquals(1404, route.getMinMoveDist());
+        assertEquals(2520, route.getCost());
     }
 
     @Test

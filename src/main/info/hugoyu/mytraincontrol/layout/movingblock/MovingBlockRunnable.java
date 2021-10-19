@@ -7,7 +7,6 @@ import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
-import info.hugoyu.mytraincontrol.util.RouteUtil;
 import lombok.extern.log4j.Log4j;
 
 import java.util.List;
@@ -164,7 +163,7 @@ public class MovingBlockRunnable implements Runnable {
     }
 
     private int getMinAllocateDistance() {
-        int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance() + trainset.getCSpeed() * 0.5));
+        int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance() + trainset.getCSpeed() * 0.7));
         int minAllocateDist = Math.max(minStoppingDist, INITIAL_MOVE_DISTANCE) + TRAIN_BUFFER_DISTANCE_HEADING;
         minAllocateDist = Math.min(minAllocateDist, (int) Math.ceil(movingBlockManager.getDistToMove()));
         return minAllocateDist;
@@ -175,9 +174,8 @@ public class MovingBlockRunnable implements Runnable {
 
         long entryNodeId = nodesToAllocate.get(0);
         Station station = LayoutUtil.getStation(entryNodeId);
-        // todo: hang when no track available
-        StationTrackNode stationTrackNode = station.findAvailableTrack(entryNodeId, false);
-        Route inboundRoute = RouteUtil.findInboundRoute(entryNodeId, stationTrackNode);
+        Route inboundRoute = station.findRouteToAvailableTrack(entryNodeId, false);
+        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(inboundRoute.getDestinationNode());
 
         // replace entry node with inbound nodes
         nodesToAllocate.remove(0);

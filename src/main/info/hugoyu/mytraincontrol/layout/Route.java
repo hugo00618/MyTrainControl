@@ -17,4 +17,8 @@ public class Route implements Comparable<Route> {
     public int compareTo(Route o) {
         return this.cost - o.cost;
     }
+
+    public long getDestinationNode() {
+        return nodes.get(nodes.size() - 1);
+    }
 }
