@@ -6,24 +6,24 @@ To implement an autonomous DCC model railway control system with Arduino DCC++ c
 ## Features
 
 ### Acceleration / Deceleration
-Emulate the acceleration and deceleration of the train.
+Emulates the acceleration and deceleration of the train.
 
 ### Distance Control
-Control the train to move for a certain distance, based on the preset speed mapping.
+Controls the train to move for a certain distance, based on the preset speed mapping.
 
 ### Layout Construction and Path Finding
-A JSON layout decoder which constructs the layout in code and integrates path finding algorithm into it.
+Decodes the JSON-formatted layout file to construct the layout in code and integrates path finding algorithm into it.
 
 ### Block Section Operation
-Enable block section operation which prevents train collision.
+Enables computed [block section](https://en.wikipedia.org/wiki/Absolute_block_signalling) operation which prevents train collision.
+
+### Turnout Control
+Controls the turnout from code. Integrates with Block Section Operation for autonomous control.
 
 ## WIP Features
 
 ### Sensor Support
-Add support for IR sensors which could help improve the accuracy of Distance Control.
-
-### Support for Turnouts
-Add turnout support.
+To add support for IR sensors which could improve the distance accuracy for Block Section Operation.
 
 ### Fully Autonomous Operation
-To have all the trains in the system to operate autonomously.
+To have all the trains in the system operate autonomously.
