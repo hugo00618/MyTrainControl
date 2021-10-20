@@ -176,6 +176,7 @@ public class MovingBlockRunnable implements Runnable {
         Station station = LayoutUtil.getStation(entryNodeId);
         Route inboundRoute = station.findRouteToAvailableTrack(entryNodeId, false);
         StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(inboundRoute.getDestinationNode());
+        movingBlockManager.setDestinationId(stationTrackNode.getId());
 
         // replace entry node with inbound nodes
         nodesToAllocate.remove(0);

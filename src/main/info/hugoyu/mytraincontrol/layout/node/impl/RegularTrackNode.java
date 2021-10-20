@@ -5,16 +5,11 @@ import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.json.layout.RegularTrackJson;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
-import info.hugoyu.mytraincontrol.sensor.SensorChangeListener;
-import info.hugoyu.mytraincontrol.sensor.SensorState;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
-import info.hugoyu.mytraincontrol.util.SensorUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
-import jmri.Sensor;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class RegularTrackNode extends AbstractTrackNode implements Comparable<RegularTrackNode> {
 
@@ -24,9 +19,6 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     protected Map<Integer, Range<Integer>> owners = new HashMap<>();
     private final Object ownersLock = new Object();
 
-    // map of (sensorAddress, position)
-    private Map<Sensor, Integer> sensors = new HashMap<>();
-
     /**
      * @param id0     id of the current section
      * @param id1     id of the next section (if any)
@@ -34,19 +26,12 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
      * @param sensors map of (sensorAddress, location)
      */
     public RegularTrackNode(long id0, Long id1, int length, boolean isUplink, Map<Integer, Integer> sensors) {
-        super(id0);
+        super(id0, sensors);
 
         this.length = length;
 
         if (id1 != null) {
             addConnection(id1, length, isUplink);
-        }
-
-        if (sensors != null) {
-            this.sensors = sensors.entrySet().stream()
-                    .collect(Collectors.toMap(
-                            entry -> constructSensor(entry.getKey(), entry.getValue()),
-                            Map.Entry::getValue));
         }
     }
 
@@ -138,30 +123,8 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         }
     }
 
-    private Sensor constructSensor(int address, int position) {
-        AbstractTrackNode nodeInstance = this;
-        return SensorUtil.getSensor(address, new SensorChangeListener() {
-            @Override
-            public void onEnter(Sensor sensor) {
-                calibrateOwnerMovingBlockManager(sensor, SensorState.ENTER);
-            }
-
-            @Override
-            public void onExit(Sensor sensor) {
-                calibrateOwnerMovingBlockManager(sensor, SensorState.EXIT);
-            }
-
-            private void calibrateOwnerMovingBlockManager(Sensor sensor, SensorState sensorState) {
-                Trainset owner = getOwner(sensor);
-                if (owner != null) {
-                    owner.calibrate(nodeInstance.getId(), position, sensorState);
-                }
-            }
-        });
-    }
-
-    private Trainset getOwner(Sensor sensor) {
-        int sensorLocation = sensors.get(sensor);
+    @Override
+    protected Trainset getOwner(int sensorLocation) {
         synchronized (ownersLock) {
             return owners.entrySet().stream()
                     .filter(entry -> entry.getValue().contains(sensorLocation))

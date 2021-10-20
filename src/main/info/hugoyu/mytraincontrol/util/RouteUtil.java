@@ -1,6 +1,5 @@
 package info.hugoyu.mytraincontrol.util;
 
-import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
@@ -27,24 +26,6 @@ public class RouteUtil {
         return findRoute(entryNodeId, stationTrackNode);
     }
 
-    /**
-     * @param from from node
-     * @param to   to node
-     * @param via  via node, needs to be immediately adjacent to from node or from node itself
-     * @return
-     */
-    public static Route findRoute(Object from, Object to, Object via) {
-        AbstractTrackNode fromNode = convertToNode(from), viaNode = convertToNode(via);
-        if (fromNode.getId() == viaNode.getId() ||
-                fromNode.getUplinkNextNodes().contains(viaNode.getId())) {
-            return findRoute(from, to, true);
-        } else if (fromNode.getDownlinkNextNodes().contains(viaNode.getId())) {
-            return findRoute(from, to, false);
-        } else {
-            throw new InvalidIdException(viaNode.getId());
-        }
-    }
-
     public static Route findRoute(Object from, Object to) {
         Route uplinkRoute = findRoute(from, to, true), downlinkRoute = findRoute(from, to, false);
 
@@ -58,7 +39,7 @@ public class RouteUtil {
         return uplinkRoute.compareTo(downlinkRoute) < 0 ? uplinkRoute : downlinkRoute;
     }
 
-    private static Route findRoute(Object from, Object to, boolean isUplink) {
+    public static Route findRoute(Object from, Object to, boolean isUplink) {
         AbstractTrackNode fromNode = convertToNode(from), toNode = convertToNode(to);
         return findRouteRecur(fromNode, toNode, isUplink, new ArrayList<>(), 0);
     }

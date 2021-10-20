@@ -102,7 +102,10 @@
       "distClosed": 186,
       "distThrown": 188,
       "type": "DIVERGE",
-      "address": 50
+      "address": 50,
+      "sensors": {
+        "14": 0
+      }
     },
     {
       "id": 10003,

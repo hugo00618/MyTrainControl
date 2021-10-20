@@ -8,7 +8,10 @@ import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
+import info.hugoyu.mytraincontrol.util.TrainUtil;
 import info.hugoyu.mytraincontrol.util.TurnoutUtil;
+
+import java.util.Map;
 
 import static info.hugoyu.mytraincontrol.layout.node.impl.TurnoutNode.Type.DIVERGE;
 
@@ -49,10 +52,12 @@ public class TurnoutNode extends AbstractTrackNode {
      * @param type       turnout type
      * @param address    turnout address
      * @param isUplink   whether turnout is in uplink
+     * @param sensors    map of (sensorAddress, location)
      */
     public TurnoutNode(long id, long idClosed, long idThrown, Long idDummy,
-                       int distClosed, int distThrown, Type type, String address, boolean isUplink) {
-        super(id);
+                       int distClosed, int distThrown, Type type, String address, boolean isUplink,
+                       Map<Integer, Integer> sensors) {
+        super(id, sensors);
 
         this.idClosed = idClosed;
         this.idThrown = idThrown;
@@ -84,7 +89,8 @@ public class TurnoutNode extends AbstractTrackNode {
                 turnoutJson.getDistThrown(),
                 turnoutJson.getType(),
                 String.valueOf(turnoutJson.getAddress()),
-                isUplink);
+                isUplink,
+                turnoutJson.getSensors());
     }
 
     @Override
@@ -182,5 +188,15 @@ public class TurnoutNode extends AbstractTrackNode {
                 }
         }
         throw new InvalidIdException(previousNode);
+    }
+
+    @Override
+    protected Trainset getOwner(int sensorLocation) {
+        synchronized (ownerLock) {
+            if (ownedRange != null && ownedRange.contains(sensorLocation)) {
+                return TrainUtil.getTrainset(owner);
+            }
+            return null;
+        }
     }
 }

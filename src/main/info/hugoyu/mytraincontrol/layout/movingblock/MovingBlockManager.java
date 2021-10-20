@@ -20,7 +20,9 @@ public class MovingBlockManager {
     private Trainset trainset;
 
     private List<Long> nodesToAllocate;
+
     private long destinationId;
+    private final Object destinationLock = new Object();
 
     private double allocatedMoveDist;
     private double distToMove; // total distance to move
@@ -37,13 +39,16 @@ public class MovingBlockManager {
     private boolean isStopRoutineInitiated;
     private final Object isStopRoutineInitiatedLock = new Object();
 
+    private boolean isUplink;
+
     public MovingBlockManager(Trainset trainset) {
         this.trainset = trainset;
     }
 
     public void prepareToMove(Route route) {
         this.nodesToAllocate = route.getNodes();
-        this.destinationId = nodesToAllocate.get(nodesToAllocate.size() - 1);
+        this.isUplink = route.isUplink();
+        setDestinationId(nodesToAllocate.get(nodesToAllocate.size() - 1));
 
         int distToMove = calcDistToMove(trainset, route);
         this.distToMove += distToMove;
@@ -56,31 +61,21 @@ public class MovingBlockManager {
     }
 
     public void calibrate(long nodeId, int sensorPosition, SensorState sensorState) {
-        long viaNode = nodeId;
-        int nextNodeIdx = nodesToAllocate.indexOf(nodeId) + 1;
-        if(nextNodeIdx < nodesToAllocate.size()) {
-            viaNode = nodesToAllocate.get(nextNodeIdx);
-        }
-        Route remainingRoute = RouteUtil.findRoute(nodeId, destinationId, viaNode);
-        List<Long> remainingNodes = remainingRoute.getNodes();
-
-        // todo support other use cases
-        if (remainingNodes.size() == 1 && LayoutUtil.isStationTrackNode(remainingNodes.get(0))) {
-            int calibratedDistToMove = calcCalibratedDistToMove(
-                    trainset,
-                    LayoutUtil.getStationTrackNode(remainingNodes.get(0)),
-                    sensorPosition,
-                    sensorState);
-            calibrateDistToMove(calibratedDistToMove);
-        }
+        Route remainingRoute = RouteUtil.findRoute(nodeId, getDestinationId(), isUplink);
+        int calibratedDistToMove = calcCalibratedDistToMove(trainset, remainingRoute, sensorPosition, sensorState);
+        calibrateDistToMove(calibratedDistToMove);
     }
 
-    private int calcCalibratedDistToMove(Trainset trainset, StationTrackNode node, int sensorPosition, SensorState sensorState) {
-        int inboundMoveDist = node.getInboundMoveDist(trainset);
-        int calibratedDistToMove = inboundMoveDist - sensorPosition;
+    private int calcCalibratedDistToMove(Trainset trainset, Route remainingRoute, int sensorPosition, SensorState sensorState) {
+        int calibratedDistToMove = remainingRoute.getCost() - sensorPosition;
+        if (isStopRoutineInitiated) {
+            StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(remainingRoute.getDestinationNode());
+            calibratedDistToMove += stationTrackNode.getInboundMoveDist(trainset);
+        }
         if (sensorState == EXIT) {
             calibratedDistToMove -= trainset.getTotalLength();
         }
+
         return calibratedDistToMove;
     }
 
@@ -196,5 +191,17 @@ public class MovingBlockManager {
 
     public void addDistToAlloc(int dist) {
         distToAlloc += dist;
+    }
+
+    public void setDestinationId(long destinationId) {
+        synchronized (destinationLock) {
+            this.destinationId = destinationId;
+        }
+    }
+
+    public long getDestinationId() {
+        synchronized (destinationLock) {
+            return destinationId;
+        }
     }
 }
