@@ -7,17 +7,13 @@ import jmri.JmriException;
 public class EmergencyKillCommand implements Command {
 
     @Override
-    public boolean parseArgs(String[] args) {
-        return true;
-    }
-
-    @Override
-    public void execute() {
+    public boolean execute(String[] args) {
         try {
             BaseStationPowerUtil.turnOffPower();
         } catch (JmriException e) {
             throw new RuntimeException(e);
         }
+        return true;
     }
 
     @Override

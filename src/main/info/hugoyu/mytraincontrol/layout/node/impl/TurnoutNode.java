@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.layout.node.impl;
 
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
 import com.google.gson.annotations.SerializedName;
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
@@ -97,9 +98,9 @@ public class TurnoutNode extends AbstractTrackNode {
     public BlockSectionResult alloc(Trainset trainset, int dist, Long nextNodeId, Long previousNodeId) throws NodeAllocationException {
         synchronized (ownerLock) {
             final int trainsetAddress = trainset.getAddress();
+            if (owner == null || owner != trainsetAddress) { // if trainset is not the current owner
 
-            if (owner == null || owner != trainsetAddress) {
-                // wait until available
+                // wait if occupied
                 while (owner != null) {
                     try {
                         ownerLock.wait();
@@ -107,6 +108,7 @@ public class TurnoutNode extends AbstractTrackNode {
 
                     }
                 }
+
                 owner = trainsetAddress;
                 ownedRange = Range.closedOpen(0, 0);
 
@@ -137,7 +139,8 @@ public class TurnoutNode extends AbstractTrackNode {
     @Override
     public BlockSectionResult free(Trainset trainset, int dist) throws NodeAllocationException {
         synchronized (ownerLock) {
-            if (ownedRange == null) {
+            int trainsetAddress = trainset.getAddress();
+            if (owner == null || owner != trainsetAddress || ownedRange == null) {
                 throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
                         trainset, this, dist);
             }
@@ -147,14 +150,15 @@ public class TurnoutNode extends AbstractTrackNode {
             int freedDist = actualLowerBound - ownedRange.lowerEndpoint();
             int remainingDist = expectedLowerBound - actualLowerBound;
 
-            Range<Integer> freeingRange = Range.closedOpen(ownedRange.lowerEndpoint(), actualLowerBound);
-            if (!ownedRange.encloses(freeingRange)) {
+            Range<Integer> newOwnedRange;
+            try {
+                newOwnedRange = Range.closedOpen(actualLowerBound, ownedRange.upperEndpoint());
+            } catch (IllegalArgumentException e) { // invalid range
                 throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
                         trainset, this, dist);
             }
 
             boolean isEntireSectionFreed = false;
-            Range<Integer> newOwnedRange = Range.closedOpen(actualLowerBound, ownedRange.upperEndpoint());
             if (newOwnedRange.isEmpty()) {
                 owner = null;
                 ownedRange = null;
@@ -169,8 +173,34 @@ public class TurnoutNode extends AbstractTrackNode {
     }
 
     @Override
+    public void freeAll(Trainset trainset) throws NodeAllocationException {
+        synchronized (ownerLock) {
+            int trainsetAddress = trainset.getAddress();
+            if (owner == null || owner != trainsetAddress || ownedRange == null) {
+                throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
+                        trainset, this, 0);
+            }
+
+            owner = null;
+            ownedRange = null;
+            ownerLock.notifyAll();
+        }
+    }
+
+    @Override
     public String getOwnerStatus(int ownerId) {
-        return null;
+        if (owner != null && owner == ownerId) {
+            return ownedRange.toString();
+        }
+        throw new RuntimeException(String.format("%d does not own node %d", ownerId, id));
+    }
+
+    @Override
+    public Map<Integer, String> getOwnerSummary() {
+        if (owner != null) {
+            return ImmutableMap.of(owner, ownedRange.toString());
+        }
+        return ImmutableMap.of();
     }
 
     @Override

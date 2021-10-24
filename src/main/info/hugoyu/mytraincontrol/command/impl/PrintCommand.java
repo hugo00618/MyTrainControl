@@ -9,21 +9,9 @@ public class PrintCommand implements Command {
     private static final String LIST_TYPE_TRAINS = "trains";
     private static final String LIST_TYPE_STATIONS = "stations";
 
-    private String type;
-
     @Override
-    public boolean parseArgs(String[] args) {
-        String type = args[1];
-        if (!type.equals(LIST_TYPE_TRAINS) && !type.equals(LIST_TYPE_STATIONS)) {
-            return false;
-        }
-
-        this.type = type;
-        return true;
-    }
-
-    @Override
-    public void execute() {
+    public boolean execute(String[] args) {
+        String type = args[1].toLowerCase();
         switch (type) {
             case LIST_TYPE_TRAINS:
                 printTrains();
@@ -32,8 +20,9 @@ public class PrintCommand implements Command {
                 printStations();
                 break;
             default:
-                break;
+                return false;
         }
+        return true;
     }
 
     @Override
@@ -47,7 +36,7 @@ public class PrintCommand implements Command {
             System.out.println(String.format("%d: %s", address, trainset.getName()));
 
             System.out.println("\tOwned sections:");
-            trainset.getAllocatedNodes()
+            trainset.getAllocatedNodesSummary()
                     .forEach((nodeId, ownerDetails) ->
                             System.out.println(String.format("\t\t%d: %s", nodeId, ownerDetails)));
         });

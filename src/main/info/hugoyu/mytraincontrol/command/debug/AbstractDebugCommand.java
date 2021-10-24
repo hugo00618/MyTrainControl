@@ -9,24 +9,26 @@ import java.io.InputStreamReader;
 public abstract class AbstractDebugCommand implements Command {
 
     @Override
-    public final void execute() {
+    public final boolean execute(String[] args) {
         System.out.println("Warning: This is a debugging command which violates block section and may result in vehicle collision.");
         System.out.println("Do you want to proceed? (yes/no)");
 
+        String line = "";
         try {
             BufferedReader br = new BufferedReader(new InputStreamReader(System.in));
-            String line = br.readLine();
-            if (!line.equals("yes")) {
-                System.out.println("Command aborted");
-                return;
-            }
-        } catch(IOException e) {
+            line = br.readLine().toLowerCase();
+        } catch (IOException e) {
             e.printStackTrace();
         }
+        if (!line.equals("yes")) {
+            System.out.println("Command aborted");
+            return true;
+        }
 
-        executeCommand();
+
+        return executeCommand(args);
     }
 
-    public abstract void executeCommand();
+    public abstract boolean executeCommand(String[] args);
 
 }

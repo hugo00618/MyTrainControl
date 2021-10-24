@@ -10,6 +10,7 @@ import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public class RegularTrackNode extends AbstractTrackNode implements Comparable<RegularTrackNode> {
 
@@ -17,7 +18,7 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
 
     // map of (trainsetAddress, ownedRange)
     protected Map<Integer, Range<Integer>> owners = new HashMap<>();
-    private final Object ownersLock = new Object();
+    protected final Object ownersLock = new Object();
 
     /**
      * @param id0     id of the current section
@@ -77,9 +78,8 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
 
     @Override
     public BlockSectionResult free(Trainset trainset, int dist) throws NodeAllocationException {
-        int trainsetAddress = trainset.getAddress();
-
         synchronized (ownersLock) {
+            int trainsetAddress = trainset.getAddress();
             Range<Integer> ownedRange = owners.get(trainsetAddress);
             if (ownedRange == null) {
                 throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
@@ -112,6 +112,21 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         }
     }
 
+    @Override
+    public void freeAll(Trainset trainset) throws NodeAllocationException {
+        synchronized (ownersLock) {
+            int trainsetAddress = trainset.getAddress();
+            Range<Integer> ownedRange = owners.get(trainsetAddress);
+            if (ownedRange == null) {
+                throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
+                        trainset, this, 0);
+            }
+
+            owners.remove(trainsetAddress);
+            ownersLock.notifyAll();
+        }
+    }
+
     protected boolean isFree(Trainset trainset, Range<Integer> allocatingRange) {
         int trainsetAddress = trainset.getAddress();
 
@@ -136,10 +151,20 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
 
     @Override
     public String getOwnerStatus(int ownerId) {
-        if (!owners.containsKey(ownerId)) {
-            return null;
+        synchronized (ownersLock) {
+            if (!owners.containsKey(ownerId)) {
+                return null;
+            }
+            return owners.get(ownerId).toString();
         }
-        return owners.get(ownerId).toString();
+    }
+
+    @Override
+    public Map<Integer, String> getOwnerSummary() {
+        return owners.entrySet().stream()
+                .collect(Collectors.toMap(
+                        Map.Entry::getKey,
+                        entry -> entry.getValue().toString()));
     }
 
     @Override

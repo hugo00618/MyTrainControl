@@ -56,44 +56,41 @@ public class StationTrackNode extends RegularTrackNode {
         return blockSectionResult;
     }
 
-    /**
-     * Only called by TrainUtil when initializing a trainset on a certain station track
-     *
-     * @param trainset
-     * @return whether reserve() is successful
-     */
     public boolean reserve(Trainset trainset) {
+        if (!isPlatformTrack) {
+            return false;
+        }
+
         boolean isTrainsetAbleToFit = trainset.getTotalLength() <= platformLength;
-        if (!isPlatformTrack || !isTrainsetAbleToFit) {
-            // todo: log error
+        if (!isTrainsetAbleToFit) {
             return false;
         }
 
-        Range<Integer> allocatingRange = Range.closedOpen(0, getInboundMoveDist(trainset));
-        if (!isFree(trainset, allocatingRange)) {
-            return false;
-        }
+        synchronized (ownersLock) {
+            Range<Integer> entireSection = Range.closedOpen(0, length);
+            if (!isFree(trainset, entireSection)) {
+                return false;
+            }
 
-        try {
-            // allocate the centering section
-            alloc(trainset, getInboundMoveDist(trainset), null, null);
-            free(trainset, getInboundMargin(trainset));
+            try {
+                trainset.freeAllNodes();
 
-            trainset.addAllocatedNode(this.id);
-            return true;
-        } catch (NodeAllocationException e) {
-            // todo: log error
-            return false;
+                // allocate the centering section
+                alloc(trainset, getInboundMoveDist(trainset), null, null);
+                free(trainset, getInboundMargin(trainset));
+
+                trainset.addAllocatedNode(this.id);
+                return true;
+            } catch (NodeAllocationException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 
-    /**
-     * non-blocking call, may return inaccurate result
-     *
-     * @return whether the current track is free
-     */
     public boolean isFree() {
-        return owners.isEmpty();
+        synchronized (ownersLock) {
+            return owners.isEmpty();
+        }
     }
 
     /**

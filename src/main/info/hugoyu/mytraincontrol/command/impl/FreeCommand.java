@@ -2,10 +2,8 @@ package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
-import lombok.extern.log4j.Log4j;
 
-@Log4j
-public class RegisterCommand implements Command {
+public class FreeCommand implements Command {
 
     @Override
     public boolean execute(String[] args) {
@@ -16,18 +14,12 @@ public class RegisterCommand implements Command {
             return false;
         }
 
-        String name = args[2];
-        String profileFileName = args[3];
-
-        TrainUtil.registerTrainset(address, name, profileFileName);
-        TrainUtil.setLight(address, true);
-        System.out.println(String.format("Trainset registered: %s at address %s", name, address));
-
+        TrainUtil.freeAllAllocatedNodes(address);
         return true;
     }
 
     @Override
     public String[] expectedArgs() {
-        return new String[]{"address", "name", "profileFileName"};
+        return new String[]{"address"};
     }
 }

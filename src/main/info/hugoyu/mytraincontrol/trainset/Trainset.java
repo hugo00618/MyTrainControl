@@ -5,6 +5,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
+import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
@@ -16,9 +17,9 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 @Setter
 @Log4j
@@ -47,10 +48,10 @@ public class Trainset implements TaskExecutionListener {
     @Getter
     private boolean isForward = true;
 
-    private List<Long> allocatedNodes = new ArrayList<>();
+    private volatile List<Long> allocatedNodes = new ArrayList<>();
     private final Object allocatedNodesLock = new Object();
 
-    private final MovingBlockManager movingBlockManager = new MovingBlockManager(this);
+    private MovingBlockManager movingBlockManager = new MovingBlockManager(this);
     private Thread movingBlockManagerThread;
 
     public Trainset(int address, String name, String profileFilename) {
@@ -70,11 +71,15 @@ public class Trainset implements TaskExecutionListener {
         movingBlockManagerThread.start();
     }
 
-    public double addDistToMove(double addDist) {
+    public void addDistToMove(double addDist) {
         synchronized (distLock) {
-            double newDistToMove = this.distToMove + addDist;
-            setDistToMove(newDistToMove);
-            return newDistToMove;
+            setDistToMove(this.distToMove + addDist);
+        }
+    }
+
+    public double getDistToMove() {
+        synchronized (distLock) {
+            return distToMove;
         }
     }
 
@@ -176,6 +181,12 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
+    public double getMovedDist() {
+        synchronized (distLock) {
+            return movedDist;
+        }
+    }
+
     public void waitDistUpdate() {
         synchronized (distLock) {
             try {
@@ -212,12 +223,6 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public void removeAllocatedNode(Long nodeId) {
-        synchronized (allocatedNodesLock) {
-            allocatedNodes.remove(nodeId);
-        }
-    }
-
     public Long getFirstAllocatedNode() {
         synchronized (allocatedNodesLock) {
             return getAllocatedNode(0);
@@ -240,12 +245,42 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public Map<Long, String> getAllocatedNodes() {
+    public void removeAllocatedNode(Long nodeId) {
         synchronized (allocatedNodesLock) {
-            return allocatedNodes.stream()
-                    .collect(Collectors.toMap(
-                            nodeId -> nodeId,
-                            nodeId -> LayoutUtil.getNode(nodeId).getOwnerStatus(address)));
+            allocatedNodes.remove(nodeId);
+        }
+    }
+
+    public void freeAllNodes() {
+        if (movingBlockManagerThread != null && movingBlockManagerThread.isAlive()) {
+            movingBlockManagerThread.interrupt();
+        }
+        movingBlockManager = new MovingBlockManager(this);
+
+        synchronized (allocatedNodesLock) {
+            allocatedNodes.stream()
+                    .map(LayoutUtil::getNode)
+                    .forEach(node -> {
+                        try {
+                            node.freeAll(this);
+                        } catch (NodeAllocationException e) {
+                            throw new RuntimeException(e);
+                        }
+                    });
+
+            allocatedNodes = new ArrayList<>();
+        }
+    }
+
+    public Map<Long, String> getAllocatedNodesSummary() {
+        synchronized (allocatedNodesLock) {
+            Map<Long, String> res = new HashMap<>();
+            allocatedNodes.forEach(nodeId -> {
+                String summary = LayoutUtil.getNode(nodeId)
+                        .getOwnerStatus(address);
+                res.put(nodeId, summary);
+            });
+            return res;
         }
     }
 

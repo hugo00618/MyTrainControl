@@ -62,8 +62,8 @@ public class Main {
 
         int selectedPort = Integer.parseInt(new BufferedReader(new InputStreamReader(System.in)).readLine());
         String selectedPortName = portNames.get(selectedPort);
-
-        String errorMessage = adapter.openPort(selectedPortName, "JMRI");
+        
+        String errorMessage = adapter.openPort(selectedPortName, "ProjectTrainControl");
         if (errorMessage != null) {
             System.err.println("Failed to open port: " + errorMessage);
         }

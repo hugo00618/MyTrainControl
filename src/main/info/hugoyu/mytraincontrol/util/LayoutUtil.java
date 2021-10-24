@@ -42,10 +42,6 @@ public class LayoutUtil {
         return node;
     }
 
-    public static boolean isStationTrackNode(long id) {
-        return getNode(id) instanceof StationTrackNode;
-    }
-
     public static StationTrackNode getStationTrackNode(long id) {
         try {
             return (StationTrackNode) getNode(id);

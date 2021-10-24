@@ -2,7 +2,6 @@ package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.json.MyJsonReader;
 import info.hugoyu.mytraincontrol.layout.Route;
-import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
@@ -61,14 +60,13 @@ public class TrainUtil {
 
     public static boolean allocateStationTrackImmediately(int address, long trackNodeId) {
         Trainset trainset = getTrainset(address);
-
-        AbstractTrackNode node = LayoutUtil.getNode(trackNodeId);
-        if (!(node instanceof StationTrackNode)) {
-            throw new RuntimeException("Node id does not map to a station track node: " + trackNodeId);
-        }
-
-        StationTrackNode stationTrackNode = (StationTrackNode) node;
+        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(trackNodeId);
         return stationTrackNode.reserve(trainset);
+    }
+
+    public static void freeAllAllocatedNodes(int address) {
+        Trainset trainset = getTrainset(address);
+        trainset.freeAllNodes();
     }
 
     public static void moveTo(int address, String stationId) {

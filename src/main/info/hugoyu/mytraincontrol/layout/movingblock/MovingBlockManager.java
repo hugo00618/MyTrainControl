@@ -63,7 +63,19 @@ public class MovingBlockManager {
     public void calibrate(long nodeId, int sensorPosition, SensorState sensorState) {
         Route remainingRoute = RouteUtil.findRoute(nodeId, getDestinationId(), isUplink);
         int calibratedDistToMove = calcCalibratedDistToMove(trainset, remainingRoute, sensorPosition, sensorState);
-        calibrateDistToMove(calibratedDistToMove);
+
+        double offset;
+        distToMoveLock.lock();
+        try {
+
+            offset = calibratedDistToMove - distToMove;
+
+            calibrationOffset += offset;
+            distToMove = calibratedDistToMove;
+        } finally {
+            distToMoveLock.unlock();
+        }
+        trainset.addDistToMove(offset);
     }
 
     private int calcCalibratedDistToMove(Trainset trainset, Route remainingRoute, int sensorPosition, SensorState sensorState) {
@@ -84,6 +96,15 @@ public class MovingBlockManager {
         return route.getCost() - stationTrackNode.getInboundMoveDist(trainset);
     }
 
+    public void addDistToMove(double dist) {
+        distToMoveLock.lock();
+        try {
+            distToMove += dist;
+        } finally {
+            distToMoveLock.unlock();
+        }
+    }
+
     public double getDistToMove() {
         distToMoveLock.lock();
         try {
@@ -102,33 +123,15 @@ public class MovingBlockManager {
         }
     }
 
+    public void addDistToFree(int dist) {
+        synchronized (distToFreeLock) {
+            distToFree += dist;
+        }
+    }
+
     public int getDistToFree() {
         synchronized (distToFreeLock) {
             return distToFree;
-        }
-    }
-
-    private void calibrateDistToMove(double calibratedDistToMove) {
-        distToMoveLock.lock();
-        try {
-            System.out.println("currentDistToMove: " + distToMove);
-            System.out.println("calibratedDistToMove: " + calibratedDistToMove);
-
-            double offset = calibratedDistToMove - distToMove;
-            calibrationOffset += offset;
-            distToMove = calibratedDistToMove;
-            trainset.addDistToMove(offset);
-        } finally {
-            distToMoveLock.unlock();
-        }
-    }
-
-    public void addDistToMove(double dist) {
-        distToMoveLock.lock();
-        try {
-            distToMove += dist;
-        } finally {
-            distToMoveLock.unlock();
         }
     }
 
@@ -167,12 +170,6 @@ public class MovingBlockManager {
         }
     }
 
-    public void addDistToFree(int dist) {
-        synchronized (distToFreeLock) {
-            distToFree += dist;
-        }
-    }
-
     public void setIsStopRoutineInitiated(boolean isStopRoutineInitiated) {
         synchronized (isStopRoutineInitiatedLock) {
             this.isStopRoutineInitiated = isStopRoutineInitiated;
@@ -187,6 +184,10 @@ public class MovingBlockManager {
 
     public void addMovedDistToFree(double dist) {
         movedDistToFree += dist;
+    }
+
+    public double getMovedDistToFree() {
+        return movedDistToFree;
     }
 
     public void addDistToAlloc(int dist) {

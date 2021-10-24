@@ -23,4 +23,10 @@ public interface Allocatable {
      * @return remaining distance to free
      */
     BlockSectionResult free(Trainset trainset, int dist) throws NodeAllocationException;
+
+    /**
+     * Frees the entire section that trainset owns
+     * @param trainset
+     */
+    void freeAll(Trainset trainset) throws NodeAllocationException;
 }

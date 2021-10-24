@@ -44,6 +44,8 @@ public abstract class AbstractTrackNode implements Allocatable {
 
     public abstract String getOwnerStatus(int ownerId);
 
+    public abstract Map<Integer, String> getOwnerSummary();
+
     public abstract int getCostToNode(long toNode, Long previousNode);
 
     public void addConnection(long nextNode, int cost, boolean isUplink) {
