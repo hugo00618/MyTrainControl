@@ -2,13 +2,23 @@
   "uplinkRegularTracks": [
     {
       "id0": 10401,
+      "id1": 11401,
+      "length": 1404
+    },
+    {
+      "id0": 11401,
       "id1": 11101,
+      "length": 0
+    },
+    {
+      "id0": 11403,
+      "id1": 10001,
       "length": 1404
     },
     {
       "id0": 11103,
-      "id1": 10001,
-      "length": 1404
+      "id1": 11403,
+      "length": 0
     }
   ],
   "downlinkRegularTracks": [
@@ -68,7 +78,7 @@
       "name": "Station 2",
       "entryNodeIds": [
         11100,
-        11101
+        11401
       ],
       "uplinkTracks": [
         {
