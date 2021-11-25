@@ -9,4 +9,8 @@ public class SpeedUtil {
         return kph / MMPS_TO_KPH / SCALE;
     }
 
+    public static double toKph(double mmps) {
+        return mmps * SCALE * MMPS_TO_KPH;
+    }
+
 }

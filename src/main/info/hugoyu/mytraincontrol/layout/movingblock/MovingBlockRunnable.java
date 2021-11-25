@@ -164,7 +164,7 @@ public class MovingBlockRunnable implements Runnable {
     }
 
     private int getMinAllocateDistance() {
-        int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance() + trainset.getCSpeed() * 0.7));
+        int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance() + trainset.getCSpeed() * 0.5));
         int minAllocateDist = Math.max(minStoppingDist, INITIAL_MOVE_DISTANCE) + TRAIN_BUFFER_DISTANCE_HEADING;
         minAllocateDist = Math.min(minAllocateDist, (int) Math.ceil(movingBlockManager.getDistToMove()));
         return minAllocateDist;

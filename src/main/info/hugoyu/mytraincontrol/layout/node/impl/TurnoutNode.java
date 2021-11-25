@@ -10,6 +10,7 @@ import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
+import info.hugoyu.mytraincontrol.util.TurnoutState;
 import info.hugoyu.mytraincontrol.util.TurnoutUtil;
 
 import java.util.Map;
@@ -36,7 +37,7 @@ public class TurnoutNode extends AbstractTrackNode {
     private Long idDummy;
     private int distClosed, distThrown;
     private Type type;
-    private String address;
+    private int address;
 
     private Integer owner;
     private Range<Integer> ownedRange;
@@ -56,7 +57,7 @@ public class TurnoutNode extends AbstractTrackNode {
      * @param sensors    map of (sensorAddress, location)
      */
     public TurnoutNode(long id, long idClosed, long idThrown, Long idDummy,
-                       int distClosed, int distThrown, Type type, String address, boolean isUplink,
+                       int distClosed, int distThrown, Type type, int address, boolean isUplink,
                        Map<Integer, Integer> sensors) {
         super(id, sensors);
 
@@ -89,7 +90,7 @@ public class TurnoutNode extends AbstractTrackNode {
                 turnoutJson.getDistClosed(),
                 turnoutJson.getDistThrown(),
                 turnoutJson.getType(),
-                String.valueOf(turnoutJson.getAddress()),
+                turnoutJson.getAddress(),
                 isUplink,
                 turnoutJson.getSensors());
     }
@@ -115,10 +116,10 @@ public class TurnoutNode extends AbstractTrackNode {
                 long referenceNode = type == DIVERGE ? nextNodeId : previousNodeId;
                 if (referenceNode == idClosed) {
                     length = distClosed;
-                    TurnoutUtil.setTurnoutState(address, TurnoutUtil.TurnoutState.CLOSED);
+                    TurnoutUtil.setTurnoutState(address, TurnoutState.CLOSED, false);
                 } else if (referenceNode == idThrown) {
                     length = distThrown;
-                    TurnoutUtil.setTurnoutState(address, TurnoutUtil.TurnoutState.THROWN);
+                    TurnoutUtil.setTurnoutState(address, TurnoutState.THROWN, false);
                 } else {
                     throw new InvalidIdException(referenceNode);
                 }

@@ -88,7 +88,10 @@
           "isPlatformTrack": true,
           "isPassingTrack": true,
           "trackLength": 1116,
-          "platformLength": 1116
+          "platformLength": 1116,
+          "sensors": {
+            "15": 558
+          }
         }
       ],
       "downlinkTracks": [
@@ -114,7 +117,7 @@
       "type": "DIVERGE",
       "address": 50,
       "sensors": {
-        "14": 0
+        "17": 0
       }
     },
     {

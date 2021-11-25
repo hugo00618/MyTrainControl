@@ -1,8 +1,8 @@
 package info.hugoyu.mytraincontrol.command.debug.impl;
 
 import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
+import info.hugoyu.mytraincontrol.util.TurnoutState;
 import info.hugoyu.mytraincontrol.util.TurnoutUtil;
-import info.hugoyu.mytraincontrol.util.TurnoutUtil.TurnoutState;
 
 public class TurnoutControlCommand extends AbstractDebugCommand {
 
@@ -31,7 +31,7 @@ public class TurnoutControlCommand extends AbstractDebugCommand {
                 return false;
         }
 
-        TurnoutUtil.setTurnoutState(String.valueOf(address), turnoutState);
+        TurnoutUtil.setTurnoutState(address, turnoutState, true);
         return true;
     }
 
