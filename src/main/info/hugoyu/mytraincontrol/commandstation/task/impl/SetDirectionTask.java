@@ -1,14 +1,18 @@
 package info.hugoyu.mytraincontrol.commandstation.task.impl;
 
-import info.hugoyu.mytraincontrol.commandstation.task.AbstractTrainsetTask;
+import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import jmri.DccThrottle;
 
-public class SetDirectionTask extends AbstractTrainsetTask {
+public class SetDirectionTask extends AbstractCommandStationTask {
+
+    private Trainset trainset;
 
     public SetDirectionTask(Trainset trainset) {
-        super(trainset);
+        super();
+
+        this.trainset = trainset;
     }
 
     @Override

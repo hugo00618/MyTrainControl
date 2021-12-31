@@ -1,18 +1,26 @@
 package info.hugoyu.mytraincontrol.commandstation.task.impl;
 
-import info.hugoyu.mytraincontrol.commandstation.task.AbstractTrainsetTask;
+import com.google.common.annotations.VisibleForTesting;
+import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
+import info.hugoyu.mytraincontrol.commandstation.task.Deduplicatable;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import jmri.DccThrottle;
 
-public class SetSpeedTask extends AbstractTrainsetTask {
+public class SetSpeedTask extends AbstractCommandStationTask {
+
+    private Trainset trainset;
 
     public SetSpeedTask(Trainset trainset, long taskCreationTime) {
-        super(trainset, taskCreationTime);
+        super(taskCreationTime);
+
+        this.trainset = trainset;
     }
 
     public SetSpeedTask(Trainset trainset, long taskCreationTime, long delay) {
-        super(trainset, taskCreationTime, delay);
+        super(taskCreationTime, delay);
+
+        this.trainset = trainset;
     }
 
     @Override
@@ -23,4 +31,25 @@ public class SetSpeedTask extends AbstractTrainsetTask {
         throttle.setSpeedSetting(trainset.getThrottle());
     }
 
+    @Override
+    public boolean isDuplicate(Deduplicatable task) {
+        if (task instanceof SetSpeedTask) {
+            return ((SetSpeedTask) task).trainset == trainset;
+        }
+        return false;
+    }
+
+    @Override
+    public void dedupe(Deduplicatable task) {
+        if (task instanceof SetSpeedTask) {
+            scheduledExecutionTime = Math.min(scheduledExecutionTime,
+                    ((SetSpeedTask) task).getScheduledExecutionTime());
+            isDelayedTask |= ((SetSpeedTask) task).isDelayedTask();
+        }
+    }
+
+    @VisibleForTesting
+    public Trainset getTrainset() {
+        return trainset;
+    }
 }

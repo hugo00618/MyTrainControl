@@ -2,7 +2,7 @@ package info.hugoyu.mytraincontrol.commandstation;
 
 import com.google.common.annotations.VisibleForTesting;
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
-import info.hugoyu.mytraincontrol.commandstation.task.AbstractTrainsetTask;
+import info.hugoyu.mytraincontrol.commandstation.task.Deduplicatable;
 
 import java.util.Optional;
 import java.util.PriorityQueue;
@@ -34,24 +34,15 @@ public class CommandStation {
 
     public void addTask(AbstractCommandStationTask newTask) {
         synchronized (tasksLock) {
-            Optional<AbstractCommandStationTask> existingTaskOptional = Optional.empty();
-            if (newTask instanceof AbstractTrainsetTask) {
-                existingTaskOptional = tasks.stream()
-                        .filter(task -> task instanceof AbstractTrainsetTask)
-                        .filter(task -> {
-                            AbstractTrainsetTask abstractTrainsetTask = (AbstractTrainsetTask) task;
-                            return abstractTrainsetTask.getTrainset()
-                                    .equals(((AbstractTrainsetTask) newTask).getTrainset()) &&
-                                    task.getClass().equals(newTask.getClass());
-                        })
-                        .findFirst();
-            }
+            Optional<AbstractCommandStationTask> duplicateTaskOptional = tasks.stream()
+                    .filter(task -> task.isDuplicate(newTask))
+                    .findFirst();
 
-            if (existingTaskOptional.isPresent()) {
-                AbstractCommandStationTask existingTask = existingTaskOptional.get();
-                removeFromTasks(existingTask);
-                existingTask.dedupe(newTask);
-                tasks.add(existingTask);
+            if (duplicateTaskOptional.isPresent()) {
+                AbstractCommandStationTask duplicateTask = duplicateTaskOptional.get();
+                removeFromTasks(duplicateTask);
+                duplicateTask.dedupe(newTask);
+                tasks.add(duplicateTask);
             } else {
                 tasks.add(newTask);
             }

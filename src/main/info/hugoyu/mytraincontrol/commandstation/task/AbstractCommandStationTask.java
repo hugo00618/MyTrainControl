@@ -3,32 +3,34 @@ package info.hugoyu.mytraincontrol.commandstation.task;
 import lombok.Getter;
 
 @Getter
-public abstract class AbstractCommandStationTask implements Comparable<AbstractCommandStationTask> {
+public abstract class AbstractCommandStationTask implements Comparable<AbstractCommandStationTask>, Deduplicatable {
     private long taskCreationTime;
-    private long scheduledExecutionTime;
-    private boolean isDelayedTask;
+    protected long scheduledExecutionTime;
+    protected boolean isDelayedTask;
 
-    public AbstractCommandStationTask() {
+    protected AbstractCommandStationTask() {
         this(System.currentTimeMillis());
     }
 
-    public AbstractCommandStationTask(long taskCreationTime) {
-        this.taskCreationTime = taskCreationTime;
-        this.scheduledExecutionTime = taskCreationTime;
-    }
-    
-    public AbstractCommandStationTask(long taskCreationTime, long delay) {
+    protected AbstractCommandStationTask(long taskCreationTime, long delay) {
         this(taskCreationTime);
         this.scheduledExecutionTime += delay;
         this.isDelayedTask = true;
     }
 
-    public void dedupe(AbstractCommandStationTask task) {
-        scheduledExecutionTime = Math.min(scheduledExecutionTime, task.scheduledExecutionTime);
-        isDelayedTask |= task.isDelayedTask;
+    protected AbstractCommandStationTask(long taskCreationTime) {
+        this.taskCreationTime = taskCreationTime;
+        this.scheduledExecutionTime = taskCreationTime;
     }
 
     public abstract void execute();
+
+    public boolean isDuplicate(Deduplicatable task) {
+        return false;
+    }
+
+    public void dedupe(Deduplicatable task) {
+    }
 
     @Override
     public int compareTo(AbstractCommandStationTask o) {
