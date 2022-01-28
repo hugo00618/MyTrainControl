@@ -11,6 +11,7 @@ import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
 import info.hugoyu.mytraincontrol.util.CommandStationUtil;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
+import info.hugoyu.mytraincontrol.util.LightState;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.Getter;
 import lombok.Setter;
@@ -43,7 +44,7 @@ public class Trainset implements TaskExecutionListener {
     private TrainsetProfile profile;
 
     @Getter
-    private boolean isLightOn = true;
+    private LightState lightState = LightState.UNKNOWN;
 
     @Getter
     private boolean isForward = true;
@@ -88,6 +89,7 @@ public class Trainset implements TaskExecutionListener {
         synchronized (distLock) {
             this.distToMove = distToMove;
         }
+        setIsLightOn(true);
         sendSetSpeedTask(System.currentTimeMillis());
     }
 
@@ -206,8 +208,12 @@ public class Trainset implements TaskExecutionListener {
     }
 
     public void setIsLightOn(boolean isLightOn) {
-        this.isLightOn = isLightOn;
-        CommandStationUtil.addTask(new SetLightTask(this));
+        LightState newLightState = isLightOn ? LightState.ON : LightState.OFF;
+        boolean isLightStateChanged = lightState != newLightState;
+        if (isLightStateChanged) {
+            lightState = newLightState;
+            CommandStationUtil.addTask(new SetLightTask(this));
+        }
     }
 
     public void setIsForward(boolean isForward) {
