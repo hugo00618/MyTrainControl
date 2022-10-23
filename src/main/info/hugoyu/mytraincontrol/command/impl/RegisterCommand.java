@@ -16,10 +16,15 @@ public class RegisterCommand implements Command {
             return false;
         }
 
+        boolean isMotorReversed = false;
+        if (args.length == 5) {
+            isMotorReversed = Boolean.parseBoolean(args[4]);
+        }
+
         String name = args[2];
         String profileFileName = args[3];
 
-        TrainUtil.registerTrainset(address, name, profileFileName);
+        TrainUtil.registerTrainset(address, name, profileFileName, isMotorReversed);
         TrainUtil.setLight(address, true);
         System.out.println(String.format("Trainset registered: %s at address %s", name, address));
 
@@ -28,6 +33,6 @@ public class RegisterCommand implements Command {
 
     @Override
     public String[] expectedArgs() {
-        return new String[]{"address", "name", "profileFileName"};
+        return new String[]{"address", "name", "profileFileName", "(isMotorReversed)"};
     }
 }

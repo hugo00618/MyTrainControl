@@ -46,8 +46,11 @@ public class Trainset implements TaskExecutionListener {
     @Getter
     private LightState lightState = LightState.UNKNOWN;
 
-    @Getter
+    // forward relative to track's default direction
     private boolean isForward = true;
+
+    // whether motor is placed reversed on the track
+    private boolean isMotorReversed;
 
     private volatile List<Long> allocatedNodes = new ArrayList<>();
     private final Object allocatedNodesLock = new Object();
@@ -55,9 +58,10 @@ public class Trainset implements TaskExecutionListener {
     private MovingBlockManager movingBlockManager = new MovingBlockManager(this);
     private Thread movingBlockManagerThread;
 
-    public Trainset(int address, String name, String profileFilename) {
+    public Trainset(int address, String name, String profileFilename, boolean isMotorReversed) {
         this.address = address;
         this.name = name;
+        this.isMotorReversed = isMotorReversed;
         profile = TrainUtil.getTrainsetProfile(profileFilename);
     }
 
@@ -219,6 +223,14 @@ public class Trainset implements TaskExecutionListener {
     public void setIsForward(boolean isForward) {
         this.isForward = isForward;
         CommandStationUtil.addTask(new SetDirectionTask(this));
+    }
+
+    public boolean isForward() {
+        if (isMotorReversed) {
+            return !isForward;
+        } else {
+            return isForward;
+        }
     }
 
     public void addAllocatedNode(long nodeId) {

@@ -1,0 +1,20 @@
+{
+  "controlCarLengths": [165, 145],
+  "passengerCarLengths": [156, 127],
+  "numControlCars": [2, 2],
+  "numPassengerCars": [2, 1],
+  "accRate": 1.71,
+  "decRate": -2.7,
+  "topSpeed": 360,
+  "throttleSpeedMap": {
+    "0": 0,
+    "2": 14.7910,
+    "4": 25.9911,
+    "10": 68.8893,
+    "20": 129.5995,
+    "40": 242.4239,
+    "80": 344.8754,
+    "90": 357.6944,
+    "95": 367.7904
+  }
+}

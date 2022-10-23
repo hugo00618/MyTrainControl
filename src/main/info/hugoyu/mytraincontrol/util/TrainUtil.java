@@ -26,8 +26,8 @@ public class TrainUtil {
         trainset.setDistToMove(Math.abs(dist));
     }
 
-    public static void registerTrainset(int address, String name, String profileFilename) {
-        TrainsetRegistry.getInstance().registerTrainset(address, new Trainset(address, name, profileFilename));
+    public static void registerTrainset(int address, String name, String profileFilename, boolean isMotorReversed) {
+        TrainsetRegistry.getInstance().registerTrainset(address, new Trainset(address, name, profileFilename, isMotorReversed));
         ThrottleRegistry.getInstance().registerThrottle(address);
     }
 
