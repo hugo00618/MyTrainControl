@@ -1,8 +1,8 @@
 {
-  "controlCarLength": 170,
-  "passengerCarLength": 155,
-  "numControlCars": 2,
-  "numPassengerCars": 4,
+  "controlCarLengths": [170],
+  "passengerCarLengths": [155],
+  "numControlCars": [2],
+  "numPassengerCars": [4],
   "accRate": 2.6,
   "decRate": -2.7,
   "topSpeed": 300,

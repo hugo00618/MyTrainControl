@@ -1,8 +1,8 @@
 {
-  "controlCarLength": 0,
-  "passengerCarLength": 0,
-  "numControlCars": 0,
-  "numPassengerCars": 0,
+  "controlCarLengths": [0],
+  "passengerCarLengths": [0],
+  "numControlCars": [0],
+  "numPassengerCars": [0],
   "accRate": 1.98,
   "decRate": -2.41,
   "topSpeed": 265,

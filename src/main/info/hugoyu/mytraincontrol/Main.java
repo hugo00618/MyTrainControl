@@ -39,7 +39,7 @@ public class Main {
         CommandUtil.runCommand(new String[]{"reg", "3", "N700A", "n700a-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "4", "500", "500-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
-        CommandUtil.runCommand(new String[]{"reg", "6", "E5", "e5-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "15", "E5", "e5-4000.json"});
 
         CommandStationRunnable.getInstance();
 

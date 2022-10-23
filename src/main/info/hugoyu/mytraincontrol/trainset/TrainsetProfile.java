@@ -3,95 +3,97 @@ package info.hugoyu.mytraincontrol.trainset;
 import info.hugoyu.mytraincontrol.json.JsonParsable;
 import info.hugoyu.mytraincontrol.util.SpeedUtil;
 import lombok.Getter;
+import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 
+@Setter
 @Getter
 public class TrainsetProfile implements JsonParsable {
 
     private static final double ACC_RATE_COEF = 15;
     private static final double DEC_RATE_COEF = 15;
 
-    private int controlCarLength, passengerCarLength;
-    private int numControlCars, numPassengerCars;
+    private int[] controlCarLengths, passengerCarLengths;
+    private int[] numControlCars, numPassengerCars;
     private double accRate, decRate;
     private double topSpeed;
     private Map<Integer, Double> throttleSpeedMap;
 
     private List<Integer> throttleList;
+    private TreeMap<Double, Integer> speedThrottleMap;
 
     @Override
     public void postDeserialization() {
         // convert speed from km/h to scale-equivalent mm/s
         topSpeed = SpeedUtil.toMMps(topSpeed);
-        throttleSpeedMap = throttleSpeedMap.entrySet().stream()
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        entry -> SpeedUtil.toMMps(entry.getValue())
-                ));
+        throttleSpeedMap.replaceAll((throttle, speed) -> speed = SpeedUtil.toMMps(speed));
 
         throttleList = throttleSpeedMap.keySet().stream()
                 .sorted()
                 .collect(Collectors.toList());
 
+        speedThrottleMap = new TreeMap<>();
+        throttleSpeedMap.forEach((throttle, speed) -> speedThrottleMap.put(speed, throttle));
+
+        // adjust acc/dec rate with coefficient
         accRate *= ACC_RATE_COEF;
         decRate *= DEC_RATE_COEF;
     }
 
     public int getTotalLength() {
-        return controlCarLength * numControlCars + passengerCarLength * numPassengerCars;
+        int res = 0;
+        for (int i = 0; i < controlCarLengths.length; i++) {
+            res += controlCarLengths[i] * numControlCars[i];
+        }
+        for (int i = 0; i < passengerCarLengths.length; i++) {
+            res += passengerCarLengths[i] * numPassengerCars[i];
+        }
+        return res;
     }
 
+    /**
+     * @param speed target speed, mm/s
+     * @return throttle value, [0.0, 1.0]
+     */
     public float getThrottle(double speed) {
-        int minThrottle = throttleList.get(0);
-        double minSpeed = throttleSpeedMap.get(minThrottle);
-        if (speed <= minSpeed) {
-            return minThrottle / 100.0f;
+        final double throttleDouble = getThrottlePercentage(speed) / 100.0;
+
+        BigDecimal bd = new BigDecimal(throttleDouble);
+        bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+        return bd.floatValue();
+    }
+
+    private double getThrottlePercentage(double speed) {
+        Map.Entry<Double, Integer> floorEntry = speedThrottleMap.floorEntry(speed);
+        Map.Entry<Double, Integer> ceilingEntry = speedThrottleMap.ceilingEntry(speed);
+
+        if (floorEntry == null) { // target speed is lower than min speed, return min throttle
+            return ceilingEntry.getValue();
         }
-        int maxThrottle = throttleList.get(throttleList.size() - 1);
-        double maxSpeed = throttleSpeedMap.get(maxThrottle);
-        if (speed >= maxSpeed) {
-            return maxThrottle / 100.0f;
+        if (ceilingEntry == null) { // target speed is higher than max speed, return max throttle
+            return floorEntry.getValue();
         }
 
-        int i = binarySearchInterval(speed, throttleSpeedMap, throttleList);
-        int lowerBoundThrottle = throttleList.get(i);
-        int upperBoundThrottle = throttleList.get(i + 1);
-        int deltaThrottle = upperBoundThrottle - lowerBoundThrottle;
-        double lowerBoundSpeed = throttleSpeedMap.get(lowerBoundThrottle);
-        double upperBoundSpeed = throttleSpeedMap.get(upperBoundThrottle);
-        double deltaSpeed = upperBoundSpeed - lowerBoundSpeed;
+        final double floorSpeed = floorEntry.getKey();
+        final double floorThrottle = floorEntry.getValue();
 
-        return (float) ((lowerBoundThrottle + (speed - lowerBoundSpeed) / deltaSpeed * deltaThrottle) / 100.0);
+        if (floorSpeed == speed) { // target speed is an exact match, return throttle
+            return floorThrottle;
+        }
+
+        final double deltaSpeed = ceilingEntry.getKey() - floorSpeed;
+        final double deltaThrottle = ceilingEntry.getValue() - floorThrottle;
+
+        return (speed - floorSpeed) / deltaSpeed * deltaThrottle + floorThrottle;
     }
 
     public double getMinimumStoppingDistance(double speed) {
         return -Math.pow(speed, 2) / 2 / decRate;
-    }
-
-    /**
-     * @param speed
-     * @param throttleSpeedMap
-     * @param throttleList
-     * @return lower bound index of interval
-     */
-    private int binarySearchInterval(double speed, Map<Integer, Double> throttleSpeedMap, List<Integer> throttleList) {
-        int i = 0, j = throttleList.size() - 1;
-        while (i + 1 < j) {
-            int mid = (i + j) / 2;
-            int midThrottle = throttleList.get(mid);
-            double midSpeed = throttleSpeedMap.get(midThrottle);
-            if (speed < midSpeed) {
-                j = mid;
-            } else if (speed > midSpeed) {
-                i = mid;
-            } else {
-                return i;
-            }
-        }
-        return i;
     }
 
 }
