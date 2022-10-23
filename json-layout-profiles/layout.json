@@ -23,14 +23,24 @@
   ],
   "downlinkRegularTracks": [
     {
-      "id0": 10400,
-      "id1": 11100,
+      "id0": 10102,
+      "id1": 11400,
       "length": 1508
     },
     {
+      "id0": 11400,
+      "id1": 11100,
+      "length": 0
+    },
+    {
       "id0": 11102,
-      "id1": 10100,
+      "id1": 10400,
       "length": 1508
+    },
+    {
+      "id0": 10400,
+      "id1": 10100,
+      "length": 0
     }
   ],
   "stations": [
@@ -38,7 +48,7 @@
       "id": "s1",
       "name": "Station 1",
       "entryNodeIds": [
-        10100,
+        10400,
         10001
       ],
       "uplinkTracks": [
@@ -64,12 +74,15 @@
       "downlinkTracks": [
         {
           "id0": 10100,
-          "id1": 10400,
+          "id1": 10102,
           "name":"Track 3",
           "isPlatformTrack": true,
           "isPassingTrack": true,
           "trackLength": 1116,
-          "platformLength": 1116
+          "platformLength": 1116,
+          "sensors": {
+            "15": 186
+          }
         }
       ]
     },
@@ -77,7 +90,7 @@
       "id": "s2",
       "name": "Station 2",
       "entryNodeIds": [
-        11100,
+        11400,
         11401
       ],
       "uplinkTracks": [
@@ -88,10 +101,7 @@
           "isPlatformTrack": true,
           "isPassingTrack": true,
           "trackLength": 1116,
-          "platformLength": 1116,
-          "sensors": {
-            "15": 510
-          }
+          "platformLength": 1116
         }
       ],
       "downlinkTracks": [
