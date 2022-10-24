@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Map;
 import java.util.TreeMap;
@@ -24,7 +25,6 @@ public class TrainsetProfile implements JsonParsable {
     private double topSpeed;
     private Map<Integer, Double> throttleSpeedMap;
 
-    private List<Integer> throttleList;
     private TreeMap<Double, Integer> speedThrottleMap;
 
     @Override
@@ -32,10 +32,6 @@ public class TrainsetProfile implements JsonParsable {
         // convert speed from km/h to scale-equivalent mm/s
         topSpeed = SpeedUtil.toMMps(topSpeed);
         throttleSpeedMap.replaceAll((throttle, speed) -> speed = SpeedUtil.toMMps(speed));
-
-        throttleList = throttleSpeedMap.keySet().stream()
-                .sorted()
-                .collect(Collectors.toList());
 
         speedThrottleMap = new TreeMap<>();
         throttleSpeedMap.forEach((throttle, speed) -> speedThrottleMap.put(speed, throttle));
@@ -64,7 +60,7 @@ public class TrainsetProfile implements JsonParsable {
         final double throttleDouble = getThrottlePercentage(speed) / 100.0;
 
         BigDecimal bd = new BigDecimal(throttleDouble);
-        bd = bd.setScale(2, BigDecimal.ROUND_HALF_UP);
+        bd = bd.setScale(2, RoundingMode.HALF_UP);
         return bd.floatValue();
     }
 
