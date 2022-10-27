@@ -9,8 +9,8 @@ import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
+import info.hugoyu.mytraincontrol.turnout.Turnout;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
-import info.hugoyu.mytraincontrol.util.TurnoutState;
 import info.hugoyu.mytraincontrol.util.TurnoutUtil;
 
 import java.util.Map;
@@ -26,7 +26,7 @@ public class TurnoutNode extends AbstractTrackNode {
         @SerializedName("MERGE")
         MERGE("merge");
 
-        String type;
+        final String type;
 
         Type(String type) {
             this.type = type;
@@ -116,10 +116,10 @@ public class TurnoutNode extends AbstractTrackNode {
                 long referenceNode = type == DIVERGE ? nextNodeId : previousNodeId;
                 if (referenceNode == idClosed) {
                     length = distClosed;
-                    TurnoutUtil.setTurnoutState(address, TurnoutState.CLOSED, false);
+                    TurnoutUtil.setTurnoutState(address, Turnout.State.CLOSED, false);
                 } else if (referenceNode == idThrown) {
                     length = distThrown;
-                    TurnoutUtil.setTurnoutState(address, TurnoutState.THROWN, false);
+                    TurnoutUtil.setTurnoutState(address, Turnout.State.THROWN, false);
                 } else {
                     throw new InvalidIdException(referenceNode);
                 }

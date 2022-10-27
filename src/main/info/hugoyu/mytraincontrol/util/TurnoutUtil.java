@@ -1,7 +1,7 @@
 package info.hugoyu.mytraincontrol.util;
 
-import info.hugoyu.mytraincontrol.commandstation.task.impl.TurnoutControlTask;
 import info.hugoyu.mytraincontrol.registry.TurnoutRegistry;
+import info.hugoyu.mytraincontrol.turnout.Turnout;
 
 public class TurnoutUtil {
 
@@ -9,12 +9,14 @@ public class TurnoutUtil {
      * changes the turnout state and sends turnout control task if the state is changed
      * @param address
      * @param state
-     * @param forceControl force sending the turnout control task
+     * @param forceSend ignores cached turnout state and forces sending the turnout control task
      */
-    public static void setTurnoutState(int address, TurnoutState state, boolean forceControl) {
-        boolean isTurnoutStateChanged = TurnoutRegistry.getInstance().setTurnoutState(address, state);
-        if (forceControl || isTurnoutStateChanged) {
-            CommandStationUtil.addTask(new TurnoutControlTask(address, state));
+    public static void setTurnoutState(int address, Turnout.State state, boolean forceSend) {
+        TurnoutRegistry turnoutRegistry = TurnoutRegistry.getInstance();
+        boolean isTurnoutStateChanged = turnoutRegistry.setTurnoutState(address, state);
+        if (forceSend || isTurnoutStateChanged) {
+            Turnout turnout = turnoutRegistry.getTurnout(address);
+            CommandStationUtil.addTask(turnout.getTurnoutControlTask());
         }
     }
 }

@@ -1,7 +1,8 @@
 package info.hugoyu.mytraincontrol.registry;
 
-import info.hugoyu.mytraincontrol.util.TurnoutState;
-import lombok.Setter;
+import info.hugoyu.mytraincontrol.exception.InvalidIdException;
+import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
+import info.hugoyu.mytraincontrol.turnout.Turnout;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -16,23 +17,24 @@ public class TurnoutRegistry {
         turnouts = new HashMap<>();
     }
 
-    static class Turnout {
-        final int address;
-
-        @Setter
-        TurnoutState state;
-
-        public Turnout(int address) {
-            this.address = address;
-            state = TurnoutState.UNKNOWN;
-        }
-    }
-
     public static TurnoutRegistry getInstance() {
         if (instance == null) {
             instance = new TurnoutRegistry();
         }
         return instance;
+    }
+
+    public void registerTurnout(TurnoutJson turnoutJson) {
+        final int address = turnoutJson.getAddress();
+        turnouts.put(address, new Turnout(address));
+    }
+
+    public Turnout getTurnout(int address) {
+        if (!turnouts.containsKey(address)) {
+            throw new InvalidIdException(address);
+        }
+
+        return turnouts.get(address);
     }
 
     /**
@@ -41,14 +43,12 @@ public class TurnoutRegistry {
      * @param state
      * @return if turnout state has changed
      */
-    public boolean setTurnoutState(int address, TurnoutState state) {
-        if (!turnouts.containsKey(address)) {
-            turnouts.put(address, new Turnout(address));
-        }
-
+    public boolean setTurnoutState(int address, Turnout.State state) {
         boolean isTurnoutStateChanged = false;
+
         Turnout turnout = turnouts.get(address);
-        if (turnout.state != state) {
+        Turnout.State cachedState = turnout.getState();
+        if (cachedState != state) {
             isTurnoutStateChanged = true;
         }
         turnout.setState(state);

@@ -6,7 +6,7 @@ public class InvalidIdException extends RuntimeException {
         super("Invalid id: " + id);
     }
 
-    public InvalidIdException(long id) {
+    public InvalidIdException(Number id) {
         this(String.valueOf(id));
     }
 

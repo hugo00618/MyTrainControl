@@ -1,7 +1,7 @@
 package info.hugoyu.mytraincontrol.command.debug.impl;
 
 import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
-import info.hugoyu.mytraincontrol.util.TurnoutState;
+import info.hugoyu.mytraincontrol.turnout.Turnout;
 import info.hugoyu.mytraincontrol.util.TurnoutUtil;
 
 public class TurnoutControlCommand extends AbstractDebugCommand {
@@ -19,13 +19,13 @@ public class TurnoutControlCommand extends AbstractDebugCommand {
         }
 
         String turnoutStateStr = args[2].toLowerCase();
-        TurnoutState turnoutState;
+        Turnout.State turnoutState;
         switch (turnoutStateStr) {
             case TURNOUT_STATE_THROWN:
-                turnoutState = TurnoutState.THROWN;
+                turnoutState = Turnout.State.THROWN;
                 break;
             case TURNOUT_STATE_CLOSED:
-                turnoutState = TurnoutState.CLOSED;
+                turnoutState = Turnout.State.CLOSED;
                 break;
             default:
                 return false;

@@ -5,6 +5,7 @@ import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.TurnoutNode;
 import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
+import info.hugoyu.mytraincontrol.registry.TurnoutRegistry;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -35,9 +36,9 @@ public class LayoutProvider {
 
         // turnouts
         layoutJson.getUplinkTurnouts().forEach(
-                turnoutJson -> layoutRegistry.registerGraphNode(new TurnoutNode(turnoutJson, true)));
+                turnoutJson -> registerTurnout(turnoutJson, true));
         layoutJson.getDownlinkTurnouts().forEach(
-                turnoutJson -> layoutRegistry.registerGraphNode(new TurnoutNode(turnoutJson, false)));
+                turnoutJson -> registerTurnout(turnoutJson, false));
     }
 
     private static List<StationTrackNode> registerStationTracks(StationJson stationJson, LayoutRegistry layoutRegistry) {
@@ -55,5 +56,10 @@ public class LayoutProvider {
                     layoutRegistry.registerGraphNode(stationTrackNode);
                     return stationTrackNode;
                 });
+    }
+
+    private static void registerTurnout(TurnoutJson turnoutJson, boolean isUplink) {
+        LayoutRegistry.getInstance().registerGraphNode(new TurnoutNode(turnoutJson, isUplink));
+        TurnoutRegistry.getInstance().registerTurnout(turnoutJson);
     }
 }

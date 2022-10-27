@@ -2,11 +2,15 @@ package info.hugoyu.mytraincontrol.commandstation.task;
 
 import lombok.Getter;
 
+import java.util.List;
+
 @Getter
 public abstract class AbstractCommandStationTask implements Comparable<AbstractCommandStationTask>, Deduplicatable {
     private long taskCreationTime;
     protected long scheduledExecutionTime;
     protected boolean isDelayedTask;
+
+    private List<AbstractCommandStationTask> subtasks;
 
     protected AbstractCommandStationTask() {
         this(System.currentTimeMillis());
@@ -21,6 +25,14 @@ public abstract class AbstractCommandStationTask implements Comparable<AbstractC
     protected AbstractCommandStationTask(long taskCreationTime) {
         this.taskCreationTime = taskCreationTime;
         this.scheduledExecutionTime = taskCreationTime;
+    }
+
+    /**
+     * Recursive definition of tasks
+     * @param subtasks
+     */
+    protected AbstractCommandStationTask(List<AbstractCommandStationTask> subtasks) {
+        this.subtasks = subtasks;
     }
 
     public abstract void execute();

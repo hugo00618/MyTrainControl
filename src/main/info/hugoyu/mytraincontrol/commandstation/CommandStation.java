@@ -33,18 +33,22 @@ public class CommandStation {
     }
 
     public void addTask(AbstractCommandStationTask newTask) {
-        synchronized (tasksLock) {
-            Optional<AbstractCommandStationTask> duplicateTaskOptional = tasks.stream()
-                    .filter(task -> task.isDuplicate(newTask))
-                    .findFirst();
+        if (newTask.getSubtasks() != null) {
+            newTask.getSubtasks().forEach(this::addTask);
+        } else {
+            synchronized (tasksLock) {
+                Optional<AbstractCommandStationTask> duplicateTaskOptional = tasks.stream()
+                        .filter(task -> task.isDuplicate(newTask))
+                        .findFirst();
 
-            if (duplicateTaskOptional.isPresent()) {
-                AbstractCommandStationTask duplicateTask = duplicateTaskOptional.get();
-                removeFromTasks(duplicateTask);
-                duplicateTask.dedupe(newTask);
-                tasks.add(duplicateTask);
-            } else {
-                tasks.add(newTask);
+                if (duplicateTaskOptional.isPresent()) {
+                    AbstractCommandStationTask duplicateTask = duplicateTaskOptional.get();
+                    removeFromTasks(duplicateTask);
+                    duplicateTask.dedupe(newTask);
+                    tasks.add(duplicateTask);
+                } else {
+                    tasks.add(newTask);
+                }
             }
         }
     }
