@@ -21,17 +21,17 @@ sourceSets {
     }
 }
 dependencies {
-    implementation fileTree(dir: 'libs', include: ['*.jar'])
+    compile fileTree(include: ["*.jar"], dir: "libs")
 
-    compileOnly 'org.projectlombok:lombok:1.18.16'
-    annotationProcessor 'org.projectlombok:lombok:1.18.16'
+    compileOnly 'org.projectlombok:lombok:1.18.24'
+    annotationProcessor 'org.projectlombok:lombok:1.18.24'
+
+    testCompileOnly 'org.projectlombok:lombok:1.18.24'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.24'
 
     implementation 'com.google.code.gson:gson:2.8.6'
 
     implementation("com.google.guava:guava:30.0-jre")
-
-    testCompileOnly 'org.projectlombok:lombok:1.18.16'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.16'
 
     // https://mvnrepository.com/artifact/org.powermock/powermock-module-junit4
     testImplementation group: 'org.powermock', name: 'powermock-module-junit4', version: '2.0.9'

@@ -22,8 +22,12 @@ public class LayoutUtil {
     private static final String LAYOUT_JSON_PATH = "json-layout-profiles/layout.json";
 
     public static void registerLayout() {
+        registerLayout(LAYOUT_JSON_PATH);
+    }
+
+    public static void registerLayout(String filePath) {
         try {
-            LayoutJson layoutJson = MyJsonReader.parseJSON(LAYOUT_JSON_PATH, LayoutJson.class);
+            LayoutJson layoutJson = MyJsonReader.parseJSON(filePath, LayoutJson.class);
             LayoutProvider.registerLayout(layoutJson);
         } catch (IOException e) {
             throw new RuntimeException("Error parsing layout", e);

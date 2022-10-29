@@ -28,8 +28,6 @@ public class Main {
         PropertyConfigurator.configure(LOG4J_CONFIG_PATH);
         log.info("System start");
 
-        LayoutUtil.registerLayout();
-
         selectPort();
         BaseStationPowerUtil.turnOnPower();
 
@@ -39,8 +37,9 @@ public class Main {
 //        CommandUtil.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "15", "E5E6", "e5e6-4300.json", "true"});
 
-        CommandStationRunnable.getInstance();
+        LayoutUtil.registerLayout();
 
+        CommandStationRunnable.getInstance();
         listenCommands();
 
         cleanup();

@@ -16,7 +16,7 @@ import java.util.concurrent.ExecutionException;
 public class SpeedProfilingUtil {
 
     @RequiredArgsConstructor
-    private static class ProfilingListener {
+    private static class ProfilingListener implements SensorChangeListener {
         @NonNull
         Trainset trainset;
 
@@ -29,56 +29,30 @@ public class SpeedProfilingUtil {
             return deltaT;
         }
 
-        void onEnterStart() {
-            if (isGoingForward()) {
-                startTimer();
+        @Override
+        public void onEnter(Sensor sensor) {
+            if (t0 == 0) {
+                t0 = System.currentTimeMillis();
             } else {
-                endTimer();
+                t1 = System.currentTimeMillis();
             }
         }
 
-        void onEnterEnd() {
-            if (isGoingForward()) {
-                endTimer();
-            } else {
-                startTimer();
+        @Override
+        public void onExit(Sensor sensor) {
+            if (t1 != 0) {
+                long deltaTVal = t1 - t0;
+                t0 = 0;
+                t1 = 0;
+                deltaT.obtrudeValue(deltaTVal);
             }
-        }
-
-        void onExitStart() {
-            if (!isGoingForward()) {
-                setFutureResult();
-            }
-        }
-
-        void onExitEnd() {
-            if (isGoingForward()) {
-                setFutureResult();
-            }
-        }
-
-        private boolean isGoingForward() {
-            return TrainUtil.isForward(trainset);
-        }
-
-        private void startTimer() {
-            t0 = System.currentTimeMillis();
-        }
-
-        private void endTimer() {
-            t1 = System.currentTimeMillis();
-        }
-
-        private void setFutureResult() {
-            deltaT.obtrudeValue(t1 - t0);
         }
     }
 
     /**
      *
      * @param trainset      Trainset being profiled
-     * @param startSensor   Pin for start sensor
-     * @param stopSensor    Pin for stop sensor
+     * @param sensor   Pin for sensor
      * @param sectionLength section length, in mm
      * @param startThrottle starting throttle
      * @param endThrottle   ending throttle
@@ -86,15 +60,14 @@ public class SpeedProfilingUtil {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public static void speedProfile(Trainset trainset, int startSensor, int stopSensor, int sectionLength,
+    public static void speedProfile(Trainset trainset, int sensor, int sectionLength,
                                     int startThrottle, int endThrottle, int step) throws ExecutionException, InterruptedException {
         validateThrottleParams(startThrottle, endThrottle, step);
 
         ProfilingListener profilingListener = new ProfilingListener(trainset);
-        SensorUtil.getSensor(startSensor, constructSensorChangeListener(profilingListener, true));
-        SensorUtil.getSensor(stopSensor, constructSensorChangeListener(profilingListener, false));
+        SensorUtil.getSensor(sensor, profilingListener);
 
-        System.out.println(String.format("Profiling %s" + trainset.getName()));
+        System.out.println(String.format("Profiling %s", trainset.getName()));
 
         Map<Integer, List<Double>> speedMapForward = new HashMap<>();
         Map<Integer, List<Double>> speedMapBackward = new HashMap<>();
@@ -106,6 +79,8 @@ public class SpeedProfilingUtil {
 
             // continue moving the train away from the timing zone
             Thread.sleep(2000);
+            TrainUtil.setThrottle(trainset, 0);
+            Thread.sleep(1000);
 
             // backward
             System.out.println("Setting throttle to backward " + throttle);
@@ -144,27 +119,5 @@ public class SpeedProfilingUtil {
                 !(step > 0)) {
             throw new RuntimeException("Invalid throttle parameters");
         }
-    }
-
-    private static SensorChangeListener constructSensorChangeListener(ProfilingListener profilingListener, boolean isStartSensor) {
-        return new SensorChangeListener() {
-            @Override
-            public void onEnter(Sensor sensor) {
-                if (isStartSensor) {
-                    profilingListener.onEnterStart();
-                } else {
-                    profilingListener.onEnterEnd();
-                }
-            }
-
-            @Override
-            public void onExit(Sensor sensor) {
-                if (isStartSensor) {
-                    profilingListener.onExitStart();
-                } else {
-                    profilingListener.onExitEnd();
-                }
-            }
-        };
     }
 }
