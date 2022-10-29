@@ -16,6 +16,7 @@ import java.util.concurrent.ExecutionException;
 public class SpeedProfilingUtil {
 
     private static final int NUMBER_OF_DATA_POINTS_TO_COLLECT = 10;
+    private static final double OUTLIERS_RANGE = 0.02;
 
     @RequiredArgsConstructor
     private static class ProfilingListener implements SensorChangeListener {
@@ -93,7 +94,7 @@ public class SpeedProfilingUtil {
                 throttle,
                 getNumberOfDataPointsCollected(speedMap, throttle) + 1,
                 NUMBER_OF_DATA_POINTS_TO_COLLECT));
-        TrainUtil.setThrottle(trainset, throttle);
+        TrainUtil.setThrottle(trainset, isForward ? throttle : -throttle);
         recordSpeed(profilingListener, sectionLength, throttle, speedMap);
 
         // continue moving the train away from the timing zone
@@ -119,7 +120,7 @@ public class SpeedProfilingUtil {
         datapoints.add(speedKph);
 
         if (datapoints.size() >= NUMBER_OF_DATA_POINTS_TO_COLLECT) {
-            datapoints = MathUtil.removeOutliers(datapoints, 1);
+            datapoints = MathUtil.removeOutliers(datapoints, OUTLIERS_RANGE);
         }
 
         speedMap.put(throttle, datapoints);

@@ -3,8 +3,9 @@ package info.hugoyu.mytraincontrol.util;
 import com.google.common.annotations.VisibleForTesting;
 
 import java.math.BigDecimal;
-import java.math.MathContext;
 import java.math.RoundingMode;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,17 +15,29 @@ public class MathUtil {
 
     /**
      * @param data
-     * @param m    number of standard deviation to be included in data
+     * @param range   range of +/- percentage of median to be included in data
+     *                  e.g. range = 0.05, median = 90 -> function will include data in the range
+     *                  (90 * 0.95, 90 * 1.05)
      * @return
      */
-    public static List<Double> removeOutliers(List<Double> data, double m) {
-        BigDecimal mean = mean(data);
-        BigDecimal sd = standardDeviation(data);
-        BigDecimal threshold = sd.multiply(BigDecimal.valueOf(m));
+    public static List<Double> removeOutliers(List<Double> data, double range) {
+        final double median = median(data);
+        final double lowerBound = median * (1 - range);
+        final double upperBound = median * (1 + range);
 
         return data.stream()
-                .filter(ele -> BigDecimal.valueOf(ele).subtract(mean).abs().compareTo(threshold) < 0)
+                .filter(ele -> ele > lowerBound && ele < upperBound)
                 .collect(Collectors.toList());
+    }
+
+    private static double median(List<Double> data) {
+        List<Double> backup = new ArrayList<>(data);
+        Collections.sort(backup);
+        if (backup.size() % 2 == 0) {
+            return (backup.get(backup.size() / 2) + backup.get(backup.size() / 2 - 1)) / 2.0;
+        } else {
+            return backup.get(backup.size() / 2);
+        }
     }
 
     @VisibleForTesting
@@ -38,23 +51,6 @@ public class MathUtil {
                 .map(BigDecimal::valueOf)
                 .reduce(BigDecimal.ZERO, BigDecimal::add) // sum
                 .divide(BigDecimal.valueOf(data.size()), intermScale, RoundingMode.HALF_UP) // divide by N
-                .setScale(scale, RoundingMode.HALF_UP);
-    }
-
-    @VisibleForTesting
-    static BigDecimal standardDeviation(List<Double> data) {
-        return standardDeviation(data, DEFAULT_SCALE);
-    }
-
-    private static BigDecimal standardDeviation(List<Double> data, int scale) {
-        final int intermScale = scale + 1;
-        BigDecimal mean = mean(data, intermScale);
-
-        return data.stream()
-                .map(ele -> BigDecimal.valueOf(ele).subtract(mean).pow(2))
-                .reduce(BigDecimal.ZERO, BigDecimal::add) // sum
-                .divide(BigDecimal.valueOf(data.size()), intermScale, RoundingMode.HALF_UP) // divide by N
-                .sqrt(new MathContext(intermScale))
                 .setScale(scale, RoundingMode.HALF_UP);
     }
 }
