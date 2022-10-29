@@ -46,7 +46,7 @@ public class TurnoutRegistry {
     public boolean setTurnoutState(int address, Turnout.State state) {
         boolean isTurnoutStateChanged = false;
 
-        Turnout turnout = turnouts.get(address);
+        Turnout turnout = this.getTurnout(address);
         Turnout.State cachedState = turnout.getState();
         if (cachedState != state) {
             isTurnoutStateChanged = true;

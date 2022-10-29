@@ -3,9 +3,9 @@ package info.hugoyu.mytraincontrol;
 import info.hugoyu.mytraincontrol.commandstation.CommandStationRunnable;
 import info.hugoyu.mytraincontrol.exception.CommandInvalidUsageException;
 import info.hugoyu.mytraincontrol.exception.CommandNotFoundException;
-import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.BaseStationPowerUtil;
 import info.hugoyu.mytraincontrol.util.CommandUtil;
+import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import jmri.ConfigureManager;
 import jmri.InstanceManager;
 import jmri.JmriException;
@@ -17,8 +17,6 @@ import org.apache.log4j.PropertyConfigurator;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Vector;
 
 @Log4j
@@ -26,11 +24,11 @@ public class Main {
 
     private static final String LOG4J_CONFIG_PATH = "log4j.properties";
 
-    private static Map<Integer, Trainset> locomotives = new HashMap<>();
-
     public static void main(String[] args) throws Exception {
         PropertyConfigurator.configure(LOG4J_CONFIG_PATH);
         log.info("System start");
+
+        LayoutUtil.registerLayout();
 
         selectPort();
         BaseStationPowerUtil.turnOnPower();
