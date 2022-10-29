@@ -14,9 +14,11 @@ public class CommandUtil {
         if (command == null) {
             throw new CommandNotFoundException(commandKey);
         }
-        if (!command.execute(args)) { // args parsing fails
-            throw new CommandInvalidUsageException(command);
-        }
 
+        try {
+            command.execute(args);
+        } catch (Exception e) {
+            throw new CommandInvalidUsageException(command, e);
+        }
     }
 }

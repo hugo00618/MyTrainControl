@@ -1,24 +1,21 @@
 package info.hugoyu.mytraincontrol.command.debug.impl;
 
 import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
-import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
+import info.hugoyu.mytraincontrol.trainset.Trainset;
+import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 public class SetThrottleCommand extends AbstractDebugCommand {
 
     @Override
-    public boolean executeCommand(String[] args) {
-        try {
-            int address = Integer.parseInt(args[1]);
-            int throttle = Integer.parseInt(args[2]);
-            ThrottleRegistry.getInstance().getThrottle(address).setSpeedSetting((float) (throttle / 100.0));
-        } catch (NumberFormatException e) {
-            return false;
-        }
-        return true;
+    public void executeCommand(String[] args) {
+        int address = Integer.parseInt(args[1]);
+        int throttlePercent = Integer.parseInt(args[2]);
+        Trainset trainset = TrainUtil.getTrainset(address);
+        TrainUtil.setThrottle(trainset, throttlePercent);
     }
 
     @Override
     public String[] expectedArgs() {
-        return new String[]{"address", "throttle:0-100"};
+        return new String[]{"address", "throttle[-100,100]"};
     }
 }

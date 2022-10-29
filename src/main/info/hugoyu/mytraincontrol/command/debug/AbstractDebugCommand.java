@@ -9,7 +9,7 @@ import java.io.InputStreamReader;
 public abstract class AbstractDebugCommand implements Command {
 
     @Override
-    public final boolean execute(String[] args) {
+    public final void execute(String[] args) {
         System.out.println("Warning: This is a debugging command which violates block section and may result in vehicle collision.");
         System.out.println("Do you want to proceed? (yes/no)");
 
@@ -22,13 +22,12 @@ public abstract class AbstractDebugCommand implements Command {
         }
         if (!line.equals("yes")) {
             System.out.println("Command aborted");
-            return true;
+            return;
         }
 
-
-        return executeCommand(args);
+        executeCommand(args);
     }
 
-    public abstract boolean executeCommand(String[] args);
+    public abstract void executeCommand(String[] args);
 
 }

@@ -6,19 +6,12 @@ import info.hugoyu.mytraincontrol.util.LayoutUtil;
 public class PrintNodeCommand implements Command {
 
     @Override
-    public boolean execute(String[] args) {
-        int nodeId;
-        try {
-            nodeId = Integer.parseInt(args[1]);
-        } catch (NumberFormatException e) {
-            return false;
-        }
+    public void execute(String[] args) {
+        int nodeId = Integer.parseInt(args[1]);
 
         System.out.println("Owners: ");
         LayoutUtil.getNode(nodeId).getOwnerSummary()
                 .forEach((ownerId, summary) -> System.out.println(String.format("%d: %s", ownerId, summary)));
-
-        return true;
     }
 
     @Override

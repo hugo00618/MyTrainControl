@@ -24,14 +24,16 @@ public class TurnoutRegistry {
         return instance;
     }
 
-    public void registerTurnout(TurnoutJson turnoutJson) {
+    public Turnout registerTurnout(TurnoutJson turnoutJson) {
         final int address = turnoutJson.getAddress();
-        turnouts.put(address, new Turnout(address));
+        Turnout turnout = new Turnout(address);
+        turnouts.put(address, turnout);
+        return turnout;
     }
 
     public Turnout getTurnout(int address) {
         if (!turnouts.containsKey(address)) {
-            throw new InvalidIdException(address);
+            throw new InvalidIdException(address, InvalidIdException.Type.NOT_FOUND);
         }
 
         return turnouts.get(address);
@@ -39,14 +41,13 @@ public class TurnoutRegistry {
 
     /**
      *
-     * @param address
+     * @param turnout
      * @param state
      * @return if turnout state has changed
      */
-    public boolean setTurnoutState(int address, Turnout.State state) {
+    public boolean setTurnoutState(Turnout turnout, Turnout.State state) {
         boolean isTurnoutStateChanged = false;
 
-        Turnout turnout = this.getTurnout(address);
         Turnout.State cachedState = turnout.getState();
         if (cachedState != state) {
             isTurnoutStateChanged = true;

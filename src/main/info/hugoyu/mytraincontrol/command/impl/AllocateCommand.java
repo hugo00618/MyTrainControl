@@ -9,21 +9,17 @@ import lombok.extern.log4j.Log4j;
 public class AllocateCommand implements Command {
 
     @Override
-    public boolean execute(String[] args) {
-        try {
-            int address = Integer.parseInt(args[1]);
-            long trackNodeId = Long.parseLong(args[2]);
+    public void execute(String[] args) {
+        int address = Integer.parseInt(args[1]);
+        long trackNodeId = Long.parseLong(args[2]);
 
-            Trainset trainset = TrainUtil.getTrainset(address);
-            if (TrainUtil.allocateStationTrackImmediately(address, trackNodeId)) {
-                System.out.println(trainset.getName() + ": allocation succeeded for track node " + trackNodeId);
-            } else {
-                System.err.println(trainset.getName() + ": allocation failed for track node " + trackNodeId);
-            }
-        } catch (NumberFormatException e) {
-            return false;
+        Trainset trainset = TrainUtil.getTrainset(address);
+
+        if (TrainUtil.allocateStationTrackImmediately(trainset, trackNodeId)) {
+            System.out.println(trainset.getName() + ": allocation succeeded for track node " + trackNodeId);
+        } else {
+            System.err.println(trainset.getName() + ": allocation failed for track node " + trackNodeId);
         }
-        return true;
     }
 
     @Override

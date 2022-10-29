@@ -93,7 +93,7 @@ public class Trainset implements TaskExecutionListener {
         synchronized (distLock) {
             this.distToMove = distToMove;
         }
-        setIsLightOn(true);
+        setIsLightOn(LightState.ON);
         sendSetSpeedTask(System.currentTimeMillis());
     }
 
@@ -198,7 +198,7 @@ public class Trainset implements TaskExecutionListener {
             try {
                 distLock.wait();
             } catch (InterruptedException e) {
-
+                throw new RuntimeException(e);
             }
         }
     }
@@ -211,8 +211,7 @@ public class Trainset implements TaskExecutionListener {
         return profile.getThrottle(cSpeed);
     }
 
-    public void setIsLightOn(boolean isLightOn) {
-        LightState newLightState = isLightOn ? LightState.ON : LightState.OFF;
+    public void setIsLightOn(LightState newLightState) {
         boolean isLightStateChanged = lightState != newLightState;
         if (isLightStateChanged) {
             lightState = newLightState;

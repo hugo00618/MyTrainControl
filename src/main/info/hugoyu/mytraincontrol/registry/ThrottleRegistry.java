@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.registry;
 
+import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.util.ThrottleRetriever;
 import info.hugoyu.mytraincontrol.util.ThrottleRetrieverListener;
 import jmri.DccThrottle;
@@ -25,6 +26,9 @@ public class ThrottleRegistry implements ThrottleRetrieverListener {
     }
 
     public void registerThrottle(int address) {
+        if (throttles.containsKey(address)) {
+            throw new InvalidIdException(address, InvalidIdException.Type.DUPLICATE);
+        }
         new ThrottleRetriever(address, this).requestThrottle();
     }
 
@@ -34,6 +38,9 @@ public class ThrottleRegistry implements ThrottleRetrieverListener {
     }
 
     public DccThrottle getThrottle(int address) {
+        if (!throttles.containsKey(address)) {
+            throw new InvalidIdException(address, InvalidIdException.Type.NOT_FOUND);
+        }
         return throttles.get(address);
     }
 }

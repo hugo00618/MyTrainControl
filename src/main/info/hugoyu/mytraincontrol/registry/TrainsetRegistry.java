@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.registry;
 
+import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 
@@ -26,14 +27,14 @@ public class TrainsetRegistry {
 
     public void registerTrainset(int address, Trainset trainset) {
         if (trainsets.containsKey(address)) {
-            throw new RuntimeException(String.format("ERROR: address %d already registered", address));
+            throw new InvalidIdException(address, InvalidIdException.Type.DUPLICATE);
         }
         trainsets.put(address, trainset);
     }
 
-    public Trainset getTrainset(Integer address) {
-        if (address == null) {
-            return null;
+    public Trainset getTrainset(int address) {
+        if (!trainsets.containsKey(address)) {
+            throw new InvalidIdException(address, InvalidIdException.Type.NOT_FOUND);
         }
         return trainsets.get(address);
     }

@@ -33,7 +33,7 @@ public class LayoutUtil {
     public static AbstractTrackNode getNode(long id) {
         AbstractTrackNode node = LayoutRegistry.getInstance().getNode(id);
         if (node == null) {
-            throw new InvalidIdException(id);
+            throw new InvalidIdException(id, InvalidIdException.Type.NOT_FOUND);
         }
         return node;
     }
@@ -42,14 +42,14 @@ public class LayoutUtil {
         try {
             return (StationTrackNode) getNode(id);
         } catch (ClassCastException e) {
-            throw new InvalidIdException(id);
+            throw new InvalidIdException(id, InvalidIdException.Type.NOT_FOUND);
         }
     }
 
     public static Station getStation(String id) {
         Station station = LayoutRegistry.getInstance().getStation(id);
         if (station == null) {
-            throw new InvalidIdException(id);
+            throw new InvalidIdException(id, InvalidIdException.Type.NOT_FOUND);
         }
         return station;
     }

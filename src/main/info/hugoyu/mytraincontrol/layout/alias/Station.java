@@ -61,7 +61,7 @@ public class Station {
 
     private Route getRouteToAvailableTrack(long entryNodeId, boolean isPassingTrackRequired) {
         if (!entryNodeIds.contains(entryNodeId)) {
-            throw new InvalidIdException(entryNodeId);
+            throw new InvalidIdException(entryNodeId, InvalidIdException.Type.NOT_FOUND);
         }
 
         Stream<StationTrackNode> stationTrackNodesStream = stationTrackNodes.stream();

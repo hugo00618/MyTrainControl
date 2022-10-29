@@ -3,6 +3,7 @@ package info.hugoyu.mytraincontrol.registry;
 import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.command.debug.impl.MoveDistCommand;
 import info.hugoyu.mytraincontrol.command.debug.impl.SetThrottleCommand;
+import info.hugoyu.mytraincontrol.command.debug.impl.SpeedProfilingCommand;
 import info.hugoyu.mytraincontrol.command.impl.AllocateCommand;
 import info.hugoyu.mytraincontrol.command.impl.EmergencyKillCommand;
 import info.hugoyu.mytraincontrol.command.impl.FreeCommand;
@@ -32,11 +33,10 @@ public class CommandRegistry {
 
         commands.put("help", new Command() {
             @Override
-            public boolean execute(String[] args) {
+            public void execute(String[] args) {
                 System.out.println("List of commands: ");
                 commands.keySet()
                         .forEach(System.out::println);
-                return true;
             }
 
             @Override
@@ -60,6 +60,7 @@ public class CommandRegistry {
         commands.put("mvdist", new MoveDistCommand());
         commands.put("throttle", new SetThrottleCommand());
         commands.put("turnout", new TurnoutControlCommand());
+        commands.put("profile", new SpeedProfilingCommand());
     }
 
 }

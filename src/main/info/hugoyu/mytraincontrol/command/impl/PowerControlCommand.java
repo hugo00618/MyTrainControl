@@ -2,31 +2,31 @@ package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.util.BaseStationPowerUtil;
-import jmri.JmriException;
 
 public class PowerControlCommand implements Command {
 
-    private static final String POWER_STATE_OFF = "off";
-    private static final String POWER_STATE_ON = "on";
+    private enum PowerState {
+        ON,
+        OFF
+    }
 
     @Override
-    public boolean execute(String[] args) {
-        String powerStatus = args[1].toLowerCase();
-        try {
-            switch (powerStatus) {
-                case POWER_STATE_OFF:
+    public void execute(String[] args) {
+        String powerStateStr = args[1].toUpperCase();
+        PowerState powerState = PowerState.valueOf(powerStateStr);
+
+            switch (powerState) {
+                case OFF:
                     BaseStationPowerUtil.turnOffPower();
                     break;
-                case POWER_STATE_ON:
+                case ON:
                     BaseStationPowerUtil.turnOnPower();
                     break;
                 default:
-                    return false;
+                    // should not run to here
+                    throw new RuntimeException();
             }
-        } catch (JmriException e) {
-            throw new RuntimeException(e);
-        }
-        return true;
+
     }
 
     @Override

@@ -38,6 +38,7 @@ public class TurnoutNode extends AbstractTrackNode {
     private int distClosed, distThrown;
     private Type type;
     private int address;
+    private Turnout turnout;
 
     private Integer owner;
     private Range<Integer> ownedRange;
@@ -58,7 +59,7 @@ public class TurnoutNode extends AbstractTrackNode {
      */
     public TurnoutNode(long id, long idClosed, long idThrown, Long idDummy,
                        int distClosed, int distThrown, Type type, int address, boolean isUplink,
-                       Map<Integer, Integer> sensors) {
+                       Map<Integer, Integer> sensors, Turnout turnout) {
         super(id, sensors);
 
         this.idClosed = idClosed;
@@ -68,6 +69,7 @@ public class TurnoutNode extends AbstractTrackNode {
         this.distThrown = distThrown;
         this.type = type;
         this.address = address;
+        this.turnout = turnout;
 
         switch (type) {
             case MERGE:
@@ -82,7 +84,7 @@ public class TurnoutNode extends AbstractTrackNode {
         }
     }
 
-    public TurnoutNode(TurnoutJson turnoutJson, boolean isUplink) {
+    public TurnoutNode(TurnoutJson turnoutJson, boolean isUplink, Turnout turnout) {
         this(turnoutJson.getId(),
                 turnoutJson.getIdClosed(),
                 turnoutJson.getIdThrown(),
@@ -92,7 +94,8 @@ public class TurnoutNode extends AbstractTrackNode {
                 turnoutJson.getType(),
                 turnoutJson.getAddress(),
                 isUplink,
-                turnoutJson.getSensors());
+                turnoutJson.getSensors(),
+                turnout);
     }
 
     @Override
@@ -106,7 +109,7 @@ public class TurnoutNode extends AbstractTrackNode {
                     try {
                         ownerLock.wait();
                     } catch (InterruptedException e) {
-
+                        throw new RuntimeException(e);
                     }
                 }
 
@@ -116,12 +119,12 @@ public class TurnoutNode extends AbstractTrackNode {
                 long referenceNode = type == DIVERGE ? nextNodeId : previousNodeId;
                 if (referenceNode == idClosed) {
                     length = distClosed;
-                    TurnoutUtil.setTurnoutState(address, Turnout.State.CLOSED, false);
+                    TurnoutUtil.setTurnoutState(turnout, Turnout.State.CLOSED, false);
                 } else if (referenceNode == idThrown) {
                     length = distThrown;
-                    TurnoutUtil.setTurnoutState(address, Turnout.State.THROWN, false);
+                    TurnoutUtil.setTurnoutState(turnout, Turnout.State.THROWN, false);
                 } else {
-                    throw new InvalidIdException(referenceNode);
+                    throw new InvalidIdException(referenceNode, InvalidIdException.Type.NOT_FOUND);
                 }
             }
 
@@ -218,7 +221,7 @@ public class TurnoutNode extends AbstractTrackNode {
                     }
                 }
         }
-        throw new InvalidIdException(previousNode);
+        throw new InvalidIdException(previousNode, InvalidIdException.Type.NOT_FOUND);
     }
 
     @Override

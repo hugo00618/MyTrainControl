@@ -9,20 +9,26 @@ public class PrintCommand implements Command {
     private static final String LIST_TYPE_TRAINS = "trains";
     private static final String LIST_TYPE_STATIONS = "stations";
 
+    private enum ListType {
+        TRAINS,
+        STATIONS
+    }
+
     @Override
-    public boolean execute(String[] args) {
-        String type = args[1].toLowerCase();
+    public void execute(String[] args) {
+        String typeStr = args[1].toUpperCase();
+        ListType type = ListType.valueOf(typeStr);
         switch (type) {
-            case LIST_TYPE_TRAINS:
+            case TRAINS:
                 printTrains();
                 break;
-            case LIST_TYPE_STATIONS:
+            case STATIONS:
                 printStations();
                 break;
             default:
-                return false;
+                // should not run to here
+                throw new RuntimeException();
         }
-        return true;
     }
 
     @Override
