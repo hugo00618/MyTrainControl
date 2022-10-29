@@ -1,6 +1,5 @@
 package info.hugoyu.mytraincontrol.util;
 
-import info.hugoyu.mytraincontrol.json.MyJsonReader;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
@@ -27,7 +26,7 @@ public class TrainUtil {
 
     public static TrainsetProfile getTrainsetProfile(String fileName) {
         try {
-            TrainsetProfile trainsetProfile = MyJsonReader.parseJSON(TRAINSET_PROFILE_DIR + "/" + fileName, TrainsetProfile.class);
+            TrainsetProfile trainsetProfile = JsonUtil.parseJSON(TRAINSET_PROFILE_DIR + "/" + fileName, TrainsetProfile.class);
             trainsetProfile.postDeserialization();
             return trainsetProfile;
         } catch (IOException e) {

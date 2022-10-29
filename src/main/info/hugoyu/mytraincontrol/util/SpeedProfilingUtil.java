@@ -6,12 +6,14 @@ import jmri.Sensor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 public class SpeedProfilingUtil {
 
@@ -62,7 +64,7 @@ public class SpeedProfilingUtil {
      * @throws ExecutionException
      * @throws InterruptedException
      */
-    public static void speedProfile(Trainset trainset, int sensor, int sectionLength,
+    public static void profileSpeed(Trainset trainset, int sensor, int sectionLength,
                                     int startThrottle, int endThrottle, int step) throws ExecutionException, InterruptedException {
         validateThrottleParams(startThrottle, endThrottle, step);
 
@@ -71,31 +73,40 @@ public class SpeedProfilingUtil {
 
         System.out.println(String.format("Profiling %s", trainset.getName()));
 
-        Map<Integer, List<Double>> speedMap = new HashMap<>();
+        Map<Integer, List<Double>> speedRecords = new HashMap<>();
         for (int throttle = startThrottle; throttle <= endThrottle; throttle += step) {
-            while (!isSufficientDatapointsCollected(speedMap, throttle)) {
+            while (!isSufficientDatapointsCollected(speedRecords, throttle)) {
                 // forward
-                measureThrottle(trainset, speedMap, throttle, true, profilingListener, sectionLength);
+                measureThrottle(trainset, speedRecords, throttle, true, profilingListener, sectionLength);
 
                 // backward
-                measureThrottle(trainset, speedMap, throttle, false, profilingListener, sectionLength);
+                measureThrottle(trainset, speedRecords, throttle, false, profilingListener, sectionLength);
             }
         }
 
-        System.out.println("speedMap:");
-        System.out.println(speedMap);
+        Map<String, Double> speedMap = speedRecords.entrySet().stream()
+                .collect(Collectors.toMap(
+                        e -> e.getKey().toString(),
+                        e -> MathUtil.mean(e.getValue()).doubleValue()));
+
+        String fileName = trainset.getName() + ".json";
+        try {
+            JsonUtil.writeJSON(fileName, speedMap);
+        } catch (IOException e) {
+            throw new RuntimeException(String.format("failed to write file: %s", fileName), e);
+        }
     }
 
-    private static void measureThrottle(Trainset trainset, Map<Integer, List<Double>> speedMap,
+    private static void measureThrottle(Trainset trainset, Map<Integer, List<Double>> speedRecords,
                                         int throttle, boolean isForward,
                                         ProfilingListener profilingListener, int sectionLength)
             throws ExecutionException, InterruptedException {
         System.out.println(String.format("Measuring throttle %d, %d of %d datapoints",
                 throttle,
-                getNumberOfDataPointsCollected(speedMap, throttle) + 1,
+                getNumberOfDataPointsCollected(speedRecords, throttle) + 1,
                 NUMBER_OF_DATA_POINTS_TO_COLLECT));
         TrainUtil.setThrottle(trainset, isForward ? throttle : -throttle);
-        recordSpeed(profilingListener, sectionLength, throttle, speedMap);
+        recordSpeed(profilingListener, sectionLength, throttle, speedRecords);
 
         // continue moving the train away from the timing zone
         Thread.sleep(2000);
@@ -103,27 +114,27 @@ public class SpeedProfilingUtil {
         Thread.sleep(1000);
     }
 
-    private static int getNumberOfDataPointsCollected(Map<Integer, List<Double>> speedMap, int throttle) {
-        return speedMap.containsKey(throttle) ? speedMap.get(throttle).size() : 0;
+    private static int getNumberOfDataPointsCollected(Map<Integer, List<Double>> speedRecords, int throttle) {
+        return speedRecords.containsKey(throttle) ? speedRecords.get(throttle).size() : 0;
     }
 
-    private static boolean isSufficientDatapointsCollected(Map<Integer, List<Double>> speedMap, int throttle) {
-        return getNumberOfDataPointsCollected(speedMap, throttle) >= NUMBER_OF_DATA_POINTS_TO_COLLECT;
+    private static boolean isSufficientDatapointsCollected(Map<Integer, List<Double>> speedRecords, int throttle) {
+        return getNumberOfDataPointsCollected(speedRecords, throttle) >= NUMBER_OF_DATA_POINTS_TO_COLLECT;
     }
 
     private static void recordSpeed(ProfilingListener profilingListener, int sectionLength, int throttle,
-                                    Map<Integer, List<Double>> speedMap) throws ExecutionException, InterruptedException {
+                                    Map<Integer, List<Double>> speedRecords) throws ExecutionException, InterruptedException {
         long deltaT = profilingListener.getProfilingResult().get();
         double speedKph = getSpeed(deltaT, sectionLength);
 
-        List<Double> datapoints = speedMap.getOrDefault(throttle, new ArrayList<>());
+        List<Double> datapoints = speedRecords.getOrDefault(throttle, new ArrayList<>());
         datapoints.add(speedKph);
 
         if (datapoints.size() >= NUMBER_OF_DATA_POINTS_TO_COLLECT) {
             datapoints = MathUtil.removeOutliers(datapoints, OUTLIERS_RANGE);
         }
 
-        speedMap.put(throttle, datapoints);
+        speedRecords.put(throttle, datapoints);
     }
 
     private static double getSpeed(long deltaT, int sectionLength) {

@@ -23,8 +23,4 @@ class MathUtilTest {
         assertEquals(3.3333, MathUtil.mean(List.of(10.0, 0.0, 0.0)).doubleValue()); // 3.333...
     }
 
-    @Test
-    void standardDeviation() {
-        assertEquals(2.9620, MathUtil.standardDeviation(DATA).doubleValue(), Math.pow(1, -4));
-    }
 }

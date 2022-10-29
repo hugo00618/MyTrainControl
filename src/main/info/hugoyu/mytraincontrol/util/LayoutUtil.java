@@ -2,7 +2,6 @@ package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
-import info.hugoyu.mytraincontrol.json.MyJsonReader;
 import info.hugoyu.mytraincontrol.json.layout.LayoutJson;
 import info.hugoyu.mytraincontrol.json.layout.LayoutProvider;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
@@ -27,7 +26,7 @@ public class LayoutUtil {
 
     public static void registerLayout(String filePath) {
         try {
-            LayoutJson layoutJson = MyJsonReader.parseJSON(filePath, LayoutJson.class);
+            LayoutJson layoutJson = JsonUtil.parseJSON(filePath, LayoutJson.class);
             LayoutProvider.registerLayout(layoutJson);
         } catch (IOException e) {
             throw new RuntimeException("Error parsing layout", e);
