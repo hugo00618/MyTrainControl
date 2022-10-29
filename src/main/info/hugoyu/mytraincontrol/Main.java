@@ -8,7 +8,6 @@ import info.hugoyu.mytraincontrol.util.CommandUtil;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import jmri.ConfigureManager;
 import jmri.InstanceManager;
-import jmri.JmriException;
 import jmri.implementation.JmriConfigurationManager;
 import jmri.jmrix.dccpp.serial.DCCppAdapter;
 import lombok.extern.log4j.Log4j;
@@ -32,8 +31,8 @@ public class Main {
         BaseStationPowerUtil.turnOnPower();
 
         // register trains
-        CommandUtil.runCommand(new String[]{"reg", "3", "N700A", "n700a-4000.json"});
-        CommandUtil.runCommand(new String[]{"reg", "4", "500", "500-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "3", "N700A Series", "n700a-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "4", "500 Series", "500-4000.json"});
 //        CommandUtil.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "15", "E5E6", "e5e6-4300.json", "true"});
 
@@ -90,7 +89,7 @@ public class Main {
         }
     }
 
-    private static void cleanup() throws JmriException {
+    private static void cleanup() {
         BaseStationPowerUtil.turnOffPower();
     }
 

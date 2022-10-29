@@ -15,6 +15,8 @@ import java.util.concurrent.ExecutionException;
 
 public class SpeedProfilingUtil {
 
+    private static final int NUMBER_OF_DATA_POINTS_TO_COLLECT = 10;
+
     @RequiredArgsConstructor
     private static class ProfilingListener implements SensorChangeListener {
         @NonNull
@@ -50,9 +52,8 @@ public class SpeedProfilingUtil {
     }
 
     /**
-     *
      * @param trainset      Trainset being profiled
-     * @param sensor   Pin for sensor
+     * @param sensor        Pin for sensor
      * @param sectionLength section length, in mm
      * @param startThrottle starting throttle
      * @param endThrottle   ending throttle
@@ -69,42 +70,59 @@ public class SpeedProfilingUtil {
 
         System.out.println(String.format("Profiling %s", trainset.getName()));
 
-        Map<Integer, List<Double>> speedMapForward = new HashMap<>();
-        Map<Integer, List<Double>> speedMapBackward = new HashMap<>();
+        Map<Integer, List<Double>> speedMap = new HashMap<>();
         for (int throttle = startThrottle; throttle <= endThrottle; throttle += step) {
-            // forward
-            System.out.println("Setting throttle to forward " + throttle);
-            TrainUtil.setThrottle(trainset, throttle);
-            recordSpeed(profilingListener, sectionLength, throttle, speedMapForward);
+            while (!isSufficientDatapointsCollected(speedMap, throttle)) {
+                // forward
+                measureThrottle(trainset, speedMap, throttle, true, profilingListener, sectionLength);
 
-            // continue moving the train away from the timing zone
-            Thread.sleep(2000);
-            TrainUtil.setThrottle(trainset, 0);
-            Thread.sleep(1000);
-
-            // backward
-            System.out.println("Setting throttle to backward " + throttle);
-            TrainUtil.setThrottle(trainset, -throttle);
-            recordSpeed(profilingListener, sectionLength, throttle, speedMapBackward);
-
-            // continue moving the train away from the timing zone
-            Thread.sleep(2000);
+                // backward
+                measureThrottle(trainset, speedMap, throttle, false, profilingListener, sectionLength);
+            }
         }
 
-        TrainUtil.setThrottle(trainset, 0);
+        System.out.println("speedMap:");
+        System.out.println(speedMap);
+    }
 
-        System.out.println("forward:");
-        System.out.println(speedMapForward);
-        System.out.println("backward:");
-        System.out.println(speedMapBackward);
+    private static void measureThrottle(Trainset trainset, Map<Integer, List<Double>> speedMap,
+                                        int throttle, boolean isForward,
+                                        ProfilingListener profilingListener, int sectionLength)
+            throws ExecutionException, InterruptedException {
+        System.out.println(String.format("Measuring throttle %d, %d of %d datapoints",
+                throttle,
+                getNumberOfDataPointsCollected(speedMap, throttle) + 1,
+                NUMBER_OF_DATA_POINTS_TO_COLLECT));
+        TrainUtil.setThrottle(trainset, throttle);
+        recordSpeed(profilingListener, sectionLength, throttle, speedMap);
+
+        // continue moving the train away from the timing zone
+        Thread.sleep(2000);
+        TrainUtil.setThrottle(trainset, 0);
+        Thread.sleep(1000);
+    }
+
+    private static int getNumberOfDataPointsCollected(Map<Integer, List<Double>> speedMap, int throttle) {
+        return speedMap.containsKey(throttle) ? speedMap.get(throttle).size() : 0;
+    }
+
+    private static boolean isSufficientDatapointsCollected(Map<Integer, List<Double>> speedMap, int throttle) {
+        return getNumberOfDataPointsCollected(speedMap, throttle) >= NUMBER_OF_DATA_POINTS_TO_COLLECT;
     }
 
     private static void recordSpeed(ProfilingListener profilingListener, int sectionLength, int throttle,
                                     Map<Integer, List<Double>> speedMap) throws ExecutionException, InterruptedException {
         long deltaT = profilingListener.getProfilingResult().get();
         double speedKph = getSpeed(deltaT, sectionLength);
-        speedMap.putIfAbsent(throttle, new ArrayList<>());
-        speedMap.get(throttle).add(speedKph);
+
+        List<Double> datapoints = speedMap.getOrDefault(throttle, new ArrayList<>());
+        datapoints.add(speedKph);
+
+        if (datapoints.size() >= NUMBER_OF_DATA_POINTS_TO_COLLECT) {
+            datapoints = MathUtil.removeOutliers(datapoints, 1);
+        }
+
+        speedMap.put(throttle, datapoints);
     }
 
     private static double getSpeed(long deltaT, int sectionLength) {
