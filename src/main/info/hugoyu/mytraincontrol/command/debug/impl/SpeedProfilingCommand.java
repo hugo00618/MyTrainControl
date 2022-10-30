@@ -20,12 +20,14 @@ public class SpeedProfilingCommand extends AbstractDebugCommand {
 
         Trainset trainset = TrainUtil.getTrainset(address);
 
-        try {
-            SpeedProfilingUtil.profileSpeed(trainset, sensor, sectionLength,
-                    startThrottle, endThrottle, step);
-        } catch (InterruptedException | ExecutionException e) {
-            throw new RuntimeException("Error running command");
-        }
+        new Thread(() -> {
+            try {
+                SpeedProfilingUtil.profileSpeed(trainset, sensor, sectionLength,
+                        startThrottle, endThrottle, step);
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException("Error running command");
+            }
+        }).start();
     }
 
     @Override

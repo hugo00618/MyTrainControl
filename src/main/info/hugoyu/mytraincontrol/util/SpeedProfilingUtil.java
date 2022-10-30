@@ -13,12 +13,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.stream.Collectors;
 
 public class SpeedProfilingUtil {
 
     private static final int NUMBER_OF_DATA_POINTS_TO_COLLECT = 10;
-    private static final double OUTLIERS_RANGE = 0.02;
+    private static final double OUTLIERS_RANGE = 0.05;
 
     @RequiredArgsConstructor
     private static class ProfilingListener implements SensorChangeListener {
@@ -74,6 +73,7 @@ public class SpeedProfilingUtil {
         System.out.println(String.format("Profiling %s", trainset.getName()));
 
         Map<Integer, List<Double>> speedRecords = new HashMap<>();
+        Map<String, Double> speedMap = new HashMap<>();
         for (int throttle = startThrottle; throttle <= endThrottle; throttle += step) {
             while (!isSufficientDatapointsCollected(speedRecords, throttle)) {
                 // forward
@@ -82,18 +82,17 @@ public class SpeedProfilingUtil {
                 // backward
                 measureThrottle(trainset, speedRecords, throttle, false, profilingListener, sectionLength);
             }
-        }
 
-        Map<String, Double> speedMap = speedRecords.entrySet().stream()
-                .collect(Collectors.toMap(
-                        e -> e.getKey().toString(),
-                        e -> MathUtil.mean(e.getValue()).doubleValue()));
+            // calculate mean speed
+            speedMap.put(String.valueOf(throttle), MathUtil.mean(speedRecords.get(throttle)).doubleValue());
 
-        String fileName = trainset.getName() + ".json";
-        try {
-            JsonUtil.writeJSON(fileName, speedMap);
-        } catch (IOException e) {
-            throw new RuntimeException(String.format("failed to write file: %s", fileName), e);
+            // write to file
+            String fileName = trainset.getName() + ".json";
+            try {
+                JsonUtil.writeJSON(fileName, speedMap);
+            } catch (IOException e) {
+                throw new RuntimeException(String.format("failed to write file: %s", fileName), e);
+            }
         }
     }
 
