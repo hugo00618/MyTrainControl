@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.trainset;
 
+import info.hugoyu.mytraincontrol.ato.AutomaticTrainOperationThread;
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
@@ -57,6 +58,8 @@ public class Trainset implements TaskExecutionListener {
 
     private MovingBlockManager movingBlockManager = new MovingBlockManager(this);
     private Thread movingBlockManagerThread;
+
+    private AutomaticTrainOperationThread atoThread;
 
     public Trainset(int address, String name, String profileFilename, boolean isMotorReversed) {
         this.address = address;
@@ -289,6 +292,12 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
+    public void waitForCurrentMoveToFinish() throws InterruptedException {
+        if (movingBlockManagerThread != null && movingBlockManagerThread.isAlive()) {
+            movingBlockManagerThread.join();
+        }
+    }
+
     public Map<Long, String> getAllocatedNodesSummary() {
         synchronized (allocatedNodesLock) {
             Map<Long, String> res = new HashMap<>();
@@ -298,6 +307,19 @@ public class Trainset implements TaskExecutionListener {
                 res.put(nodeId, summary);
             });
             return res;
+        }
+    }
+
+    public void activateAto() {
+        if (atoThread == null || !atoThread.isAlive()) {
+            atoThread = new AutomaticTrainOperationThread(this);
+            atoThread.start();
+        }
+    }
+
+    public void deactivateAto() {
+        if (atoThread != null && atoThread.isAlive()) {
+            atoThread.signalTerminate();
         }
     }
 

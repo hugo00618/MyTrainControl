@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.util;
 
+import info.hugoyu.mytraincontrol.exception.RouteException;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
@@ -60,15 +61,20 @@ public class TrainUtil {
     public static void moveTo(Trainset trainset, String stationId) {
         Long fromNodeId = trainset.getLastAllocatedNode();
         if (fromNodeId == null) {
-            throw new RuntimeException(String.format("Trainset %s does not own any node", trainset.getName()));
+            throw new RouteException(String.format("Trainset %s does not own any node", trainset.getName()));
         }
 
         Route route = RouteUtil.findRouteToStation(fromNodeId, stationId);
         if (route == null) {
-            throw new RuntimeException("No route to station");
+            throw new RouteException(String.format("No route to station: %s", stationId));
         }
+
+        moveTo(trainset, route);
+    }
+
+    public static void moveTo(Trainset trainset, Route route) {
         if (route.getNodes().size() == 1) {
-            throw new RuntimeException("Train is already at station: " + stationId);
+            throw new RouteException(String.format("Train is already at node: %d", route.getNodes().get(0)));
         }
 
         trainset.move(route);

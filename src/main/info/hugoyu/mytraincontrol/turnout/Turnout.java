@@ -26,7 +26,6 @@ public class Turnout {
 
     public Turnout(int address) {
         this.address = address;
-
         this.state = State.UNKNOWN;
     }
 

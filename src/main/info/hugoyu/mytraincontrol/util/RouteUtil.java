@@ -4,11 +4,14 @@ import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
+import info.hugoyu.mytraincontrol.trainset.Trainset;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class RouteUtil {
 
@@ -42,6 +45,13 @@ public class RouteUtil {
     public static Route findRoute(Object from, Object to, boolean isUplink) {
         AbstractTrackNode fromNode = convertToNode(from), toNode = convertToNode(to);
         return findRouteRecur(fromNode, toNode, isUplink, new ArrayList<>(), 0);
+    }
+
+    public static List<Route> findReachableStations(Trainset trainset) {
+        long fromStationTrackNode = trainset.getLastAllocatedNode();
+        return LayoutUtil.getStations().keySet().stream()
+                .flatMap(station -> Stream.ofNullable(findRouteToStation(fromStationTrackNode, station)))
+                .collect(Collectors.toList());
     }
 
     private static Route findRouteRecur(AbstractTrackNode node, AbstractTrackNode destination, boolean isUplink,

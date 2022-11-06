@@ -4,7 +4,9 @@ import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.command.debug.impl.MoveDistCommand;
 import info.hugoyu.mytraincontrol.command.debug.impl.SetThrottleCommand;
 import info.hugoyu.mytraincontrol.command.debug.impl.SpeedProfilingCommand;
+import info.hugoyu.mytraincontrol.command.debug.impl.TurnoutControlCommand;
 import info.hugoyu.mytraincontrol.command.impl.AllocateCommand;
+import info.hugoyu.mytraincontrol.command.impl.AutomaticTrainOperationCommand;
 import info.hugoyu.mytraincontrol.command.impl.EmergencyKillCommand;
 import info.hugoyu.mytraincontrol.command.impl.FreeCommand;
 import info.hugoyu.mytraincontrol.command.impl.LightControlCommand;
@@ -13,13 +15,14 @@ import info.hugoyu.mytraincontrol.command.impl.PowerControlCommand;
 import info.hugoyu.mytraincontrol.command.impl.PrintCommand;
 import info.hugoyu.mytraincontrol.command.impl.PrintNodeCommand;
 import info.hugoyu.mytraincontrol.command.impl.RegisterCommand;
-import info.hugoyu.mytraincontrol.command.debug.impl.TurnoutControlCommand;
 import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class CommandRegistry {
+
+    public static final String COMMAND_MOVE = "mv";
 
     private CommandRegistry() {
 
@@ -46,11 +49,17 @@ public class CommandRegistry {
 
         });
 
+        EmergencyKillCommand emergencyKillCommand = new EmergencyKillCommand();
+
         commands.put("alloc", new AllocateCommand());
-        commands.put("e", new EmergencyKillCommand());
+        commands.put("ato", new AutomaticTrainOperationCommand());
+
+        commands.put("e", emergencyKillCommand);
+        commands.put("kill", emergencyKillCommand);
+
         commands.put("free", new FreeCommand());
         commands.put("light", new LightControlCommand());
-        commands.put("mv", new MoveCommand());
+        commands.put(COMMAND_MOVE, new MoveCommand());
         commands.put("print", new PrintCommand());
         commands.put("printnode", new PrintNodeCommand());
         commands.put("pwr", new PowerControlCommand());

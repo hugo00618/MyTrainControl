@@ -7,7 +7,7 @@ import info.hugoyu.mytraincontrol.registry.CommandRegistry;
 
 public class CommandUtil {
 
-    public static void runCommand(String[] args) throws Exception {
+    public static void runCommand(String[] args) {
         String commandKey = args[0];
         Command command = CommandRegistry.getCommands().get(commandKey);
 

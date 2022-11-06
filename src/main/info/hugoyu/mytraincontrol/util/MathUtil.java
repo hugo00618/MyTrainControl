@@ -7,6 +7,7 @@ import java.math.RoundingMode;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 public class MathUtil {
@@ -18,7 +19,7 @@ public class MathUtil {
      * @param range   range of +/- percentage of median to be included in data
      *                  e.g. range = 0.05, median = 90 -> function will include data in the range
      *                  (90 * 0.95, 90 * 1.05)
-     * @return
+     * @return  data with outliers removed
      */
     public static List<Double> removeOutliers(List<Double> data, double range) {
         final double median = median(data);
@@ -28,6 +29,16 @@ public class MathUtil {
         return data.stream()
                 .filter(ele -> ele > lowerBound && ele < upperBound)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     *
+     * @param min
+     * @param max
+     * @return a random number within range [min, max]
+     */
+    public static int random(int min, int max) {
+        return new Random().nextInt((max - min) + 1) + min;
     }
 
     private static double median(List<Double> data) {
