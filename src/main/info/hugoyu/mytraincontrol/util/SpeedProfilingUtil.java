@@ -8,9 +8,11 @@ import lombok.RequiredArgsConstructor;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.TreeMap;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
 
@@ -70,10 +72,8 @@ public class SpeedProfilingUtil {
         ProfilingListener profilingListener = new ProfilingListener(trainset);
         SensorUtil.getSensor(sensor, profilingListener);
 
-        System.out.println(String.format("Profiling %s", trainset.getName()));
-
         Map<Integer, List<Double>> speedRecords = new HashMap<>();
-        Map<String, Double> speedMap = new HashMap<>();
+        TreeMap<String, Double> speedMap = new TreeMap<>(Comparator.comparing(Double::valueOf));
         for (int throttle = startThrottle; throttle <= endThrottle; throttle += step) {
             while (!isSufficientDatapointsCollected(speedRecords, throttle)) {
                 // forward
@@ -100,7 +100,8 @@ public class SpeedProfilingUtil {
                                         int throttle, boolean isForward,
                                         ProfilingListener profilingListener, int sectionLength)
             throws ExecutionException, InterruptedException {
-        System.out.println(String.format("Measuring throttle %d, %d of %d datapoints",
+        System.out.println(String.format("%s: measuring throttle %d, %d of %d datapoints",
+                trainset.getName(),
                 throttle,
                 getNumberOfDataPointsCollected(speedRecords, throttle) + 1,
                 NUMBER_OF_DATA_POINTS_TO_COLLECT));
