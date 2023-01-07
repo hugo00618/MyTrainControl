@@ -243,25 +243,24 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public Long getFirstAllocatedNode() {
+    public long getFirstAllocatedNode() {
         synchronized (allocatedNodesLock) {
             return getAllocatedNode(0);
         }
     }
 
-    public Long getLastAllocatedNode() {
+    public long getLastAllocatedNode() {
         synchronized (allocatedNodesLock) {
             return getAllocatedNode(allocatedNodes.size() - 1);
         }
     }
 
-    private Long getAllocatedNode(int idx) {
+    private long getAllocatedNode(int idx) {
         synchronized (allocatedNodesLock) {
-            try {
-                return allocatedNodes.get(idx);
-            } catch (IndexOutOfBoundsException e) {
-                return null;
+            if (idx >= allocatedNodes.size()) {
+                throw new RuntimeException(String.format("%s: getAllocatedNode out of bound for index: %d", name, idx));
             }
+            return allocatedNodes.get(idx);
         }
     }
 
@@ -310,16 +309,22 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public void activateAto() {
+    public interface AtoHandler {
+        void onSuccess();
+    }
+
+    public void activateAto(AtoHandler callback) {
         if (atoThread == null || !atoThread.isAlive()) {
             atoThread = new AutomaticTrainOperationThread(this);
             atoThread.start();
+            callback.onSuccess();
         }
     }
 
-    public void deactivateAto() {
+    public void deactivateAto(AtoHandler callback) {
         if (atoThread != null && atoThread.isAlive()) {
             atoThread.signalTerminate();
+            callback.onSuccess();
         }
     }
 

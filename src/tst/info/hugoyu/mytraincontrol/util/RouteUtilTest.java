@@ -44,13 +44,4 @@ class RouteUtilTest extends LayoutTestBase {
         assertThrows(RuntimeException.class, () -> RouteUtil.findRouteToStation(10000, "invalid"));
     }
 
-    @Test
-    public void findInboundRoute() {
-        Route route = RouteUtil.findInboundRoute(10001, LayoutUtil.getStationTrackNode(10103));
-
-        assertEquals(2, route.getNodes().size());
-        assertEquals(10001, route.getNodes().get(0));
-        assertEquals(10103, route.getNodes().get(1));
-    }
-
 }

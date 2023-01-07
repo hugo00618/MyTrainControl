@@ -1,6 +1,7 @@
 package info.hugoyu.mytraincontrol.registry;
 
 import info.hugoyu.mytraincontrol.command.Command;
+import info.hugoyu.mytraincontrol.command.debug.impl.CrossoverControlCommand;
 import info.hugoyu.mytraincontrol.command.debug.impl.MoveDistCommand;
 import info.hugoyu.mytraincontrol.command.debug.impl.SetThrottleCommand;
 import info.hugoyu.mytraincontrol.command.debug.impl.SpeedProfilingCommand;
@@ -68,6 +69,7 @@ public class CommandRegistry {
         // debug
         commands.put("mvdist", new MoveDistCommand());
         commands.put("throttle", new SetThrottleCommand());
+        commands.put("crossover", new CrossoverControlCommand());
         commands.put("turnout", new TurnoutControlCommand());
         commands.put("profile", new SpeedProfilingCommand());
     }

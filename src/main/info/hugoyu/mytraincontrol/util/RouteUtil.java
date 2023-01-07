@@ -15,43 +15,85 @@ import java.util.stream.Stream;
 
 public class RouteUtil {
 
-    public static Route findRouteToStation(long fromStationTrackNodeId, String to) {
-        Station station = LayoutUtil.getStation(to);
+    public static Route findRouteToStation(Trainset trainset, AbstractTrackNode from, String toStation) {
+        Station station = LayoutUtil.getStation(toStation);
 
-        return station.getEntryNodeIds().stream()
-                .map(entryNodeId -> findRoute(fromStationTrackNodeId, entryNodeId))
-                .filter(Objects::nonNull)
+        return station.getStationTrackNodes().stream()
+                .filter(stationTrackNode -> stationTrackNode.isPlatformTrackAbleToFit(trainset))
+                .flatMap(stationTrackNode -> Stream.ofNullable(findRoute(from, stationTrackNode)))
                 .min(Route::compareTo)
                 .orElse(null);
     }
 
-    public static Route findInboundRoute(long entryNodeId, StationTrackNode stationTrackNode) {
-        return findRoute(entryNodeId, stationTrackNode);
+    public static List<Route> findReachableStations(Trainset trainset) {
+        AbstractTrackNode fromStationTrackNode = LayoutUtil.getNode(trainset.getLastAllocatedNode());
+        return LayoutUtil.getStations().keySet().stream()
+                .flatMap(station -> Stream.ofNullable(findRouteToStation(trainset, fromStationTrackNode, station)))
+                .collect(Collectors.toList());
     }
 
-    public static Route findRoute(Object from, Object to) {
-        Route uplinkRoute = findRoute(from, to, true), downlinkRoute = findRoute(from, to, false);
-
-        if (uplinkRoute == null) {
-            return downlinkRoute;
+    /**
+     * Finds the route to the station track that is currently available
+     * Will block if no track is available
+     *
+     * @param isPassingTrackRequired
+     * @return
+     */
+    public static Route findRouteToAvailableStationTrack(Trainset trainset, long entryNodeId,
+                                                         boolean isPassingTrackRequired, boolean isPlatformTrackRequired) {
+        Station station = LayoutUtil.getStation(entryNodeId);
+        while (true) {
+            Route route = getRouteToAvailableTrack(trainset, entryNodeId, isPassingTrackRequired, isPlatformTrackRequired);
+            if (route == null) {
+                try {
+                    station.waitForStationTrack();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException("Error waiting for station track");
+                }
+            } else {
+                return route;
+            }
         }
-        if (downlinkRoute == null) {
-            return uplinkRoute;
+    }
+
+    private static Route getRouteToAvailableTrack(Trainset trainset, long entryNodeId,
+                                                  boolean isPassingTrackRequired, boolean isPlatformTrackRequired) {
+        Station station = LayoutUtil.getStation(entryNodeId);
+        return station.getStationTrackNodes().stream()
+                .filter(StationTrackNode::isFree)
+                // filter by isPassingTrack() if isPassingTrackRequired
+                .filter(stationTrackNode -> !isPassingTrackRequired || stationTrackNode.isPassingTrack())
+                // filter by isPlatformTrackAbleToFit() if isPlatformTrackRequired
+                .filter(stationTrackNode -> !isPlatformTrackRequired || stationTrackNode.isPlatformTrackAbleToFit(trainset))
+                // give preference to non-Passing track
+                .sorted((o1, o2) -> Boolean.compare(o1.isPassingTrack(), o2.isPassingTrack()))
+                .map(stationTrackNode -> RouteUtil.findRoute(LayoutUtil.getNode(entryNodeId), stationTrackNode))
+                .filter(Objects::nonNull)
+                .findFirst()
+                .orElse(null);
+    }
+
+    public static Route findRoute(AbstractTrackNode from, AbstractTrackNode to) {
+        Route uplinkRoute = findRoute(from, to, true),
+                downlinkRoute = findRoute(from, to, false);
+
+        if (uplinkRoute == null || downlinkRoute == null) {
+            return uplinkRoute == null ? downlinkRoute : uplinkRoute;
         }
 
         return uplinkRoute.compareTo(downlinkRoute) < 0 ? uplinkRoute : downlinkRoute;
     }
 
-    public static Route findRoute(Object from, Object to, boolean isUplink) {
-        AbstractTrackNode fromNode = convertToNode(from), toNode = convertToNode(to);
-        return findRouteRecur(fromNode, toNode, isUplink, new ArrayList<>(), 0);
+    public static Route findRoute(long from, long to) {
+        return findRoute(LayoutUtil.getNode(from), LayoutUtil.getNode(to));
     }
 
-    public static List<Route> findReachableStations(Trainset trainset) {
-        long fromStationTrackNode = trainset.getLastAllocatedNode();
-        return LayoutUtil.getStations().keySet().stream()
-                .flatMap(station -> Stream.ofNullable(findRouteToStation(fromStationTrackNode, station)))
-                .collect(Collectors.toList());
+    public static Route findRoute(AbstractTrackNode from, AbstractTrackNode to, boolean isUplink) {
+        return findRouteRecur(from, to, isUplink, new ArrayList<>(), 0);
+    }
+
+    public static Route findRoute(long from, long to, boolean isUplink) {
+        return findRoute(LayoutUtil.getNode(from), LayoutUtil.getNode(to), isUplink);
     }
 
     private static Route findRouteRecur(AbstractTrackNode node, AbstractTrackNode destination, boolean isUplink,
@@ -77,12 +119,6 @@ public class RouteUtil {
         visited.remove(visited.size() - 1);
 
         return result;
-    }
-
-    private static AbstractTrackNode convertToNode(Object node) {
-        return node instanceof AbstractTrackNode ?
-                (AbstractTrackNode) node :
-                LayoutUtil.getNode((Long) node);
     }
 
 }

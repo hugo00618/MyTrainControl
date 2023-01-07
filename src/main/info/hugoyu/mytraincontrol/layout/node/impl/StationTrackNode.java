@@ -11,13 +11,15 @@ import lombok.Setter;
 
 import java.util.Map;
 
-@Getter
 public class StationTrackNode extends RegularTrackNode {
 
     private long id1;
     private String name;
     private int platformLength;
-    private boolean isPlatformTrack, isPassingTrack;
+    private boolean isPlatformTrack;
+
+    @Getter
+    private boolean isPassingTrack;
 
     @Setter
     private Station station;
@@ -56,13 +58,16 @@ public class StationTrackNode extends RegularTrackNode {
         return blockSectionResult;
     }
 
-    public boolean reserve(Trainset trainset) {
-        if (!isPlatformTrack) {
-            return false;
-        }
+    /**
+     * @param trainset
+     * @return false if this is not a platform track or the trainset is longer than the platform, true otherwise
+     */
+    public boolean isPlatformTrackAbleToFit(Trainset trainset) {
+        return isPlatformTrack && trainset.getTotalLength() <= platformLength;
+    }
 
-        boolean isTrainsetAbleToFit = trainset.getTotalLength() <= platformLength;
-        if (!isTrainsetAbleToFit) {
+    public boolean reserve(Trainset trainset) {
+        if (!isPlatformTrackAbleToFit(trainset)) {
             return false;
         }
 

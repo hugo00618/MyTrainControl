@@ -3,10 +3,10 @@ package info.hugoyu.mytraincontrol.layout.movingblock;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.Route;
-import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
+import info.hugoyu.mytraincontrol.util.RouteUtil;
 import lombok.extern.log4j.Log4j;
 
 import java.util.List;
@@ -174,8 +174,7 @@ public class MovingBlockRunnable implements Runnable {
         movingBlockManager.setIsStopRoutineInitiated(true);
 
         long entryNodeId = nodesToAllocate.get(0);
-        Station station = LayoutUtil.getStation(entryNodeId);
-        Route inboundRoute = station.findRouteToAvailableTrack(entryNodeId, false);
+        Route inboundRoute = RouteUtil.findRouteToAvailableStationTrack(trainset, entryNodeId, false, true);
         StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(inboundRoute.getDestinationNode());
 
         // replace entry node with inbound nodes
