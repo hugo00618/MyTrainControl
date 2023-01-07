@@ -1,7 +1,7 @@
 package info.hugoyu.mytraincontrol.commandstation.task.impl;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
-import info.hugoyu.mytraincontrol.turnout.Turnout;
+import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
 import jmri.InstanceManager;
 import jmri.TurnoutManager;
 

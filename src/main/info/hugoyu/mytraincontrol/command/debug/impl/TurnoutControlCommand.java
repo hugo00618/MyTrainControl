@@ -1,9 +1,10 @@
 package info.hugoyu.mytraincontrol.command.debug.impl;
 
 import info.hugoyu.mytraincontrol.command.debug.AbstractDebugCommand;
-import info.hugoyu.mytraincontrol.registry.TurnoutRegistry;
-import info.hugoyu.mytraincontrol.turnout.Turnout;
-import info.hugoyu.mytraincontrol.util.TurnoutUtil;
+import info.hugoyu.mytraincontrol.registry.switchable.impl.TurnoutRegistry;
+import info.hugoyu.mytraincontrol.switchable.Switchable;
+import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
+import info.hugoyu.mytraincontrol.util.SwitchUtil;
 
 public class TurnoutControlCommand extends AbstractDebugCommand {
 
@@ -12,10 +13,10 @@ public class TurnoutControlCommand extends AbstractDebugCommand {
         int address = Integer.parseInt(args[1]);
         Turnout turnout = TurnoutRegistry.getInstance().getTurnout(address);
 
-        String turnoutStateStr = args[2].toUpperCase();
-        Turnout.State turnoutState = Turnout.State.valueOf(turnoutStateStr);
+        String switchStateStr = args[2].toUpperCase();
+        Switchable.State switchState = Switchable.State.valueOf(switchStateStr);
 
-        TurnoutUtil.setTurnoutState(turnout, turnoutState, true);
+        SwitchUtil.setSwitchState(turnout, switchState, true);
     }
 
     @Override

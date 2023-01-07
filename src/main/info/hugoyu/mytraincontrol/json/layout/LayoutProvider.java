@@ -5,8 +5,8 @@ import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.TurnoutNode;
 import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
-import info.hugoyu.mytraincontrol.registry.TurnoutRegistry;
-import info.hugoyu.mytraincontrol.turnout.Turnout;
+import info.hugoyu.mytraincontrol.registry.switchable.impl.TurnoutRegistry;
+import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
 
 import java.util.List;
 import java.util.stream.Collectors;

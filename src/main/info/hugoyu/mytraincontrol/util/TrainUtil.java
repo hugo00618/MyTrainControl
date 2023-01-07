@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.util;
 
+import info.hugoyu.mytraincontrol.commandstation.task.impl.SetThrottleTask;
 import info.hugoyu.mytraincontrol.exception.RouteException;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
@@ -78,14 +79,7 @@ public class TrainUtil {
     }
 
     public static void setThrottle(Trainset trainset, int throttlePercent) {
-        boolean isForward = throttlePercent >= 0;
-        DccThrottle throttle = getDccThrottle(trainset);
-        throttle.setIsForward(isForward);
-        throttle.setSpeedSetting((float) (Math.abs(throttlePercent) / 100.0));
-    }
-
-    public static boolean isForward(Trainset trainset) {
-        return getDccThrottle(trainset).getIsForward();
+        CommandStationUtil.addTask(new SetThrottleTask(getDccThrottle(trainset), throttlePercent));
     }
 
     private static DccThrottle getDccThrottle(Trainset trainset) {

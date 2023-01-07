@@ -1,25 +1,14 @@
-package info.hugoyu.mytraincontrol.turnout;
+package info.hugoyu.mytraincontrol.switchable.impl;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.TurnoutControlTask;
+import info.hugoyu.mytraincontrol.switchable.Switchable;
 import lombok.Getter;
 import lombok.Setter;
 
 @Setter
 @Getter
-public class Turnout {
-
-    public enum State {
-        THROWN(jmri.Turnout.THROWN),
-        CLOSED(jmri.Turnout.CLOSED),
-        UNKNOWN(-1);
-
-        public final int stateCode;
-
-        State(int stateCode) {
-            this.stateCode = stateCode;
-        }
-    }
+public class Turnout implements Switchable {
 
     private int address;
     private State state;
@@ -29,7 +18,8 @@ public class Turnout {
         this.state = State.UNKNOWN;
     }
 
-    public AbstractCommandStationTask getTurnoutControlTask() {
+    @Override
+    public AbstractCommandStationTask getSwitchControlTask() {
         return new TurnoutControlTask(address, state);
     }
 }

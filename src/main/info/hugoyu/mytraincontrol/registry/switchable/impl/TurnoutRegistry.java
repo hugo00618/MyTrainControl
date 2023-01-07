@@ -1,13 +1,15 @@
-package info.hugoyu.mytraincontrol.registry;
+package info.hugoyu.mytraincontrol.registry.switchable.impl;
 
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
-import info.hugoyu.mytraincontrol.turnout.Turnout;
+import info.hugoyu.mytraincontrol.registry.switchable.AbstractSwitchableRegistry;
+import info.hugoyu.mytraincontrol.switchable.Switchable;
+import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
 
 import java.util.HashMap;
 import java.util.Map;
 
-public class TurnoutRegistry {
+public class TurnoutRegistry extends AbstractSwitchableRegistry {
 
     private static TurnoutRegistry instance;
 
@@ -55,5 +57,10 @@ public class TurnoutRegistry {
         turnout.setState(state);
 
         return isTurnoutStateChanged;
+    }
+
+    @Override
+    public Map<Integer, ? extends Switchable> getSwitchableRegistry() {
+        return turnouts;
     }
 }
