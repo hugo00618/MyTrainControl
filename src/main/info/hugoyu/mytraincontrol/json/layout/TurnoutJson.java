@@ -12,15 +12,12 @@ public class TurnoutJson {
      */
     private long id;
 
+    private boolean isBidirectional;
+
     /**
      * Destination node ids
      */
     private long idClosed, idThrown;
-
-    /**
-     * Dummy outbound id, if the turnout is a merging turnout
-     */
-    private Long idDummy;
 
     private int distClosed, distThrown;
 

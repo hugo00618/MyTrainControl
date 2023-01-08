@@ -1,88 +1,65 @@
 {
   "uplinkRegularTracks": [
     {
-      "id0": 10401,
-      "id1": 11401,
-      "length": 1404
-    },
-    {
-      "id0": 11401,
-      "id1": 11101,
-      "length": 0
-    },
-    {
-      "id0": 11403,
-      "id1": 10001,
-      "length": 1404
-    },
-    {
-      "id0": 11103,
-      "id1": 11403,
-      "length": 0
+      "id0": 150,
+      "id1": 152,
+      "length": 1197
     }
   ],
   "downlinkRegularTracks": [
     {
-      "id0": 10102,
-      "id1": 11400,
-      "length": 1508
+      "id0": 151,
+      "id1": 153,
+      "length": 1301
     },
     {
-      "id0": 11400,
-      "id1": 11100,
-      "length": 0
-    },
-    {
-      "id0": 11102,
-      "id1": 10400,
-      "length": 1508
-    },
-    {
-      "id0": 10400,
-      "id1": 10100,
-      "length": 0
+      "id0": 147,
+      "id1": 149,
+      "length": 254,
+      "isBidirectional": true
     }
   ],
   "stations": [
     {
       "id": "s1",
-      "name": "Station 1",
+      "name": "Tokyo Station",
       "entryNodeIds": [
-        10400,
-        10001
+        102
       ],
       "uplinkTracks": [
         {
-          "id0": 10101,
-          "id1": 10003,
-          "name": "Track 2",
-          "isPlatformTrack": true,
-          "isPassingTrack": true,
-          "trackLength": 744,
-          "platformLength": 744
-        },
-        {
-          "id0": 10103,
-          "id1": 10003,
-          "name": "Track 1",
+          "id0": 154,
+          "id1": 156,
+          "name": "Track 23",
           "isPlatformTrack": true,
           "isPassingTrack": false,
-          "trackLength": 752,
-          "platformLength": 752
+          "trackLength": 1304
         }
       ],
       "downlinkTracks": [
         {
-          "id0": 10100,
-          "id1": 10102,
-          "name":"Track 3",
+          "id0": 143,
+          "id1": 145,
+          "name": "Track 22",
           "isPlatformTrack": true,
-          "isPassingTrack": true,
-          "trackLength": 1116,
-          "platformLength": 1116,
-          "sensors": {
-            "15": 0
-          }
+          "isPassingTrack": false,
+          "trackLength": 868
+        },
+        {
+          "id0": 131,
+          "id1": 133,
+          "name": "Track 21",
+          "isPlatformTrack": true,
+          "isPassingTrack": false,
+          "trackLength": 744
+        },
+        {
+          "id0": 121,
+          "id1": 123,
+          "name": "Track 20",
+          "isPlatformTrack": true,
+          "isPassingTrack": false,
+          "trackLength": 748
         }
       ]
     },
@@ -90,58 +67,102 @@
       "id": "s2",
       "name": "Station 2",
       "entryNodeIds": [
-        11400,
-        11401
+        155
       ],
       "uplinkTracks": [
         {
-          "id0": 11101,
-          "id1": 11103,
+          "id0": 155,
+          "id1": 157,
           "name": "Track 1",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 1116,
-          "platformLength": 1116
+          "trackLength": 1240
         }
       ],
       "downlinkTracks": [
         {
-          "id0": 11100,
-          "id1": 11102,
+          "id0": 146,
+          "id1": 148,
           "name": "Track 2",
           "isPlatformTrack": true,
           "isPassingTrack": true,
-          "trackLength": 1116,
-          "platformLength": 1116
+          "trackLength": 1240
         }
       ]
     }
   ],
   "uplinkTurnouts": [
+
+  ],
+  "downlinkTurnouts": [
     {
-      "id": 10001,
-      "idClosed": 10101,
-      "idThrown": 10103,
-      "distClosed": 186,
-      "distThrown": 188,
-      "type": "DIVERGE",
-      "address": 50,
-      "sensors": {
-        "17": 0
-      }
-    },
-    {
-      "id": 10003,
-      "idClosed": 10101,
-      "idThrown": 10103,
-      "idDummy": 10401,
+      "id": 147,
+      "idClosed": 145,
+      "idThrown": 135,
       "distClosed": 186,
       "distThrown": 188,
       "type": "MERGE",
+      "isBidirectional": true,
       "address": 51
+    },
+    {
+      "id": 135,
+      "idClosed": 123,
+      "idThrown": 133,
+      "distClosed": 186,
+      "distThrown": 188,
+      "type": "MERGE",
+      "isBidirectional": true,
+      "address": 50
     }
   ],
-  "downlinkTurnouts": [
+  "crossovers": [
+    {
+      "uplinkId0": 152,
+      "uplinkId1": 154,
+      "downlinkId0": 149,
+      "downlinkId1": 151,
+      "length": 310,
+      "address": 60,
+      "uplinkCrosses": [
+        {
+          "id0": 152,
+          "id1": 149,
+          "dist": 312
+        }
+      ],
+      "downlinkCrosses": [
+        {
+          "id0": 154,
+          "id1": 151,
+          "dist": 312
+        }
+      ]
+    },
+    {
+      "uplinkId0": 148,
+      "uplinkId1": 150,
+      "downlinkId0": 153,
+      "downlinkId1": 155,
+      "length": 310,
+      "address": 61,
+      "uplinkCrosses": [
+        {
+          "id0": 155,
+          "id1": 150,
+          "dist": 312
+        }
+      ],
+      "downlinkCrosses": [
+        {
+          "id0": 153,
+          "id1": 148,
+          "dist": 312
+        }
+      ]
+    }
+  ],
+  "sensors": [
 
   ]
 }

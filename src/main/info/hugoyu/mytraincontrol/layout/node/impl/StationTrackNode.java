@@ -9,13 +9,15 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 import lombok.Setter;
 
-import java.util.Map;
-
 public class StationTrackNode extends RegularTrackNode {
 
-    private long id1;
+    @Getter
     private String name;
-    private int platformLength;
+
+    @Getter
+    private int trackLength;
+
+    @Getter
     private boolean isPlatformTrack;
 
     @Getter
@@ -24,13 +26,12 @@ public class StationTrackNode extends RegularTrackNode {
     @Setter
     private Station station;
 
-    public StationTrackNode(long id0, long id1, String name, int trackLength, boolean isUplink, Map<Integer, Integer> sensors,
-                            int platformLength, boolean isPlatformTrack, boolean isPassingTrack) {
-        super(id0, id1, trackLength, isUplink, sensors);
+    public StationTrackNode(long id0, long id1, String name, int trackLength, boolean isUplink,
+                            boolean isPlatformTrack, boolean isPassingTrack) {
+        super(id0, id1, trackLength, isUplink, true);
 
-        this.id1 = id1;
         this.name = name;
-        this.platformLength = platformLength;
+        this.trackLength = trackLength;
         this.isPlatformTrack = isPlatformTrack;
         this.isPassingTrack = isPassingTrack;
     }
@@ -41,8 +42,6 @@ public class StationTrackNode extends RegularTrackNode {
                 stationTrackJson.getName(),
                 stationTrackJson.getTrackLength(),
                 isUplink,
-                stationTrackJson.getSensors(),
-                stationTrackJson.getPlatformLength(),
                 stationTrackJson.isPlatformTrack(),
                 stationTrackJson.isPassingTrack());
     }
@@ -60,10 +59,10 @@ public class StationTrackNode extends RegularTrackNode {
 
     /**
      * @param trainset
-     * @return false if this is not a platform track or the trainset is longer than the platform, true otherwise
+     * @return false if this is not a platform track or the trainset is longer than the track length, true otherwise
      */
     public boolean isPlatformTrackAbleToFit(Trainset trainset) {
-        return isPlatformTrack && trainset.getTotalLength() <= platformLength;
+        return isPlatformTrack && trainset.getTotalLength() <= length;
     }
 
     public boolean reserve(Trainset trainset) {
@@ -84,7 +83,7 @@ public class StationTrackNode extends RegularTrackNode {
                 alloc(trainset, getInboundMoveDist(trainset), null, null);
                 free(trainset, getInboundMargin(trainset));
 
-                trainset.addAllocatedNode(this.id);
+                trainset.addAllocatedNode(this.id0);
                 return true;
             } catch (NodeAllocationException e) {
                 throw new RuntimeException(e);

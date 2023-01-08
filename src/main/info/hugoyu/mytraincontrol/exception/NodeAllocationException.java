@@ -20,10 +20,10 @@ public class NodeAllocationException extends Exception {
 
     public NodeAllocationException(ExceptionType exceptionType, Trainset trainset, AbstractTrackNode node, int dist) {
         super(String.format("%s while %s alloc/freeing node %s for distance %d",
-                exceptionType, trainset.getName(), node.getId(), dist));
+                exceptionType, trainset.getName(), node.getIds().get(0), dist));
 
         log.error(String.format("%s: exception %s while alloc/freeing node %s for distance %d",
-                trainset.getName(), exceptionType, node.getId(), dist));
+                trainset.getName(), exceptionType, node.getIds().get(0), dist));
 
         this.exceptionType = exceptionType;
     }

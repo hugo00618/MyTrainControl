@@ -6,5 +6,5 @@ import lombok.Getter;
 public class StationTrackJson extends RegularTrackJson {
     private String name;
     private boolean isPlatformTrack, isPassingTrack;
-    private int trackLength, platformLength;
+    private int trackLength;
 }

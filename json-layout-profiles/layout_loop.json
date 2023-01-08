@@ -1,0 +1,143 @@
+{
+  "uplinkRegularTracks": [
+    {
+      "id0": 10401,
+      "id1": 11401,
+      "length": 1404
+    },
+    {
+      "id0": 11401,
+      "id1": 11101,
+      "length": 0
+    },
+    {
+      "id0": 11403,
+      "id1": 10001,
+      "length": 1404
+    },
+    {
+      "id0": 11103,
+      "id1": 11403,
+      "length": 0
+    }
+  ],
+  "downlinkRegularTracks": [
+    {
+      "id0": 10102,
+      "id1": 11400,
+      "length": 1508
+    },
+    {
+      "id0": 11400,
+      "id1": 11100,
+      "length": 0
+    },
+    {
+      "id0": 11102,
+      "id1": 10400,
+      "length": 1508
+    },
+    {
+      "id0": 10400,
+      "id1": 10100,
+      "length": 0
+    }
+  ],
+  "stations": [
+    {
+      "id": "s1",
+      "name": "Station 1",
+      "entryNodeIds": [
+        10400,
+        10001
+      ],
+      "uplinkTracks": [
+        {
+          "id0": 10101,
+          "id1": 10003,
+          "name": "Track 2",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 744
+        },
+        {
+          "id0": 10103,
+          "id1": 10003,
+          "name": "Track 1",
+          "isPlatformTrack": true,
+          "isPassingTrack": false,
+          "trackLength": 752
+        }
+      ],
+      "downlinkTracks": [
+        {
+          "id0": 10100,
+          "id1": 10102,
+          "name":"Track 3",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 1116,
+          "sensors": {
+            "15": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "s2",
+      "name": "Station 2",
+      "entryNodeIds": [
+        11400,
+        11401
+      ],
+      "uplinkTracks": [
+        {
+          "id0": 11101,
+          "id1": 11103,
+          "name": "Track 1",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 1116,
+          "platformLength": 1116
+        }
+      ],
+      "downlinkTracks": [
+        {
+          "id0": 11100,
+          "id1": 11102,
+          "name": "Track 2",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 1116,
+          "platformLength": 1116
+        }
+      ]
+    }
+  ],
+  "uplinkTurnouts": [
+    {
+      "id": 10001,
+      "idClosed": 10101,
+      "idThrown": 10103,
+      "distClosed": 186,
+      "distThrown": 188,
+      "type": "DIVERGE",
+      "address": 50,
+      "sensors": {
+        "17": 0
+      }
+    },
+    {
+      "id": 10003,
+      "idClosed": 10101,
+      "idThrown": 10103,
+      "distClosed": 186,
+      "distThrown": 188,
+      "type": "MERGE",
+      "address": 51
+    }
+  ],
+  "downlinkTurnouts": [
+
+  ]
+}

@@ -7,6 +7,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
+import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
@@ -172,9 +173,9 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public void calibrate(long nodeId, int sensorPosition, SensorState sensorState) {
+    public void calibrate(Position sensorPosition, SensorState sensorState) {
         if (movingBlockManagerThread != null && movingBlockManagerThread.isAlive()) {
-            movingBlockManager.calibrate(nodeId, sensorPosition, sensorState);
+            movingBlockManager.calibrate(sensorPosition, sensorState);
         }
     }
 
@@ -243,13 +244,13 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public long getFirstAllocatedNode() {
+    public long getFirstAllocatedNodeId() {
         synchronized (allocatedNodesLock) {
             return getAllocatedNode(0);
         }
     }
 
-    public long getLastAllocatedNode() {
+    public long getLastAllocatedNodeId() {
         synchronized (allocatedNodesLock) {
             return getAllocatedNode(allocatedNodes.size() - 1);
         }

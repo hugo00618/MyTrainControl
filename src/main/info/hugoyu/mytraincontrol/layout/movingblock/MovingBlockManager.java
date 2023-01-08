@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.layout.movingblock;
 
+import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
@@ -60,14 +61,14 @@ public class MovingBlockManager {
         return new MovingBlockRunnable(this);
     }
 
-    public void calibrate(long nodeId, int sensorPosition, SensorState sensorState) {
-        Route remainingRoute = RouteUtil.findRoute(nodeId, getDestinationId(), isUplink);
+    public void calibrate(Position sensorPosition, SensorState sensorState) {
+        final long referenceNode = sensorPosition.getReferenceNode();
+        Route remainingRoute = RouteUtil.findRoute(referenceNode, getDestinationId(), isUplink);
         int calibratedDistToMove = calcCalibratedDistToMove(trainset, remainingRoute, sensorPosition, sensorState);
 
         double offset;
         distToMoveLock.lock();
         try {
-
             offset = calibratedDistToMove - distToMove;
 
             calibrationOffset += offset;
@@ -78,8 +79,17 @@ public class MovingBlockManager {
         trainset.addDistToMove(offset);
     }
 
-    private int calcCalibratedDistToMove(Trainset trainset, Route remainingRoute, int sensorPosition, SensorState sensorState) {
-        int calibratedDistToMove = remainingRoute.getCost() - sensorPosition;
+    private int calcCalibratedDistToMove(Trainset trainset, Route remainingRoute, Position sensorPosition, SensorState sensorState) {
+        // remainingRoute.getCost() is the length between sensor's reference node to our destination node
+        int calibratedDistToMove = remainingRoute.getCost();
+        // if our travelling direction is the same with sensor's definition,
+        // then we need to subtract offset from the total cost, otherwise we add
+        if (isUplink == sensorPosition.isUplink()) {
+            calibratedDistToMove -= sensorPosition.getOffset();
+        } else {
+            calibratedDistToMove += sensorPosition.getOffset();
+        }
+
         if (isStopRoutineInitiated) {
             StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(remainingRoute.getDestinationNode());
             calibratedDistToMove += stationTrackNode.getInboundMoveDist(trainset);

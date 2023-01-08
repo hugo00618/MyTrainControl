@@ -4,19 +4,28 @@ import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.json.layout.RegularTrackJson;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
+import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.Connection;
+import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-public class RegularTrackNode extends AbstractTrackNode implements Comparable<RegularTrackNode> {
+public class RegularTrackNode extends AbstractTrackNode implements Comparable<RegularTrackNode>, SensorAttachable {
 
-    protected int length;
+    protected final long id0, id1;
+
+    protected final int length;
+
+    protected final boolean isUplink, isBidirectional;
 
     // map of (trainsetAddress, ownedRange)
+    // ownedRange is with respect to id0
     protected Map<Integer, Range<Integer>> owners = new HashMap<>();
     protected final Object ownersLock = new Object();
 
@@ -24,16 +33,14 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
      * @param id0     id of the current section
      * @param id1     id of the next section (if any)
      * @param length  length of the current section
-     * @param sensors map of (sensorAddress, location)
      */
-    public RegularTrackNode(long id0, Long id1, int length, boolean isUplink, Map<Integer, Integer> sensors) {
-        super(id0, sensors);
-
+    public RegularTrackNode(long id0, long id1, int length,
+                            boolean isUplink, boolean isBidirectional) {
+        this.id0 = id0;
+        this.id1 = id1;
         this.length = length;
-
-        if (id1 != null) {
-            addConnection(id1, length, isUplink);
-        }
+        this.isUplink = isUplink;
+        this.isBidirectional = isBidirectional;
     }
 
     public RegularTrackNode(RegularTrackJson regularTrackJson, boolean isUplink) {
@@ -41,7 +48,17 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
                 regularTrackJson.getId1(),
                 regularTrackJson.getLength(),
                 isUplink,
-                regularTrackJson.getSensors());
+                regularTrackJson.isBidirectional());
+    }
+
+    @Override
+    public List<Connection> getConnections() {
+        return List.of(new Connection(id0, id1, length, isUplink, isBidirectional));
+    }
+
+    @Override
+    public List<Long> getIds() {
+        return List.of(id0);
     }
 
     @Override
@@ -139,10 +156,12 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     }
 
     @Override
-    protected Trainset getOwner(int sensorLocation) {
+    public Trainset getOccupier(Position position) {
         synchronized (ownersLock) {
+            int positionWrtId0 = position.getReferenceNode() == id0 ?
+                    position.getOffset() : length - position.getOffset();
             return owners.entrySet().stream()
-                    .filter(entry -> entry.getValue().contains(sensorLocation))
+                    .filter(entry -> entry.getValue().contains(positionWrtId0))
                     .map(entry -> TrainUtil.getTrainset(entry.getKey()))
                     .findFirst()
                     .orElse(null);
@@ -165,10 +184,5 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
                 .collect(Collectors.toMap(
                         Map.Entry::getKey,
                         entry -> entry.getValue().toString()));
-    }
-
-    @Override
-    public int getCostToNode(long toNode, Long previousNode) {
-        return costs.get(toNode);
     }
 }

@@ -2,33 +2,38 @@ package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
-import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
+import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RouteUtil {
 
-    public static Route findRouteToStation(Trainset trainset, AbstractTrackNode from, String toStation) {
-        Station station = LayoutUtil.getStation(toStation);
+    public static Route findRouteToStation(Trainset trainset, long from, String stationAlias) {
+        Station station = LayoutUtil.getStation(stationAlias);
 
-        return station.getStationTrackNodes().stream()
-                .filter(stationTrackNode -> stationTrackNode.isPlatformTrackAbleToFit(trainset))
-                .flatMap(stationTrackNode -> Stream.ofNullable(findRoute(from, stationTrackNode)))
-                .min(Route::compareTo)
-                .orElse(null);
+        boolean isTrainsetAbleToFit = station.getStationTrackNodes().stream()
+                .anyMatch(stationTrackNode -> stationTrackNode.isPlatformTrackAbleToFit(trainset));
+        if (isTrainsetAbleToFit) {
+            return station.getEntryNodeIds().stream()
+                    .flatMap(entryNodeId -> Stream.ofNullable(findRoute(from, entryNodeId)))
+                    .min(Route::compareTo)
+                    .orElse(null);
+        }
+        return null;
     }
 
     public static List<Route> findReachableStations(Trainset trainset) {
-        AbstractTrackNode fromStationTrackNode = LayoutUtil.getNode(trainset.getLastAllocatedNode());
+        long fromStationTrackNodeId = trainset.getLastAllocatedNodeId();
         return LayoutUtil.getStations().keySet().stream()
-                .flatMap(station -> Stream.ofNullable(findRouteToStation(trainset, fromStationTrackNode, station)))
+                .flatMap(station -> Stream.ofNullable(findRouteToStation(trainset, fromStationTrackNodeId, station)))
                 .collect(Collectors.toList());
     }
 
@@ -65,15 +70,18 @@ public class RouteUtil {
                 .filter(stationTrackNode -> !isPassingTrackRequired || stationTrackNode.isPassingTrack())
                 // filter by isPlatformTrackAbleToFit() if isPlatformTrackRequired
                 .filter(stationTrackNode -> !isPlatformTrackRequired || stationTrackNode.isPlatformTrackAbleToFit(trainset))
-                // give preference to non-Passing track
-                .sorted((o1, o2) -> Boolean.compare(o1.isPassingTrack(), o2.isPassingTrack()))
-                .map(stationTrackNode -> RouteUtil.findRoute(LayoutUtil.getNode(entryNodeId), stationTrackNode))
+                // sort by isPassingTrack() and getTrackLength(), give preference to
+                //     1. non-Passing track
+                //     2. tracks with the lowest possible length
+                .sorted(Comparator.comparing(StationTrackNode::isPassingTrack)
+                        .thenComparing(StationTrackNode::getTrackLength))
+                .map(stationTrackNode -> RouteUtil.findRoute(entryNodeId, stationTrackNode.getIds().get(0)))
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
     }
 
-    public static Route findRoute(AbstractTrackNode from, AbstractTrackNode to) {
+    public static Route findRoute(long from, long to) {
         Route uplinkRoute = findRoute(from, to, true),
                 downlinkRoute = findRoute(from, to, false);
 
@@ -84,34 +92,29 @@ public class RouteUtil {
         return uplinkRoute.compareTo(downlinkRoute) < 0 ? uplinkRoute : downlinkRoute;
     }
 
-    public static Route findRoute(long from, long to) {
-        return findRoute(LayoutUtil.getNode(from), LayoutUtil.getNode(to));
-    }
-
-    public static Route findRoute(AbstractTrackNode from, AbstractTrackNode to, boolean isUplink) {
+    public static Route findRoute(long from, long to, boolean isUplink) {
         return findRouteRecur(from, to, isUplink, new ArrayList<>(), 0);
     }
 
-    public static Route findRoute(long from, long to, boolean isUplink) {
-        return findRoute(LayoutUtil.getNode(from), LayoutUtil.getNode(to), isUplink);
-    }
-
-    private static Route findRouteRecur(AbstractTrackNode node, AbstractTrackNode destination, boolean isUplink,
+    private static Route findRouteRecur(long nodeId, long destinationId, boolean isUplink,
                                         List<Long> visited, int cost) {
-        if (visited.contains(node.getId())) {
+        if (visited.contains(nodeId)) {
             return null;
         }
-        Long previousNodeId = visited.isEmpty() ? null : visited.get(visited.size() - 1);
-        visited.add(node.getId());
+        visited.add(nodeId);
 
-        if (node == destination) {
+        if (nodeId == destinationId) {
             return new Route(new ArrayList<>(visited), cost, isUplink);
         }
 
-        Set<Long> nextNodes = isUplink ? node.getUplinkNextNodes() : node.getDownlinkNextNodes();
-        Route result = nextNodes.stream()
-                .map(nextNodeId -> findRouteRecur(LayoutUtil.getNode(nextNodeId), destination, isUplink, visited,
-                        cost + node.getCostToNode(nextNodeId, previousNodeId)))
+        Map<Long, Integer> nextNodes = LayoutRegistry.getInstance().getNextNodes(nodeId, isUplink);
+        Route result = nextNodes.entrySet().stream()
+                .map(nextNode -> {
+                    final long nextNodeId = nextNode.getKey();
+                    final int nextNodeCost = nextNode.getValue();
+                    return findRouteRecur(nextNodeId, destinationId, isUplink, visited,
+                            cost + nextNodeCost);
+                })
                 .filter(Objects::nonNull)
                 .min(Route::compareTo)
                 .orElse(null);

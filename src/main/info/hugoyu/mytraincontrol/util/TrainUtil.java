@@ -3,7 +3,6 @@ package info.hugoyu.mytraincontrol.util;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetThrottleTask;
 import info.hugoyu.mytraincontrol.exception.RouteException;
 import info.hugoyu.mytraincontrol.layout.Route;
-import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
@@ -61,8 +60,8 @@ public class TrainUtil {
     }
 
     public static void moveTo(Trainset trainset, String stationId) {
-        AbstractTrackNode fromNode = LayoutUtil.getNode(trainset.getLastAllocatedNode());
-        Route route = RouteUtil.findRouteToStation(trainset, fromNode, stationId);
+        long fromNodeId = trainset.getLastAllocatedNodeId();
+        Route route = RouteUtil.findRouteToStation(trainset, fromNodeId, stationId);
         if (route == null) {
             throw new RouteException(String.format("No route to station: %s", stationId));
         }

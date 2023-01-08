@@ -69,7 +69,7 @@ public class MovingBlockRunnable implements Runnable {
             free();
 
             // todo: this is a temporary workaround to fix a "fail to free all nodes" issue
-            LayoutUtil.getStationTrackNode(trainset.getLastAllocatedNode()).reserve(trainset);
+            LayoutUtil.getStationTrackNode(trainset.getLastAllocatedNodeId()).reserve(trainset);
         } catch (NodeAllocationException e) {
             throw new RuntimeException("Track allocation error");
         }
@@ -145,10 +145,7 @@ public class MovingBlockRunnable implements Runnable {
 
     private void free() throws NodeAllocationException {
         while (movingBlockManager.getDistToFree() > 0 && movingBlockManager.getMovedDistToFree() >= 1) {
-            Long nodeId = trainset.getFirstAllocatedNode();
-            if (nodeId == null) {
-                throw new RuntimeException("No node to free");
-            }
+            long nodeId = trainset.getFirstAllocatedNodeId();
 
             BlockSectionResult freeRes = LayoutUtil.freeNode(nodeId, trainset, (int) movingBlockManager.getMovedDistToFree());
 
@@ -185,7 +182,7 @@ public class MovingBlockRunnable implements Runnable {
         movingBlockManager.addDistToMove(inboundMoveDist);
         movingBlockManager.addDistToAlloc(inboundMoveDist);
         movingBlockManager.addDistToFree(inboundMoveDist);
-        movingBlockManager.setDestinationId(stationTrackNode.getId());
+        movingBlockManager.setDestinationId(stationTrackNode.getIds().get(0));
     }
 
 }

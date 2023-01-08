@@ -1,7 +1,10 @@
-package info.hugoyu.mytraincontrol.layout;
+package info.hugoyu.mytraincontrol.layout.node;
 
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
+import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
+
+import java.util.Map;
 
 public interface Allocatable {
     /**
@@ -29,4 +32,17 @@ public interface Allocatable {
      * @param trainset
      */
     void freeAll(Trainset trainset) throws NodeAllocationException;
+
+    /**
+     *
+     * @param ownerId
+     * @return current owning status of ownerId
+     */
+    String getOwnerStatus(int ownerId);
+
+    /**
+     *
+     * @return summary of all current owners
+     */
+    Map<Integer, String> getOwnerSummary();
 }

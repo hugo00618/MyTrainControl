@@ -1,5 +1,7 @@
 package info.hugoyu.mytraincontrol.registry.switchable.impl;
 
+import info.hugoyu.mytraincontrol.exception.InvalidIdException;
+import info.hugoyu.mytraincontrol.json.layout.CrossoverJson;
 import info.hugoyu.mytraincontrol.registry.switchable.AbstractSwitchableRegistry;
 import info.hugoyu.mytraincontrol.switchable.Switchable;
 import info.hugoyu.mytraincontrol.switchable.impl.Crossover;
@@ -11,6 +13,7 @@ public class CrossoverRegistry extends AbstractSwitchableRegistry {
 
     private static CrossoverRegistry instance;
 
+    // <decoder address, Crossover>
     private Map<Integer, Crossover> crossovers;
 
     private CrossoverRegistry() {
@@ -24,14 +27,16 @@ public class CrossoverRegistry extends AbstractSwitchableRegistry {
         return instance;
     }
 
-    // TODO:
-//    public Crossover registerCrossover(CrossoverJson crossoverJson)
+    public Crossover registerCrossover(CrossoverJson crossoverJson) {
+        final int address = crossoverJson.getAddress();
+        Crossover crossover = new Crossover(address);
+        crossovers.put(address, crossover);
+        return crossover;
+    }
 
     public Crossover getCrossover(int address) {
         if (!crossovers.containsKey(address)) {
-            // TODO: add this back when registerCrossover is ready
-//            throw new InvalidIdException(address, InvalidIdException.Type.NOT_FOUND);
-            crossovers.put(address, new Crossover(address));
+            throw new InvalidIdException(address, InvalidIdException.Type.NOT_FOUND);
         }
 
         return crossovers.get(address);
