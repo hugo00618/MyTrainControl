@@ -8,7 +8,7 @@ import java.util.List;
 public class CrossoverJson {
 
     @Getter
-    public static class CrossJson {
+    public static class CrossConnectionJson {
         private long id0, id1;
         private int dist;
         private boolean isBidirectional;
@@ -21,5 +21,5 @@ public class CrossoverJson {
 
     private int address;
 
-    private List<CrossJson> uplinkCrosses, downlinkCrpsses;
+    private List<CrossConnectionJson> uplinkCrosses, downlinkCrosses;
 }

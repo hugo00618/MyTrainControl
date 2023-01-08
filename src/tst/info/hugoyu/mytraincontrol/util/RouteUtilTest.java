@@ -2,46 +2,80 @@ package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.LayoutTestBase;
 import info.hugoyu.mytraincontrol.layout.Route;
+import info.hugoyu.mytraincontrol.trainset.Trainset;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.Mockito.when;
+import static org.mockito.MockitoAnnotations.initMocks;
 
 class RouteUtilTest extends LayoutTestBase {
 
-    @Test
-    public void findRouteToStationViaMergingTurnout() {
-        Route route = RouteUtil.findRouteToStation(10103, "s2");
+    @Mock
+    Trainset trainset;
 
-        List<Long> nodes = route.getNodes();
-        assertEquals(4, nodes.size());
-        assertEquals(Long.valueOf(10103), nodes.get(0));
-        assertEquals(Long.valueOf(10003), nodes.get(1));
-        assertEquals(Long.valueOf(10401), nodes.get(2));
-        assertEquals(Long.valueOf(11101), nodes.get(3));
+    @BeforeEach
+    public void setUp() {
+        super.setUp();
 
-        assertEquals(2344, route.getCost());
+        initMocks(this);
     }
 
     @Test
-    public void findRouteToStationViaDivergingTurnout() {
-        Route route = RouteUtil.findRouteToStation(11101, "s1");
+    public void testFindRouteToStationViaTurnouts() {
+        Route route = RouteUtil.findRouteToStation(trainset, 121, "s2");
 
-        List<Long> nodes = route.getNodes();
-        assertEquals(3, nodes.size());
-        assertEquals(Long.valueOf(11101), nodes.get(0));
-        assertEquals(Long.valueOf(11103), nodes.get(1));
-        assertEquals(Long.valueOf(10001), nodes.get(2));
-
-        assertEquals(2520, route.getCost());
+        assertEquals(List.of(121L, 123L, 135L, 147L, 149L, 151L, 153L, 155L), route.getNodes());
+        assertFalse(route.isUplink());
+        assertEquals(3297, route.getCost());
     }
 
     @Test
-    public void findRouteToStationInvalidId() {
-        assertThrows(RuntimeException.class, () -> RouteUtil.findRouteToStation(-1, "s2"));
-        assertThrows(RuntimeException.class, () -> RouteUtil.findRouteToStation(10000, "invalid"));
+    public void testFindRouteToStationViaDoubleCrossover() {
+        Route route = RouteUtil.findRouteToStation(trainset, 154, "s2");
+
+        assertTrue(List.of(154L, 151L, 153L, 155L).equals(route.getNodes()));
+        assertFalse(route.isUplink());
+        assertEquals(1923, route.getCost());
+    }
+
+    @Test
+    public void testFindReachableStations() {
+        when(trainset.getLastAllocatedNodeId()).thenReturn(154L);
+
+        List<Route> routes = RouteUtil.findReachableStations(trainset);
+
+        assertEquals(1, routes.size());
+    }
+
+    @Test
+    public void testFindRouteToAvailableStationTrackWithLongTrainset() {
+        when(trainset.getTotalLength()).thenReturn(1300);
+
+        Route route = RouteUtil.findRouteToAvailableStationTrack(trainset, 152,
+                false, true);
+
+        assertEquals(List.of(152L, 154L), route.getNodes());
+        assertTrue(route.isUplink());
+        assertEquals(310, route.getCost());
+    }
+
+    @Test
+    public void testFindRouteToAvailableStationTrackWithShortTrainset() {
+        when(trainset.getTotalLength()).thenReturn(1);
+
+        Route route = RouteUtil.findRouteToAvailableStationTrack(trainset, 152,
+                false, true);
+
+        assertEquals(List.of(152L, 149L, 147L, 135L, 133L, 131L), route.getNodes());
+        assertTrue(route.isUplink());
+        assertEquals(1686, route.getCost());
     }
 
 }

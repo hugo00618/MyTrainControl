@@ -11,7 +11,6 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 public class CrossoverNode extends AbstractTrackNode {
 
@@ -44,22 +43,14 @@ public class CrossoverNode extends AbstractTrackNode {
         this.crossConnections = crossConnections;
     }
 
-    public CrossoverNode(CrossoverJson crossoverJson, Crossover crossover) {
+    public CrossoverNode(CrossoverJson crossoverJson, List<Connection> crossConnections, Crossover crossover) {
         this(crossoverJson.getUplinkId0(),
                 crossoverJson.getUplinkId1(),
                 crossoverJson.getDownlinkId0(),
                 crossoverJson.getDownlinkId1(),
                 crossoverJson.getLength(),
                 crossover,
-                crossoverJson.getUplinkCrosses().stream()
-                        .map(crossJson -> new Connection(
-                                crossJson.getId0(),
-                                crossJson.getId1(),
-                                crossJson.getDist(),
-                                true,
-                                crossJson.isBidirectional()))
-
-                        .collect(Collectors.toList()));
+                crossConnections);
     }
 
     @Override

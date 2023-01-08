@@ -108,16 +108,19 @@ public class RouteUtil {
         }
 
         Map<Long, Integer> nextNodes = LayoutRegistry.getInstance().getNextNodes(nodeId, isUplink);
-        Route result = nextNodes.entrySet().stream()
-                .map(nextNode -> {
-                    final long nextNodeId = nextNode.getKey();
-                    final int nextNodeCost = nextNode.getValue();
-                    return findRouteRecur(nextNodeId, destinationId, isUplink, visited,
-                            cost + nextNodeCost);
-                })
-                .filter(Objects::nonNull)
-                .min(Route::compareTo)
-                .orElse(null);
+        Route result = null;
+        if (nextNodes != null) {
+            result = nextNodes.entrySet().stream()
+                    .map(nextNode -> {
+                        final long nextNodeId = nextNode.getKey();
+                        final int nextNodeCost = nextNode.getValue();
+                        return findRouteRecur(nextNodeId, destinationId, isUplink, visited,
+                                cost + nextNodeCost);
+                    })
+                    .filter(Objects::nonNull)
+                    .min(Route::compareTo)
+                    .orElse(null);
+        }
 
         visited.remove(visited.size() - 1);
 

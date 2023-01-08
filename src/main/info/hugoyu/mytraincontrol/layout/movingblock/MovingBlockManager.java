@@ -103,7 +103,12 @@ public class MovingBlockManager {
 
     private int calcDistToMove(Trainset trainset, Route route) {
         StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(nodesToAllocate.get(0));
-        return route.getCost() - stationTrackNode.getInboundMoveDist(trainset);
+        int stationOutBoundMoveDist = stationTrackNode.getInboundMoveDist(trainset);
+        if (isUplink == stationTrackNode.isUplink()) {
+            return route.getCost() - stationOutBoundMoveDist;
+        } else {
+            return route.getCost() + stationOutBoundMoveDist;
+        }
     }
 
     public void addDistToMove(double dist) {

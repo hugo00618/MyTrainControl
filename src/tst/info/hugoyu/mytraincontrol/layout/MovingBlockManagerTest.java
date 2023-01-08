@@ -20,6 +20,8 @@ class MovingBlockManagerTest extends LayoutTestBase {
 
     @BeforeEach
     public void setUp() {
+        super.setUp();
+
         initMocks(this);
 
         TrainsetRegistry.getInstance().registerTrainset(3, trainset);
@@ -28,14 +30,16 @@ class MovingBlockManagerTest extends LayoutTestBase {
 
     @Test
     public void getDistToMove() {
-        // station track length: 1116
-        Route route = RouteUtil.findRouteToStation(10100, "s2");
+        // station track length: 1304
+        // route length: 1923
+        // route is downlink, station track is uplink
+        Route route = RouteUtil.findRouteToStation(trainset, 154, "s2");
         MovingBlockManager sut = new MovingBlockManager(trainset);
         sut.prepareToMove(route);
 
-        // outbound dist = (1116-960)/2 = 78
-        // 78 + 1508 = 1586
-        assertEquals(1586, sut.getDistToMove());
+        // outbound dist = (1304-960)/2 + 960 = 1132
+        // distToMove is 1923 + 1132 = 3055
+        assertEquals(3055, sut.getDistToMove());
     }
 
 }

@@ -2,6 +2,7 @@ package info.hugoyu.mytraincontrol.json.layout;
 
 import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
+import info.hugoyu.mytraincontrol.layout.node.Connection;
 import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
 import info.hugoyu.mytraincontrol.layout.node.impl.CrossoverNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
@@ -91,7 +92,30 @@ public class LayoutProvider {
 
     private static void registerCrossover(CrossoverJson crossoverJson, LayoutRegistry layoutRegistry) {
         Crossover crossover = CrossoverRegistry.getInstance().registerCrossover(crossoverJson);
-        layoutRegistry.registerGraphNode(new CrossoverNode(crossoverJson, crossover));
+        List<Connection> crossConnections = constructCrossConnections(crossoverJson);
+        layoutRegistry.registerGraphNode(new CrossoverNode(crossoverJson, crossConnections, crossover));
+    }
+
+    private static List<Connection> constructCrossConnections(CrossoverJson crossoverJson) {
+        List<Connection> connections = constructCrossConnections(crossoverJson.getUplinkCrosses(), true);
+        connections.addAll(constructCrossConnections(crossoverJson.getDownlinkCrosses(), false));
+        return connections;
+    }
+
+    private static List<Connection> constructCrossConnections(List<CrossoverJson.CrossConnectionJson> crossConnectionJsons,
+                                                              boolean isUplink) {
+        if (crossConnectionJsons != null) {
+            return crossConnectionJsons.stream()
+                    .map(crossConnectionJson -> new Connection(
+                            crossConnectionJson.getId0(),
+                            crossConnectionJson.getId1(),
+                            crossConnectionJson.getDist(),
+                            isUplink,
+                            crossConnectionJson.isBidirectional()))
+                    .collect(Collectors.toList());
+        } else {
+            return List.of();
+        }
     }
 
     private static void registerSensor(int address, Position position, long owningNodeId) {

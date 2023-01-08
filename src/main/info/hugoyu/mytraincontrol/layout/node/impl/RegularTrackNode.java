@@ -10,6 +10,7 @@ import info.hugoyu.mytraincontrol.layout.node.Connection;
 import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
+import lombok.Getter;
 
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +23,7 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
 
     protected final int length;
 
+    @Getter
     protected final boolean isUplink, isBidirectional;
 
     // map of (trainsetAddress, ownedRange)

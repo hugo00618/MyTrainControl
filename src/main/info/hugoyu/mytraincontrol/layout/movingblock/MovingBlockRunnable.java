@@ -178,7 +178,14 @@ public class MovingBlockRunnable implements Runnable {
         nodesToAllocate.remove(0);
         nodesToAllocate.addAll(inboundRoute.getNodes());
 
-        int inboundMoveDist = inboundRoute.getCost() + stationTrackNode.getInboundMoveDist(trainset);
+        int inboundMoveDist = inboundRoute.getCost();
+        int stationInboundDist = stationTrackNode.getInboundMoveDist(trainset);
+        if (inboundRoute.isUplink() == stationTrackNode.isUplink()) {
+            inboundMoveDist += stationInboundDist;
+        } else {
+            inboundMoveDist -= stationInboundDist;
+        }
+
         movingBlockManager.addDistToMove(inboundMoveDist);
         movingBlockManager.addDistToAlloc(inboundMoveDist);
         movingBlockManager.addDistToFree(inboundMoveDist);
