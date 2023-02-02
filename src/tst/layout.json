@@ -23,9 +23,7 @@
     {
       "id": "s1",
       "name": "Tokyo Station",
-      "entryNodeIds": [
-        152
-      ],
+      "uplinkEntryNode": 152,
       "uplinkTracks": [
         {
           "id0": 154,
@@ -66,20 +64,8 @@
     {
       "id": "s2",
       "name": "Station 2",
-      "entryNodeIds": [
-        155
-      ],
+      "downlinkEntryNode": 155,
       "uplinkTracks": [
-        {
-          "id0": 155,
-          "id1": 157,
-          "name": "Track 1",
-          "isPlatformTrack": true,
-          "isPassingTrack": true,
-          "trackLength": 1240
-        }
-      ],
-      "downlinkTracks": [
         {
           "id0": 146,
           "id1": 148,
@@ -88,11 +74,20 @@
           "isPassingTrack": true,
           "trackLength": 1240
         }
+      ],
+      "downlinkTracks": [
+        {
+          "id0": 155,
+          "id1": 157,
+          "name": "Track 1",
+          "isPlatformTrack": true,
+          "isPassingTrack": true,
+          "trackLength": 1240
+        }
       ]
     }
   ],
   "uplinkTurnouts": [
-
   ],
   "downlinkTurnouts": [
     {
@@ -102,7 +97,6 @@
       "distClosed": 186,
       "distThrown": 188,
       "type": "MERGE",
-      "isBidirectional": true,
       "address": 51
     },
     {
@@ -112,57 +106,53 @@
       "distClosed": 186,
       "distThrown": 188,
       "type": "MERGE",
-      "isBidirectional": true,
       "address": 50
     }
   ],
   "crossovers": [
     {
-      "uplinkId0": 152,
-      "uplinkId1": 154,
-      "downlinkId0": 149,
-      "downlinkId1": 151,
       "length": 310,
+      "crossLength": 312,
       "address": 60,
-      "uplinkCrosses": [
-        {
-          "id0": 152,
-          "id1": 149,
-          "dist": 312
-        }
-      ],
-      "downlinkCrosses": [
-        {
-          "id0": 154,
-          "id1": 151,
-          "dist": 312
-        }
-      ]
+      "uplinkStraight": {
+        "id0": 152,
+        "id1": 154
+      },
+      "downlinkStraight": {
+        "id0": 149,
+        "id1": 151
+      },
+      "uplinkCross": {
+        "id0": 152,
+        "id1": 149
+      },
+      "downlinkCross": {
+        "id0": 154,
+        "id1": 151
+      }
     },
     {
-      "uplinkId0": 148,
-      "uplinkId1": 150,
-      "downlinkId0": 153,
-      "downlinkId1": 155,
       "length": 310,
+      "crossLength": 312,
       "address": 61,
-      "uplinkCrosses": [
-        {
-          "id0": 155,
-          "id1": 150,
-          "dist": 312
-        }
-      ],
-      "downlinkCrosses": [
-        {
-          "id0": 153,
-          "id1": 148,
-          "dist": 312
-        }
-      ]
+      "uplinkStraight": {
+        "id0": 148,
+        "id1": 150
+      },
+      "downlinkStraight": {
+        "id0": 153,
+        "id1": 155
+      },
+      "uplinkCross": {
+        "id0": 155,
+        "id1": 150
+      },
+      "downlinkCross": {
+        "id0": 153,
+        "id1": 148
+      }
     }
   ],
   "sensors": [
-
   ]
 }

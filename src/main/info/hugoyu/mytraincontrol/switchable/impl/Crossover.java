@@ -1,22 +1,22 @@
 package info.hugoyu.mytraincontrol.switchable.impl;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
-import info.hugoyu.mytraincontrol.commandstation.task.RecursiveCommandStationTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetThrottleTask;
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.switchable.Switchable;
+import javafx.util.Pair;
 import jmri.DccThrottle;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.List;
 
 import static info.hugoyu.mytraincontrol.switchable.Switchable.State.CLOSED;
 
 @Setter
 @Getter
 public class Crossover implements Switchable {
+
+    private static final long CROSSOVER_SWITCH_DELAY_MILLIS = 100;
 
     private int address;
     private State state;
@@ -31,10 +31,14 @@ public class Crossover implements Switchable {
         DccThrottle crossoverThrottle = getCrossoverThrottle();
 
         int throttlePercent = state == CLOSED ? 100 : -100;
-        return new RecursiveCommandStationTask(List.of(
-                new SetThrottleTask(crossoverThrottle, throttlePercent),
-                new SetThrottleTask(crossoverThrottle, 0, 100)
-        ));
+        return new SetThrottleTask(
+                crossoverThrottle,
+                throttlePercent,
+                CROSSOVER_SWITCH_DELAY_MILLIS,
+                new Pair<>(
+                        new SetThrottleTask(crossoverThrottle, 0),
+                        CROSSOVER_SWITCH_DELAY_MILLIS
+                ));
     }
 
     private DccThrottle getCrossoverThrottle() {

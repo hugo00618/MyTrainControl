@@ -2,6 +2,7 @@ package info.hugoyu.mytraincontrol.layout.movingblock;
 
 import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Route;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
@@ -62,8 +63,8 @@ public class MovingBlockManager {
     }
 
     public void calibrate(Position sensorPosition, SensorState sensorState) {
-        final long referenceNode = sensorPosition.getReferenceNode();
-        Route remainingRoute = RouteUtil.findRoute(referenceNode, getDestinationId(), isUplink);
+        final Vector referenceNodeVector = sensorPosition.getReferenceNodeVector();
+        Route remainingRoute = RouteUtil.findRoute(referenceNodeVector.getId0(), getDestinationId(), isUplink);
         int calibratedDistToMove = calcCalibratedDistToMove(trainset, remainingRoute, sensorPosition, sensorState);
 
         double offset;
@@ -91,7 +92,7 @@ public class MovingBlockManager {
         }
 
         if (isStopRoutineInitiated) {
-            StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(remainingRoute.getDestinationNode());
+            StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(remainingRoute.getDestinationVector());
             calibratedDistToMove += stationTrackNode.getInboundMoveDist(trainset);
         }
         if (sensorState == EXIT) {
@@ -102,7 +103,8 @@ public class MovingBlockManager {
     }
 
     private int calcDistToMove(Trainset trainset, Route route) {
-        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(nodesToAllocate.get(0));
+        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(
+                new Vector(nodesToAllocate.get(0), nodesToAllocate.get(1)));
         int stationOutBoundMoveDist = stationTrackNode.getInboundMoveDist(trainset);
         if (isUplink == stationTrackNode.isUplink()) {
             return route.getCost() - stationOutBoundMoveDist;

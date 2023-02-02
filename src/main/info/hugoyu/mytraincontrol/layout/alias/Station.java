@@ -8,17 +8,23 @@ import java.util.List;
 
 @Getter
 public class Station {
-    private String id;
-    private String name;
-    private List<StationTrackNode> stationTrackNodes;
-    private List<Long> entryNodeIds;
+    private final String id;
+    private final String name;
+    private final List<StationTrackNode> stationTrackNodes;
+    private final Long uplinkEntryNode, downlinkEntryNode;
+
     private final Object stationLock = new Object();
 
-    public Station(String id, String name, List<StationTrackNode> stationTrackNodes, List<Long> entryNodeIds) {
+    public Station(String id,
+                   String name,
+                   List<StationTrackNode> stationTrackNodes,
+                   Long uplinkEntryNode,
+                   Long downlinkEntryNode) {
         this.id = id;
         this.name = name;
         this.stationTrackNodes = stationTrackNodes;
-        this.entryNodeIds = entryNodeIds;
+        this.uplinkEntryNode = uplinkEntryNode;
+        this.downlinkEntryNode = downlinkEntryNode;
 
         stationTrackNodes.forEach(stationTrackNode -> stationTrackNode.setStation(this));
     }
@@ -27,7 +33,8 @@ public class Station {
         this(stationJson.getId(),
                 stationJson.getName(),
                 stationTrackNodes,
-                stationJson.getEntryNodeIds());
+                stationJson.getUplinkEntryNode(),
+                stationJson.getDownlinkEntryNode());
     }
 
     public void waitForStationTrack() throws InterruptedException {
@@ -35,6 +42,7 @@ public class Station {
             stationLock.wait();
         }
     }
+
     public void broadcast() {
         synchronized (stationLock) {
             stationLock.notifyAll();

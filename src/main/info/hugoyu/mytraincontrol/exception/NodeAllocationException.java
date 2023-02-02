@@ -1,6 +1,6 @@
 package info.hugoyu.mytraincontrol.exception;
 
-import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j;
@@ -18,12 +18,12 @@ public class NodeAllocationException extends Exception {
 
     private ExceptionType exceptionType;
 
-    public NodeAllocationException(ExceptionType exceptionType, Trainset trainset, AbstractTrackNode node, int dist) {
+    public NodeAllocationException(ExceptionType exceptionType, Trainset trainset, Vector vector, int dist) {
         super(String.format("%s while %s alloc/freeing node %s for distance %d",
-                exceptionType, trainset.getName(), node.getIds().get(0), dist));
+                exceptionType, trainset.getName(), vector.toString(), dist));
 
         log.error(String.format("%s: exception %s while alloc/freeing node %s for distance %d",
-                trainset.getName(), exceptionType, node.getIds().get(0), dist));
+                trainset.getName(), exceptionType, vector.toString(), dist));
 
         this.exceptionType = exceptionType;
     }

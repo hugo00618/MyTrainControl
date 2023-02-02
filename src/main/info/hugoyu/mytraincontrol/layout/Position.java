@@ -9,7 +9,7 @@ import lombok.Getter;
 @AllArgsConstructor
 @Getter
 public class Position {
-    private long referenceNode;
+    private Vector referenceNodeVector;
     private boolean isUplink;
     private int offset;
 }

@@ -6,11 +6,13 @@ import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
-import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Route;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
+import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
+import info.hugoyu.mytraincontrol.util.AllocateUtil;
 import info.hugoyu.mytraincontrol.util.CommandStationUtil;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.LightState;
@@ -20,7 +22,6 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -236,38 +237,35 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public void addAllocatedNode(long nodeId) {
+    public void addAllocatedNodes(List<Long> nodes) {
         synchronized (allocatedNodesLock) {
-            if (!allocatedNodes.contains(nodeId)) {
-                allocatedNodes.add(nodeId);
-            }
+            nodes.forEach(node -> {
+                if (!allocatedNodes.contains(node)) {
+                    allocatedNodes.add(node);
+                }
+            });
         }
     }
 
-    public long getFirstAllocatedNodeId() {
+    public void removeFirstAllocatedNode() {
         synchronized (allocatedNodesLock) {
-            return getAllocatedNode(0);
+            allocatedNodes.remove(0);
         }
     }
 
-    public long getLastAllocatedNodeId() {
+    public Vector getFirstAllocatedVector() {
         synchronized (allocatedNodesLock) {
-            return getAllocatedNode(allocatedNodes.size() - 1);
+            return new Vector(allocatedNodes.get(0), allocatedNodes.get(1));
         }
     }
 
-    private long getAllocatedNode(int idx) {
-        synchronized (allocatedNodesLock) {
-            if (idx >= allocatedNodes.size()) {
-                throw new RuntimeException(String.format("%s: getAllocatedNode out of bound for index: %d", name, idx));
-            }
-            return allocatedNodes.get(idx);
-        }
+    public StationTrackNode getAllocatedStationTrack() {
+        return LayoutUtil.getStationTrackNode(getAllocatedVector());
     }
 
-    public void removeAllocatedNode(Long nodeId) {
+    private Vector getAllocatedVector() {
         synchronized (allocatedNodesLock) {
-            allocatedNodes.remove(nodeId);
+            return new Vector(allocatedNodes.get(0), allocatedNodes.get(1));
         }
     }
 
@@ -278,15 +276,10 @@ public class Trainset implements TaskExecutionListener {
         movingBlockManager = new MovingBlockManager(this);
 
         synchronized (allocatedNodesLock) {
-            allocatedNodes.stream()
-                    .map(LayoutUtil::getNode)
-                    .forEach(node -> {
-                        try {
-                            node.freeAll(this);
-                        } catch (NodeAllocationException e) {
-                            throw new RuntimeException(e);
-                        }
-                    });
+            for (int i = 0; i < allocatedNodes.size() - 1; i++) {
+                Vector vector = new Vector(allocatedNodes.get(i), allocatedNodes.get(i + 1));
+                AllocateUtil.freeAllNodes(vector, this);
+            }
 
             allocatedNodes = new ArrayList<>();
         }
@@ -300,13 +293,7 @@ public class Trainset implements TaskExecutionListener {
 
     public Map<Long, String> getAllocatedNodesSummary() {
         synchronized (allocatedNodesLock) {
-            Map<Long, String> res = new HashMap<>();
-            allocatedNodes.forEach(nodeId -> {
-                String summary = LayoutUtil.getNode(nodeId)
-                        .getOwnerStatus(address);
-                res.put(nodeId, summary);
-            });
-            return res;
+            return null;
         }
     }
 

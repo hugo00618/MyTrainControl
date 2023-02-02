@@ -18,7 +18,9 @@ public class Route implements Comparable<Route> {
         return this.cost - o.cost;
     }
 
-    public long getDestinationNode() {
-        return nodes.get(nodes.size() - 1);
+    public Vector getDestinationVector() {
+        return new Vector(
+                nodes.get(nodes.size() - 2),
+                nodes.get(nodes.size() - 1));
     }
 }

@@ -56,7 +56,7 @@ public class PrintCommand implements Command {
 
             System.out.println("\tTracks:");
             station.getStationTrackNodes().forEach(stationTrackNode ->
-                    System.out.println("\t\t" + stationTrackNode.getIds().get(0)));
+                    System.out.println("\t\t" + stationTrackNode.getId0()));
         });
         System.out.println();
     }

@@ -1,6 +1,7 @@
 package info.hugoyu.mytraincontrol.registry;
 
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import jmri.Sensor;
 
 import java.util.HashMap;
@@ -11,9 +12,9 @@ public class SensorRegistry {
     private static SensorRegistry instance;
 
     /**
-     * map<sensor, owning track nodes>
+     * map<sensor, owning track node>
      */
-    private Map<Sensor, Long> sensors;
+    private Map<Sensor, Vector> sensors;
 
     private SensorRegistry() {
         sensors = new HashMap<>();
@@ -26,14 +27,10 @@ public class SensorRegistry {
         return instance;
     }
 
-    public void registerSensor(Sensor sensor, long node) {
+    public void registerSensor(Sensor sensor,  Vector nodeVector) {
         if (sensors.containsKey(sensor)) {
             throw new InvalidIdException(sensor.getDisplayName(), InvalidIdException.Type.DUPLICATE);
         }
-        sensors.put(sensor, node);
-    }
-
-    public long getOwner(Sensor sensor) {
-        return sensors.get(sensor);
+        sensors.put(sensor, nodeVector);
     }
 }

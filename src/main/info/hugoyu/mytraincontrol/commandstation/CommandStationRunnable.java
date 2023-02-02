@@ -2,14 +2,17 @@ package info.hugoyu.mytraincontrol.commandstation;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 
+import java.util.Optional;
+
 public class CommandStationRunnable implements Runnable {
 
     private static CommandStationRunnable instance;
 
     private static final long MIN_UPDATE_INTERVAL = 20;
 
-    private static long lastExecutedTime = 0;
-    private static CommandStation commandStation;
+    private long nextAvailableExecutionTime = 0;
+    private long nextAvailableHighCurrentExecutionTime = 0;
+    private CommandStation commandStation;
 
     private CommandStationRunnable() {
         commandStation = CommandStation.getInstance();
@@ -27,23 +30,47 @@ public class CommandStationRunnable implements Runnable {
     @Override
     public void run() {
         while (true) {
-            if (System.currentTimeMillis() - lastExecutedTime >= MIN_UPDATE_INTERVAL) {
-                AbstractCommandStationTask task = commandStation.getAvailableTask();
-                if (task != null) {
-                    task.execute();
-                    lastExecutedTime = System.currentTimeMillis();
-                }
-            } else {
-                try {
-                    // sleep till next execution window opens
-                    long sleepTime = lastExecutedTime + MIN_UPDATE_INTERVAL - System.currentTimeMillis();
-                    if (sleepTime > 0) {
-                        Thread.sleep(sleepTime);
-                    }
-                } catch (InterruptedException e) {
+            sleepIfNeeded();
 
+            AbstractCommandStationTask task = commandStation.getAvailableTask(true);
+            if (task != null) {
+                task.execute();
+
+                long executionTime = System.currentTimeMillis();
+                nextAvailableExecutionTime = executionTime + MIN_UPDATE_INTERVAL;
+                nextAvailableHighCurrentExecutionTime = executionTime + task.getHighCurrentConsumptionPeriod();
+
+                AbstractCommandStationTask nextTask = task.getNextTask(executionTime);
+                if (nextTask != null) {
+                    commandStation.addTask(nextTask);
                 }
             }
+        }
+    }
+
+    private void sleepIfNeeded() {
+        long nextAvailableTime = nextAvailableExecutionTime;
+        if (isNextTaskHighCurrentConsumption()) {
+            nextAvailableTime = Math.max(nextAvailableTime, nextAvailableHighCurrentExecutionTime);
+        }
+        sleep(nextAvailableTime);
+    }
+
+    private boolean isNextTaskHighCurrentConsumption() {
+        return Optional.ofNullable(commandStation.getAvailableTask(false))
+                .map(AbstractCommandStationTask::isHighCurrentConsumptionTask)
+                .orElse(false);
+    }
+
+    private void sleep(long until) {
+        try {
+            // sleep till next execution window opens
+            long sleepTime = until - System.currentTimeMillis();
+            if (sleepTime > 0) {
+                Thread.sleep(sleepTime);
+            }
+        } catch (InterruptedException e) {
+
         }
     }
 }

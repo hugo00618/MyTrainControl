@@ -8,6 +8,6 @@ import java.util.List;
 public class StationJson {
     private String id;
     private String name;
-    private List<Long> entryNodeIds;
+    private Long uplinkEntryNode, downlinkEntryNode;
     private List<StationTrackJson> uplinkTracks, downlinkTracks;
 }

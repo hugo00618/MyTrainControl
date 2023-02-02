@@ -1,11 +1,12 @@
 package info.hugoyu.mytraincontrol.commandstation.task.impl;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
+import javafx.util.Pair;
 import jmri.DccThrottle;
 
 public class SetThrottleTask extends AbstractCommandStationTask {
-
     private DccThrottle throttle;
+
     private int throttlePercent;
 
     public SetThrottleTask(DccThrottle throttle, int throttlePercent) {
@@ -15,11 +16,14 @@ public class SetThrottleTask extends AbstractCommandStationTask {
         this.throttle = throttle;
     }
 
-    public SetThrottleTask(DccThrottle throttle, int throttlePercent, long delay) {
-        super(System.currentTimeMillis(), delay);
+    public SetThrottleTask(DccThrottle throttle,
+                           int throttlePercent,
+                           long highCurrentConsumptionPeriod,
+                           Pair<AbstractCommandStationTask, Long> nextTask) {
+        this(throttle, throttlePercent);
 
-        this.throttlePercent = throttlePercent;
-        this.throttle = throttle;
+        super.highCurrentConsumptionPeriod = highCurrentConsumptionPeriod;
+        super.nextTask = nextTask;
     }
 
     @Override

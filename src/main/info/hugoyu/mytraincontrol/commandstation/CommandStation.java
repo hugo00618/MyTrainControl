@@ -2,7 +2,6 @@ package info.hugoyu.mytraincontrol.commandstation;
 
 import com.google.common.annotations.VisibleForTesting;
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
-import info.hugoyu.mytraincontrol.commandstation.task.Deduplicatable;
 
 import java.util.Optional;
 import java.util.PriorityQueue;
@@ -33,31 +32,31 @@ public class CommandStation {
     }
 
     public void addTask(AbstractCommandStationTask newTask) {
-        if (newTask.getSubtasks() != null) {
-            newTask.getSubtasks().forEach(this::addTask);
-        } else {
-            synchronized (tasksLock) {
-                Optional<AbstractCommandStationTask> duplicateTaskOptional = tasks.stream()
-                        .filter(task -> task.isDuplicate(newTask))
-                        .findFirst();
+        synchronized (tasksLock) {
+            Optional<AbstractCommandStationTask> duplicateTaskOptional = tasks.stream()
+                    .filter(task -> task.isDuplicate(newTask))
+                    .findFirst();
 
-                if (duplicateTaskOptional.isPresent()) {
-                    AbstractCommandStationTask duplicateTask = duplicateTaskOptional.get();
-                    removeFromTasks(duplicateTask);
-                    duplicateTask.dedupe(newTask);
-                    tasks.add(duplicateTask);
-                } else {
-                    tasks.add(newTask);
-                }
+            if (duplicateTaskOptional.isPresent()) {
+                AbstractCommandStationTask duplicateTask = duplicateTaskOptional.get();
+                removeFromTasks(duplicateTask);
+                duplicateTask.dedupe(newTask);
+                tasks.add(duplicateTask);
+            } else {
+                tasks.add(newTask);
             }
         }
     }
 
-    public AbstractCommandStationTask getAvailableTask() {
+    public AbstractCommandStationTask getAvailableTask(boolean poll) {
         synchronized (tasksLock) {
             AbstractCommandStationTask task = tasks.peek();
             if (task != null && System.currentTimeMillis() >= task.getScheduledExecutionTime()) {
-                return tasks.poll();
+                if (poll) {
+                    return tasks.poll();
+                } else {
+                    return task;
+                }
             } else {
                 return null;
             }

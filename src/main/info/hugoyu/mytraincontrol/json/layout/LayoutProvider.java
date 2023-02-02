@@ -1,8 +1,9 @@
 package info.hugoyu.mytraincontrol.json.layout;
 
 import info.hugoyu.mytraincontrol.layout.Position;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
-import info.hugoyu.mytraincontrol.layout.node.Connection;
+import info.hugoyu.mytraincontrol.layout.Connection;
 import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
 import info.hugoyu.mytraincontrol.layout.node.impl.CrossoverNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
@@ -21,6 +22,7 @@ import info.hugoyu.mytraincontrol.util.SensorUtil;
 import jmri.Sensor;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -59,9 +61,7 @@ public class LayoutProvider {
 
         // sensors
         layoutJson.getSensors().forEach(
-                sensorJson -> registerSensor(sensorJson.getAddress(),
-                        new Position(sensorJson.getNodeId(), sensorJson.isUplink(), sensorJson.getOffset()),
-                        sensorJson.getNodeId())
+                sensorJson -> registerSensor(sensorJson)
         );
     }
 
@@ -93,52 +93,69 @@ public class LayoutProvider {
     private static void registerCrossover(CrossoverJson crossoverJson, LayoutRegistry layoutRegistry) {
         Crossover crossover = CrossoverRegistry.getInstance().registerCrossover(crossoverJson);
         List<Connection> crossConnections = constructCrossConnections(crossoverJson);
-        layoutRegistry.registerGraphNode(new CrossoverNode(crossoverJson, crossConnections, crossover));
+
+        final int length = crossoverJson.getLength();
+        Connection uplinkStraightConnection = constructCrossoverConnection(crossoverJson.getUplinkStraight(), length, true);
+        Connection downlinkStraightConnection = constructCrossoverConnection(crossoverJson.getDownlinkStraight(), length, false);
+
+        layoutRegistry.registerGraphNode(
+                new CrossoverNode(
+                        crossoverJson,
+                        uplinkStraightConnection,
+                        downlinkStraightConnection,
+                        crossConnections,
+                        crossover));
     }
 
     private static List<Connection> constructCrossConnections(CrossoverJson crossoverJson) {
-        List<Connection> connections = constructCrossConnections(crossoverJson.getUplinkCrosses(), true);
-        connections.addAll(constructCrossConnections(crossoverJson.getDownlinkCrosses(), false));
-        return connections;
+        final int dist = crossoverJson.getCrossLength();
+        return Stream.of(constructCrossoverConnection(crossoverJson.getUplinkCross(), dist, true),
+                        constructCrossoverConnection(crossoverJson.getDownlinkCross(), dist, false))
+                .filter(Objects::nonNull)
+                .collect(Collectors.toList());
     }
 
-    private static List<Connection> constructCrossConnections(List<CrossoverJson.CrossConnectionJson> crossConnectionJsons,
-                                                              boolean isUplink) {
-        if (crossConnectionJsons != null) {
-            return crossConnectionJsons.stream()
-                    .map(crossConnectionJson -> new Connection(
-                            crossConnectionJson.getId0(),
-                            crossConnectionJson.getId1(),
-                            crossConnectionJson.getDist(),
-                            isUplink,
-                            crossConnectionJson.isBidirectional()))
-                    .collect(Collectors.toList());
+    private static Connection constructCrossoverConnection(VectorJson vectorJson, int dist, boolean isUplink) {
+        if (vectorJson == null) {
+            return null;
         } else {
-            return List.of();
+            return new Connection(
+                    vectorJson.getId0(),
+                    vectorJson.getId1(),
+                    dist,
+                    isUplink,
+                    true); // defaults crossover connections to bidirectional
         }
     }
 
-    private static void registerSensor(int address, Position position, long owningNodeId) {
+    private static void registerSensor(SensorJson sensorJson) {
+        int address = sensorJson.getAddress();
+
+        Vector nodeVector = new Vector(sensorJson.getNodeVector());
+        SensorAttachable node = (SensorAttachable) LayoutRegistry.getInstance().getNode(nodeVector);
+
+        Position position = new Position(nodeVector, sensorJson.isUplink(), sensorJson.getOffset());
+
         Sensor sensor = SensorUtil.getSensor(address, new SensorChangeListener() {
             @Override
             public void onEnter(Sensor sensor) {
-                calibrateOwnerMovingBlockManager(sensor, SensorState.ENTER);
+                calibrateOwnerMovingBlockManager(SensorState.ENTER);
             }
 
             @Override
             public void onExit(Sensor sensor) {
-                calibrateOwnerMovingBlockManager(sensor, SensorState.EXIT);
+                calibrateOwnerMovingBlockManager(SensorState.EXIT);
             }
 
-            private void calibrateOwnerMovingBlockManager(Sensor sensor, SensorState sensorState) {
-                long nodeId = SensorRegistry.getInstance().getOwner(sensor);
-                SensorAttachable node = (SensorAttachable) LayoutRegistry.getInstance().getNode(nodeId);
+            private void calibrateOwnerMovingBlockManager(SensorState sensorState) {
+
                 Trainset occupyingTrainset = node.getOccupier(position);
                 if (occupyingTrainset != null) {
                     occupyingTrainset.calibrate(position, sensorState);
                 }
             }
         });
-        SensorRegistry.getInstance().registerSensor(sensor, owningNodeId);
+
+        SensorRegistry.getInstance().registerSensor(sensor, nodeVector);
     }
 }

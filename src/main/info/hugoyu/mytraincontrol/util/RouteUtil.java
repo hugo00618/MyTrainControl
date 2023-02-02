@@ -2,38 +2,58 @@ package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
+import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class RouteUtil {
 
-    public static Route findRouteToStation(Trainset trainset, long from, String stationAlias) {
+    /**
+     * @param trainset
+     * @param from
+     * @param stationAlias
+     * @return route to the closest entry node
+     */
+    public static Route findRouteToStation(Trainset trainset, RegularTrackNode from, String stationAlias) {
         Station station = LayoutUtil.getStation(stationAlias);
 
         boolean isTrainsetAbleToFit = station.getStationTrackNodes().stream()
                 .anyMatch(stationTrackNode -> stationTrackNode.isPlatformTrackAbleToFit(trainset));
         if (isTrainsetAbleToFit) {
-            return station.getEntryNodeIds().stream()
-                    .flatMap(entryNodeId -> Stream.ofNullable(findRoute(from, entryNodeId)))
-                    .min(Route::compareTo)
+            Route uplinkRoute = Optional.ofNullable(station.getUplinkEntryNode())
+                    .map(uplinkEntryNode ->
+                            findRoute(from.getNodeIdForRoute(true), uplinkEntryNode, true))
                     .orElse(null);
+            Route downlinkRoute = Optional.ofNullable(station.getDownlinkEntryNode())
+                    .map(downlinkEntryNode ->
+                            findRoute(from.getNodeIdForRoute(false), downlinkEntryNode, false))
+                    .orElse(null);
+
+            if (uplinkRoute == null) {
+                return downlinkRoute;
+            } else if (downlinkRoute == null) {
+                return uplinkRoute;
+            } else {
+                return Collections.min(List.of(uplinkRoute, downlinkRoute));
+            }
         }
         return null;
     }
 
-    public static List<Route> findReachableStations(Trainset trainset) {
-        long fromStationTrackNodeId = trainset.getLastAllocatedNodeId();
+    public static List<Route> findReachableStations(Trainset trainset, RegularTrackNode from) {
         return LayoutUtil.getStations().keySet().stream()
-                .flatMap(station -> Stream.ofNullable(findRouteToStation(trainset, fromStationTrackNodeId, station)))
+                .flatMap(station -> Stream.ofNullable(findRouteToStation(trainset, from, station)))
                 .collect(Collectors.toList());
     }
 
@@ -44,11 +64,20 @@ public class RouteUtil {
      * @param isPassingTrackRequired
      * @return
      */
-    public static Route findRouteToAvailableStationTrack(Trainset trainset, long entryNodeId,
-                                                         boolean isPassingTrackRequired, boolean isPlatformTrackRequired) {
+    public static Route findRouteToAvailableStationTrack(
+            Trainset trainset,
+            long entryNodeId,
+            boolean isUplink,
+            boolean isPassingTrackRequired,
+            boolean isPlatformTrackRequired) {
         Station station = LayoutUtil.getStation(entryNodeId);
         while (true) {
-            Route route = getRouteToAvailableTrack(trainset, entryNodeId, isPassingTrackRequired, isPlatformTrackRequired);
+            Route route = findRouteToAvailableTrack(
+                    trainset,
+                    entryNodeId,
+                    isUplink,
+                    isPassingTrackRequired,
+                    isPlatformTrackRequired);
             if (route == null) {
                 try {
                     station.waitForStationTrack();
@@ -61,8 +90,12 @@ public class RouteUtil {
         }
     }
 
-    private static Route getRouteToAvailableTrack(Trainset trainset, long entryNodeId,
-                                                  boolean isPassingTrackRequired, boolean isPlatformTrackRequired) {
+    private static Route findRouteToAvailableTrack(
+            Trainset trainset,
+            long entryNodeId,
+            boolean isUplink,
+            boolean isPassingTrackRequired,
+            boolean isPlatformTrackRequired) {
         Station station = LayoutUtil.getStation(entryNodeId);
         return station.getStationTrackNodes().stream()
                 .filter(StationTrackNode::isFree)
@@ -75,25 +108,18 @@ public class RouteUtil {
                 //     2. tracks with the lowest possible length
                 .sorted(Comparator.comparing(StationTrackNode::isPassingTrack)
                         .thenComparing(StationTrackNode::getTrackLength))
-                .map(stationTrackNode -> RouteUtil.findRoute(entryNodeId, stationTrackNode.getIds().get(0)))
+                .map(stationTrackNode -> RouteUtil.findRoute(entryNodeId, stationTrackNode, isUplink))
                 .filter(Objects::nonNull)
                 .findFirst()
                 .orElse(null);
     }
 
-    public static Route findRoute(long from, long to) {
-        Route uplinkRoute = findRoute(from, to, true),
-                downlinkRoute = findRoute(from, to, false);
-
-        if (uplinkRoute == null || downlinkRoute == null) {
-            return uplinkRoute == null ? downlinkRoute : uplinkRoute;
-        }
-
-        return uplinkRoute.compareTo(downlinkRoute) < 0 ? uplinkRoute : downlinkRoute;
-    }
-
     public static Route findRoute(long from, long to, boolean isUplink) {
         return findRouteRecur(from, to, isUplink, new ArrayList<>(), 0);
+    }
+
+    private static Route findRoute(long from, RegularTrackNode to, boolean isUplink) {
+        return findRoute(from, to.getNodeIdForRoute(isUplink), isUplink);
     }
 
     private static Route findRouteRecur(long nodeId, long destinationId, boolean isUplink,

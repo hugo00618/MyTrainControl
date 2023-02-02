@@ -1,9 +1,8 @@
 package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import com.google.common.collect.Range;
-import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.json.layout.StationTrackJson;
-import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
@@ -47,14 +46,12 @@ public class StationTrackNode extends RegularTrackNode {
     }
 
     @Override
-    public BlockSectionResult free(Trainset trainset, int dist) throws NodeAllocationException {
-        BlockSectionResult blockSectionResult = super.free(trainset, dist);
+    public void removeOccupier(Vector vector, Trainset trainset) {
+        super.removeOccupier(vector, trainset);
 
-        if (blockSectionResult.isEntireSectionConsumed() && station != null) {
+        if (station != null) {
             station.broadcast();
         }
-
-        return blockSectionResult;
     }
 
     /**
@@ -65,35 +62,17 @@ public class StationTrackNode extends RegularTrackNode {
         return isPlatformTrack && trainset.getTotalLength() <= length;
     }
 
-    public boolean reserve(Trainset trainset) {
-        if (!isPlatformTrackAbleToFit(trainset)) {
-            return false;
-        }
-
-        synchronized (ownersLock) {
-            Range<Integer> entireSection = Range.closedOpen(0, length);
-            if (!isFree(trainset, entireSection)) {
-                return false;
-            }
-
-            try {
-                trainset.freeAllNodes();
-
-                // allocate the centering section
-                alloc(trainset, getInboundMoveDist(trainset), null, null);
-                free(trainset, getInboundMargin(trainset));
-
-                trainset.addAllocatedNode(this.id0);
-                return true;
-            } catch (NodeAllocationException e) {
-                throw new RuntimeException(e);
-            }
+    @Override
+    public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
+        synchronized (occupierLock) {
+            // return true if there is no occupier or if the current occupier is trainset itself
+            return occupiers.isEmpty() || occupiers.keySet().iterator().next().equals(trainset.getAddress());
         }
     }
 
     public boolean isFree() {
-        synchronized (ownersLock) {
-            return owners.isEmpty();
+        synchronized (occupierLock) {
+            return occupiers.isEmpty();
         }
     }
 
@@ -119,7 +98,7 @@ public class StationTrackNode extends RegularTrackNode {
      * @param trainset
      * @return length of the one-side margin for a train to be at the center of the track section
      */
-    private int getInboundMargin(Trainset trainset) {
+    public int getInboundMargin(Trainset trainset) {
         int trainLength = trainset.getTotalLength();
         return (length - trainLength) / 2;
     }

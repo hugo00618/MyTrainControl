@@ -12,8 +12,6 @@ public class TurnoutJson {
      */
     private long id;
 
-    private boolean isBidirectional;
-
     /**
      * Destination node ids
      */

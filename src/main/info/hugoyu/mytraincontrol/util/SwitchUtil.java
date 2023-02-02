@@ -20,4 +20,8 @@ public class SwitchUtil {
         }
     }
 
+    public static void setSwitchState(Switchable switchable, Switchable.State state) {
+        setSwitchState(switchable, state, false);
+    }
+
 }

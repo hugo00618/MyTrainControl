@@ -1,10 +1,10 @@
 package info.hugoyu.mytraincontrol.registry;
 
-import com.google.common.annotations.VisibleForTesting;
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
+import info.hugoyu.mytraincontrol.layout.Connection;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
-import info.hugoyu.mytraincontrol.layout.node.Connection;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -13,7 +13,7 @@ public class LayoutRegistry {
 
     private static LayoutRegistry instance;
 
-    private Map<Long, AbstractTrackNode> nodes = new HashMap<>();
+    private Map<Vector, AbstractTrackNode> nodes = new HashMap<>();
     private ConnectionRegistry connectionRegistry = new ConnectionRegistry();
     private Map<String, Station> aliases = new HashMap<>();
 
@@ -34,17 +34,20 @@ public class LayoutRegistry {
     }
 
     public void registerGraphNode(AbstractTrackNode node) {
-        node.getIds().forEach(id -> registerGraphNode(id, node));
+        node.getConnections().forEach(connection -> {
+            // register node
+            registerGraphNode(connection, node);
 
-        // add all node connections to the layout
-        node.getConnections().forEach(connection -> LayoutRegistry.getInstance().addConnection(connection));
+            // add all node connections to the layout
+            addConnection(connection);
+        });
     }
 
-    private void registerGraphNode(long id, AbstractTrackNode node) {
-        if (nodes.containsKey(id)) {
-            throw new InvalidIdException(id, InvalidIdException.Type.DUPLICATE);
+    private void registerGraphNode(Connection connection, AbstractTrackNode node) {
+        nodes.put(connection.getVector(), node);
+        if (connection.isBidirectional()) {
+            nodes.put(connection.getVector().reversed(), node);
         }
-        nodes.put(id, node);
     }
 
     public void registerAlias(Station station) {
@@ -57,8 +60,8 @@ public class LayoutRegistry {
 
     public void addConnection(Connection connection) {
         connectionRegistry.addConnection(
-                connection.getId0(),
-                connection.getId1(),
+                connection.getVector().getId0(),
+                connection.getVector().getId1(),
                 connection.getDist(),
                 connection.isUplink(),
                 connection.isBidirectional());
@@ -73,11 +76,8 @@ public class LayoutRegistry {
         return connectionRegistry.getNextNodes(id, isUplink);
     }
 
-    public AbstractTrackNode getNode(long id) {
-        if (!nodes.containsKey(id)) {
-            throw new InvalidIdException(id, InvalidIdException.Type.NOT_FOUND);
-        }
-        return nodes.get(id);
+    public AbstractTrackNode getNode(Vector vector) {
+        return nodes.get(vector);
     }
 
     public Station getStation(String id) {
@@ -86,10 +86,5 @@ public class LayoutRegistry {
 
     public Map<String, Station> getStations() {
         return aliases;
-    }
-
-    @VisibleForTesting
-    Map<Long, AbstractTrackNode> getNodes() {
-        return nodes;
     }
 }

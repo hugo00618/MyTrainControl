@@ -3,6 +3,7 @@ package info.hugoyu.mytraincontrol.util;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetThrottleTask;
 import info.hugoyu.mytraincontrol.exception.RouteException;
 import info.hugoyu.mytraincontrol.layout.Route;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
@@ -44,9 +45,9 @@ public class TrainUtil {
         trainset.setIsLightOn(lightState);
     }
 
-    public static boolean allocateStationTrackImmediately(Trainset trainset, long trackNodeId) {
-        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(trackNodeId);
-        return stationTrackNode.reserve(trainset);
+    public static boolean allocateStationTrackImmediately(Trainset trainset, long trackNodeId0, long trackNodeId1) {
+        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(new Vector(trackNodeId0, trackNodeId1));
+        return AllocateUtil.reserveStationTrack(stationTrackNode, trainset);
     }
 
     public static void freeAllAllocatedNodes(Trainset trainset) {
@@ -60,8 +61,7 @@ public class TrainUtil {
     }
 
     public static void moveTo(Trainset trainset, String stationId) {
-        long fromNodeId = trainset.getLastAllocatedNodeId();
-        Route route = RouteUtil.findRouteToStation(trainset, fromNodeId, stationId);
+        Route route = RouteUtil.findRouteToStation(trainset, trainset.getAllocatedStationTrack(), stationId);
         if (route == null) {
             throw new RouteException(String.format("No route to station: %s", stationId));
         }

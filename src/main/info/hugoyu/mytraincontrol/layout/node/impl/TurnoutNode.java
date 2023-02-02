@@ -1,14 +1,11 @@
 package info.hugoyu.mytraincontrol.layout.node.impl;
 
-import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Range;
 import com.google.gson.annotations.SerializedName;
-import info.hugoyu.mytraincontrol.exception.InvalidIdException;
-import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
-import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
+import info.hugoyu.mytraincontrol.layout.Connection;
+import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
-import info.hugoyu.mytraincontrol.layout.node.Connection;
 import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SwitchUtil;
@@ -16,8 +13,7 @@ import lombok.Getter;
 
 import java.util.List;
 import java.util.Map;
-
-import static info.hugoyu.mytraincontrol.layout.node.impl.TurnoutNode.Type.DIVERGE;
+import java.util.Optional;
 
 public class TurnoutNode extends AbstractTrackNode {
 
@@ -46,12 +42,12 @@ public class TurnoutNode extends AbstractTrackNode {
     private int address;
     private Turnout turnout;
 
-    private final boolean isUplink, isBidirectional;
+    private final boolean isUplink;
 
-    private Integer owner;
-    private Range<Integer> ownedRange;
-    private int length;
-    private final Object ownerLock = new Object();
+    private Integer occupier;
+    private Vector occupiedVector;
+    private Range<Integer> occupiedRange;
+    private final Object occupierLock = new Object();
 
     /**
      * @param id         id of the turnout node
@@ -65,9 +61,9 @@ public class TurnoutNode extends AbstractTrackNode {
      */
     public TurnoutNode(long id, long idClosed, long idThrown,
                        int distClosed, int distThrown, Type type, int address,
-                       boolean isUplink, boolean isBidirectional,
+                       boolean isUplink,
                        Turnout turnout) {
-        super();
+        super(true);
 
         this.id = id;
         this.idClosed = idClosed;
@@ -77,7 +73,6 @@ public class TurnoutNode extends AbstractTrackNode {
         this.type = type;
         this.address = address;
         this.isUplink = isUplink;
-        this.isBidirectional = isBidirectional;
         this.turnout = turnout;
     }
 
@@ -90,7 +85,6 @@ public class TurnoutNode extends AbstractTrackNode {
                 turnoutJson.getType(),
                 turnoutJson.getAddress(),
                 isUplink,
-                turnoutJson.isBidirectional(),
                 turnout);
     }
 
@@ -99,136 +93,97 @@ public class TurnoutNode extends AbstractTrackNode {
         switch (type) {
             case MERGE:
                 return List.of(
-                        new Connection(idClosed, id, distClosed, isUplink, isBidirectional),
-                        new Connection(idThrown, id, distThrown, isUplink, isBidirectional));
+                        new Connection(idClosed, id, distClosed, isUplink, true),
+                        new Connection(idThrown, id, distThrown, isUplink, true));
             case DIVERGE:
                 return List.of(
-                        new Connection(id, idClosed, distClosed, isUplink, isBidirectional),
-                        new Connection(id, idThrown, distThrown, isUplink, isBidirectional));
+                        new Connection(id, idClosed, distClosed, isUplink, true),
+                        new Connection(id, idThrown, distThrown, isUplink, true));
             default:
                 throw new RuntimeException("Unsupported turnout type");
         }
     }
 
     @Override
-    public List<Long> getIds() {
-        switch (type) {
-            case MERGE:
-                return List.of(idClosed, idThrown);
-            case DIVERGE:
-                return List.of(id);
-            default:
-                throw new RuntimeException("Unsupported turnout type");
+    public Object getOccupierLock() {
+        return occupierLock;
+    }
+
+    @Override
+    public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
+        synchronized (occupierLock) {
+            // return true if there is no occupier or if the current occupier is trainset itself
+            return occupier == null || occupier.equals(trainset.getAddress());
         }
     }
 
     @Override
-    public BlockSectionResult alloc(Trainset trainset, int dist, Long nextNodeId, Long previousNodeId) throws
-            NodeAllocationException {
-        synchronized (ownerLock) {
-            final int trainsetAddress = trainset.getAddress();
-            if (owner == null || owner != trainsetAddress) { // if trainset is not the current owner
-
-                // wait if occupied
-                while (owner != null) {
-                    try {
-                        ownerLock.wait();
-                    } catch (InterruptedException e) {
-                        throw new RuntimeException(e);
-                    }
-                }
-
-                owner = trainsetAddress;
-                ownedRange = Range.closedOpen(0, 0);
-
-                long referenceNode = type == DIVERGE ? nextNodeId : previousNodeId;
-                if (referenceNode == idClosed) {
-                    length = distClosed;
-                    SwitchUtil.setSwitchState(turnout, Turnout.State.CLOSED, false);
-                } else if (referenceNode == idThrown) {
-                    length = distThrown;
-                    SwitchUtil.setSwitchState(turnout, Turnout.State.THROWN, false);
-                } else {
-                    throw new InvalidIdException(referenceNode, InvalidIdException.Type.NOT_FOUND);
-                }
-            }
-
-            int expectedUpperBound = ownedRange.upperEndpoint() + dist;
-            int actualUpperBound = Math.min(length, expectedUpperBound);
-            int allocatedDist = actualUpperBound - ownedRange.upperEndpoint();
-            int remainingDist = expectedUpperBound - actualUpperBound;
-            boolean isEntireSectionAllocated = actualUpperBound == length;
-
-            ownedRange = Range.closedOpen(ownedRange.lowerEndpoint(), actualUpperBound);
-
-            return new BlockSectionResult(allocatedDist, remainingDist, isEntireSectionAllocated);
+    public void setOccupier(Trainset trainset, Vector vector, Range<Integer> range) {
+        synchronized (occupierLock) {
+            occupier = trainset.getAddress();
+            occupiedVector = vector;
+            occupiedRange = range;
         }
     }
 
     @Override
-    public BlockSectionResult free(Trainset trainset, int dist) throws NodeAllocationException {
-        synchronized (ownerLock) {
-            int trainsetAddress = trainset.getAddress();
-            if (owner == null || owner != trainsetAddress || ownedRange == null) {
-                throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
-                        trainset, this, dist);
-            }
-
-            int expectedLowerBound = ownedRange.lowerEndpoint() + dist;
-            int actualLowerBound = Math.min(length, expectedLowerBound);
-            int freedDist = actualLowerBound - ownedRange.lowerEndpoint();
-            int remainingDist = expectedLowerBound - actualLowerBound;
-
-            Range<Integer> newOwnedRange;
-            try {
-                newOwnedRange = Range.closedOpen(actualLowerBound, ownedRange.upperEndpoint());
-            } catch (IllegalArgumentException e) { // invalid range
-                throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
-                        trainset, this, dist);
-            }
-
-            boolean isEntireSectionFreed = false;
-            if (newOwnedRange.isEmpty()) {
-                owner = null;
-                ownedRange = null;
-                isEntireSectionFreed = true;
-                ownerLock.notifyAll();
+    public void updateHardware() {
+        synchronized (occupierLock) {
+            if (isThrown(occupiedVector)) {
+                SwitchUtil.setSwitchState(turnout, Turnout.State.THROWN);
             } else {
-                ownedRange = newOwnedRange;
+                SwitchUtil.setSwitchState(turnout, Turnout.State.CLOSED);
             }
-
-            return new BlockSectionResult(freedDist, remainingDist, isEntireSectionFreed);
         }
     }
 
     @Override
-    public void freeAll(Trainset trainset) throws NodeAllocationException {
-        synchronized (ownerLock) {
-            int trainsetAddress = trainset.getAddress();
-            if (owner == null || owner != trainsetAddress || ownedRange == null) {
-                throw new NodeAllocationException(NodeAllocationException.ExceptionType.FREEING_UNOWNED_SECTION,
-                        trainset, this, 0);
-            }
+    public int getSectionLength(Vector vector) {
+        return isThrown(vector) ? distThrown : distClosed;
+    }
 
-            owner = null;
-            ownedRange = null;
-            ownerLock.notifyAll();
+    @Override
+    public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
+        synchronized (occupierLock) {
+            return Optional.ofNullable(occupiedRange);
+        }
+    }
+
+    @Override
+    public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOccupiedRange) {
+        synchronized (occupierLock) {
+            occupiedRange = newOccupiedRange;
+        }
+    }
+
+    @Override
+    public void removeOccupier(Vector vector, Trainset trainset) {
+        this.removeOccupier();
+    }
+
+    private boolean isThrown(Vector vector) {
+        return vector.getId0() == idThrown || vector.getId1() == idThrown;
+    }
+
+    @Override
+    public void freeAll(Trainset trainset) {
+        this.removeOccupier();
+    }
+
+    private void removeOccupier() {
+        synchronized (occupierLock) {
+            occupier = null;
+            occupiedRange = null;
         }
     }
 
     @Override
     public String getOwnerStatus(int ownerId) {
-        if (owner != null && owner == ownerId) {
-            return ownedRange.toString();
-        }
-        throw new RuntimeException(String.format("%d does not own node %d", ownerId, id));
+        return null;
     }
 
     @Override
     public Map<Integer, String> getOwnerSummary() {
-        if (owner != null) {
-            return ImmutableMap.of(owner, ownedRange.toString());
-        }
-        return ImmutableMap.of();
+        return null;
     }
 }

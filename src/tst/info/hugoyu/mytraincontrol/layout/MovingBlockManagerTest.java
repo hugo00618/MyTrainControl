@@ -4,6 +4,7 @@ import info.hugoyu.mytraincontrol.LayoutTestBase;
 import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
+import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.RouteUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -33,7 +34,7 @@ class MovingBlockManagerTest extends LayoutTestBase {
         // station track length: 1304
         // route length: 1923
         // route is downlink, station track is uplink
-        Route route = RouteUtil.findRouteToStation(trainset, 154, "s2");
+        Route route = RouteUtil.findRouteToStation(trainset, LayoutUtil.getStationTrackNode(new Vector(154, 156)), "s2");
         MovingBlockManager sut = new MovingBlockManager(trainset);
         sut.prepareToMove(route);
 
