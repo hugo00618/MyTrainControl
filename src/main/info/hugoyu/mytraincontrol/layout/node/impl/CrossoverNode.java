@@ -9,8 +9,8 @@ import info.hugoyu.mytraincontrol.switchable.Switchable;
 import info.hugoyu.mytraincontrol.switchable.impl.Crossover;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SwitchUtil;
-import javafx.util.Pair;
 
+import java.util.AbstractMap;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -27,7 +27,8 @@ public class CrossoverNode extends AbstractTrackNode {
     private final List<Connection> crossConnections;
 
     // (vector -> (owner -> ownedRange))
-    private final Map<Vector, Pair<Integer, Range<Integer>>> occupiers = new HashMap<>();
+    private final Map<Vector, AbstractMap.SimpleImmutableEntry<Integer, Range<Integer>>>
+            occupiers = new HashMap<>();
     private final Object occupierLock = new Object();
 
     protected CrossoverNode(int length, int crossLength,
@@ -79,7 +80,8 @@ public class CrossoverNode extends AbstractTrackNode {
             // when there's one occupier, return true only when both occupied and requesting connections are
             // straight connections so that they don't interfere with each other
             if (occupiers.size() == 1) {
-                Map.Entry<Vector, Pair<Integer, Range<Integer>>> occupierEntry = occupiers.entrySet().iterator().next();
+                Map.Entry<Vector, AbstractMap.SimpleImmutableEntry<Integer, Range<Integer>>> occupierEntry =
+                        occupiers.entrySet().iterator().next();
                 Vector occupiedVector = occupierEntry.getKey();
                 int currentOccupier = occupierEntry.getValue().getKey();
 
@@ -100,7 +102,7 @@ public class CrossoverNode extends AbstractTrackNode {
     @Override
     public void setOccupier(Trainset trainset, Vector vector, Range<Integer> range) {
         synchronized (occupierLock) {
-            occupiers.put(vector, new Pair<>(trainset.getAddress(), range));
+            occupiers.put(vector, new AbstractMap.SimpleImmutableEntry<>(trainset.getAddress(), range));
 
 
         }
@@ -132,14 +134,14 @@ public class CrossoverNode extends AbstractTrackNode {
     public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
         synchronized (occupierLock) {
             return Optional.ofNullable(occupiers.get(vector))
-                    .map(Pair::getValue);
+                    .map(AbstractMap.SimpleImmutableEntry::getValue);
         }
     }
 
     @Override
     public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOwnedRange) {
         synchronized (occupierLock) {
-            occupiers.put(vector, new Pair<>(trainset.getAddress(), newOwnedRange));
+            occupiers.put(vector, new AbstractMap.SimpleImmutableEntry<>(trainset.getAddress(), newOwnedRange));
         }
     }
 

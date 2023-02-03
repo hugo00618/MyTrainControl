@@ -1,8 +1,9 @@
 package info.hugoyu.mytraincontrol.commandstation.task;
 
-import javafx.util.Pair;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.AbstractMap;
 
 public abstract class AbstractCommandStationTask implements Comparable<AbstractCommandStationTask>, Deduplicatable {
 
@@ -24,7 +25,7 @@ public abstract class AbstractCommandStationTask implements Comparable<AbstractC
     protected long highCurrentConsumptionPeriod;
 
     // nextTask, delay
-    protected Pair<AbstractCommandStationTask, Long> nextTask;
+    protected AbstractMap.SimpleImmutableEntry<AbstractCommandStationTask, Long> nextTask;
 
     protected AbstractCommandStationTask() {
         this(System.currentTimeMillis());

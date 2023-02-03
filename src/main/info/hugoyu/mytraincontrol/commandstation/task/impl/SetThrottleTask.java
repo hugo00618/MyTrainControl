@@ -1,8 +1,9 @@
 package info.hugoyu.mytraincontrol.commandstation.task.impl;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
-import javafx.util.Pair;
 import jmri.DccThrottle;
+
+import java.util.AbstractMap;
 
 public class SetThrottleTask extends AbstractCommandStationTask {
     private DccThrottle throttle;
@@ -19,7 +20,7 @@ public class SetThrottleTask extends AbstractCommandStationTask {
     public SetThrottleTask(DccThrottle throttle,
                            int throttlePercent,
                            long highCurrentConsumptionPeriod,
-                           Pair<AbstractCommandStationTask, Long> nextTask) {
+                           AbstractMap.SimpleImmutableEntry<AbstractCommandStationTask, Long> nextTask) {
         this(throttle, throttlePercent);
 
         super.highCurrentConsumptionPeriod = highCurrentConsumptionPeriod;

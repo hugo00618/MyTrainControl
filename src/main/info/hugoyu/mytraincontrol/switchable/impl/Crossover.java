@@ -5,10 +5,11 @@ import info.hugoyu.mytraincontrol.commandstation.task.impl.SetThrottleTask;
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.switchable.Switchable;
-import javafx.util.Pair;
 import jmri.DccThrottle;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.AbstractMap;
 
 import static info.hugoyu.mytraincontrol.switchable.Switchable.State.CLOSED;
 
@@ -16,7 +17,7 @@ import static info.hugoyu.mytraincontrol.switchable.Switchable.State.CLOSED;
 @Getter
 public class Crossover implements Switchable {
 
-    private static final long CROSSOVER_SWITCH_DELAY_MILLIS = 100;
+    private static final long CROSSOVER_SWITCH_DELAY_MILLIS = 500;
 
     private int address;
     private State state;
@@ -35,7 +36,7 @@ public class Crossover implements Switchable {
                 crossoverThrottle,
                 throttlePercent,
                 CROSSOVER_SWITCH_DELAY_MILLIS,
-                new Pair<>(
+                new AbstractMap.SimpleImmutableEntry<>(
                         new SetThrottleTask(crossoverThrottle, 0),
                         CROSSOVER_SWITCH_DELAY_MILLIS
                 ));

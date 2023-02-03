@@ -34,7 +34,12 @@ public class Main {
         CommandUtil.runCommand(new String[]{"reg", "3", "N700A Series", "n700a-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "4", "500 Series", "500-4000.json"});
 //        CommandUtil.runCommand(new String[]{"reg", "5", "E6", "e6-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "12", "E2", "e2-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "13", "E3", "e3-4000.json"});
+        CommandUtil.runCommand(new String[]{"reg", "14", "E4", "e4-4000.json"});
         CommandUtil.runCommand(new String[]{"reg", "15", "E5E6", "e5e6-4300.json", "true"});
+        CommandUtil.runCommand(new String[]{"reg", "17", "E7", "e7-4000.json", "true"});
+
 
         LayoutUtil.registerLayout();
 
@@ -80,6 +85,7 @@ public class Main {
             } catch (CommandNotFoundException e) {
                 System.err.println("Command not found");
             } catch (CommandInvalidUsageException e) {
+                e.printStackTrace();
                 System.err.println("Usage: " + args[0] + " " + e.getMessage());
             } catch (Exception e) {
                 e.printStackTrace();
