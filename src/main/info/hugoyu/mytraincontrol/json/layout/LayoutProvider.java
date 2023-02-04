@@ -3,7 +3,6 @@ package info.hugoyu.mytraincontrol.json.layout;
 import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
-import info.hugoyu.mytraincontrol.layout.Connection;
 import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
 import info.hugoyu.mytraincontrol.layout.node.impl.CrossoverNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
@@ -22,7 +21,6 @@ import info.hugoyu.mytraincontrol.util.SensorUtil;
 import jmri.Sensor;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -92,40 +90,7 @@ public class LayoutProvider {
 
     private static void registerCrossover(CrossoverJson crossoverJson, LayoutRegistry layoutRegistry) {
         Crossover crossover = CrossoverRegistry.getInstance().registerCrossover(crossoverJson);
-        List<Connection> crossConnections = constructCrossConnections(crossoverJson);
-
-        final int length = crossoverJson.getLength();
-        Connection uplinkStraightConnection = constructCrossoverConnection(crossoverJson.getUplinkStraight(), length, true);
-        Connection downlinkStraightConnection = constructCrossoverConnection(crossoverJson.getDownlinkStraight(), length, false);
-
-        layoutRegistry.registerGraphNode(
-                new CrossoverNode(
-                        crossoverJson,
-                        uplinkStraightConnection,
-                        downlinkStraightConnection,
-                        crossConnections,
-                        crossover));
-    }
-
-    private static List<Connection> constructCrossConnections(CrossoverJson crossoverJson) {
-        final int dist = crossoverJson.getCrossLength();
-        return Stream.of(constructCrossoverConnection(crossoverJson.getUplinkCross(), dist, true),
-                        constructCrossoverConnection(crossoverJson.getDownlinkCross(), dist, false))
-                .filter(Objects::nonNull)
-                .collect(Collectors.toList());
-    }
-
-    private static Connection constructCrossoverConnection(VectorJson vectorJson, int dist, boolean isUplink) {
-        if (vectorJson == null) {
-            return null;
-        } else {
-            return new Connection(
-                    vectorJson.getId0(),
-                    vectorJson.getId1(),
-                    dist,
-                    isUplink,
-                    true); // defaults crossover connections to bidirectional
-        }
+        layoutRegistry.registerGraphNode(new CrossoverNode(crossoverJson, crossover));
     }
 
     private static void registerSensor(SensorJson sensorJson) {

@@ -31,11 +31,12 @@ public class CrossoverNode extends AbstractTrackNode {
             occupiers = new HashMap<>();
     private final Object occupierLock = new Object();
 
-    protected CrossoverNode(int length, int crossLength,
-                            Connection uplinkStraightConnection,
-                            Connection downlinkStraightConnection,
-                            List<Connection> crossConnections,
-                            Crossover crossover
+    private CrossoverNode(int length,
+                          int crossLength,
+                          Connection uplinkStraightConnection,
+                          Connection downlinkStraightConnection,
+                          List<Connection> crossConnections,
+                          Crossover crossover
     ) {
         super(true);
 
@@ -49,17 +50,16 @@ public class CrossoverNode extends AbstractTrackNode {
         this.crossConnections = crossConnections;
     }
 
-    public CrossoverNode(CrossoverJson crossoverJson,
-                         Connection uplinkStraightConnection,
-                         Connection downlinkStraightConnection,
-                         List<Connection> crossConnections,
-                         Crossover crossover) {
+    public CrossoverNode(CrossoverJson crossoverJson, Crossover crossover) {
         this(
                 crossoverJson.getLength(),
                 crossoverJson.getCrossLength(),
-                uplinkStraightConnection,
-                downlinkStraightConnection,
-                crossConnections,
+                new Connection(crossoverJson.getUplinkStraight(), crossoverJson.getLength(), true, true),
+                new Connection(crossoverJson.getDownlinkStraight(), crossoverJson.getLength(), false, true),
+                List.of(
+                        new Connection(crossoverJson.getUplinkCross(), crossoverJson.getCrossLength(), true, true),
+                        new Connection(crossoverJson.getDownlinkCross(), crossoverJson.getCrossLength(), false, true)
+                ),
                 crossover
         );
     }
@@ -103,8 +103,6 @@ public class CrossoverNode extends AbstractTrackNode {
     public void setOccupier(Trainset trainset, Vector vector, Range<Integer> range) {
         synchronized (occupierLock) {
             occupiers.put(vector, new AbstractMap.SimpleImmutableEntry<>(trainset.getAddress(), range));
-
-
         }
     }
 
