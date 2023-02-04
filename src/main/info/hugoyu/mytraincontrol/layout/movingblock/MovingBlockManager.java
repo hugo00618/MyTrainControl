@@ -10,6 +10,7 @@ import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.RouteUtil;
 import lombok.Getter;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -48,7 +49,9 @@ public class MovingBlockManager {
     }
 
     public void prepareToMove(Route route) {
-        this.nodesToAllocate = route.getNodes();
+        List<Long> nodesToAllocate = new ArrayList<>(route.getNodes());
+        nodesToAllocate.add(0, trainset.getAllocatedStationTrack().getNodeIds(route.isUplink()).get(0));
+        this.nodesToAllocate = nodesToAllocate;
         this.isUplink = route.isUplink();
         setDestinationId(nodesToAllocate.get(nodesToAllocate.size() - 1));
 
@@ -103,8 +106,7 @@ public class MovingBlockManager {
     }
 
     private int calcDistToMove(Trainset trainset, Route route) {
-        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(
-                new Vector(nodesToAllocate.get(0), nodesToAllocate.get(1)));
+        StationTrackNode stationTrackNode = trainset.getAllocatedStationTrack();
         int stationOutBoundMoveDist = stationTrackNode.getInboundMoveDist(trainset);
         if (isUplink == stationTrackNode.isUplink()) {
             return route.getCost() - stationOutBoundMoveDist;

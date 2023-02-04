@@ -75,6 +75,7 @@ public class Trainset implements TaskExecutionListener {
             throw new RuntimeException("Train is still running");
         }
         setIsForward(route.isUplink());
+        setAllocatedNodes(getAllocatedStationTrack().getNodeIds(route.isUplink()));
 
         movingBlockManager.prepareToMove(route);
         movingBlockManagerThread = new Thread(movingBlockManager.getNewMovingBlockRunnable());

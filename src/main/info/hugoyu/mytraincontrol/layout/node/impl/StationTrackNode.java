@@ -8,6 +8,9 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class StationTrackNode extends RegularTrackNode {
 
     @Getter
@@ -101,6 +104,11 @@ public class StationTrackNode extends RegularTrackNode {
     public int getInboundMargin(Trainset trainset) {
         int trainLength = trainset.getTotalLength();
         return (length - trainLength) / 2;
+    }
+
+    public List<Long> getNodeIds(boolean isUplink) {
+        return this.isUplink == isUplink ?
+                new ArrayList<>(List.of(id0, id1)) : new ArrayList<>(List.of(id1, id0));
     }
 
 }

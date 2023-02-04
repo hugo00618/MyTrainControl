@@ -171,7 +171,7 @@ public class MovingBlockRunnable implements Runnable {
     private void initiateStopRoutine() {
         movingBlockManager.setIsStopRoutineInitiated(true);
 
-        long entryNodeId = nodesToAllocate.get(0);
+        long entryNodeId = nodesToAllocate.get(nodesToAllocate.size() - 1);
         Route inboundRoute = RouteUtil.findRouteToAvailableStationTrack(
                 trainset,
                 entryNodeId,
@@ -181,17 +181,10 @@ public class MovingBlockRunnable implements Runnable {
         StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(inboundRoute.getDestinationVector());
 
         // replace entry node with inbound nodes
-        nodesToAllocate.remove(0);
+        nodesToAllocate.remove(nodesToAllocate.size() - 1);
         nodesToAllocate.addAll(inboundRoute.getNodes());
 
-        int inboundMoveDist = inboundRoute.getCost();
-        int stationInboundDist = stationTrackNode.getInboundMoveDist(trainset);
-        if (inboundRoute.isUplink() == stationTrackNode.isUplink()) {
-            inboundMoveDist += stationInboundDist;
-        } else {
-            inboundMoveDist -= stationInboundDist;
-        }
-
+        int inboundMoveDist = inboundRoute.getCost() - stationTrackNode.getOutboundMoveDist(trainset);
         movingBlockManager.addDistToMove(inboundMoveDist);
         movingBlockManager.addDistToAlloc(inboundMoveDist);
         movingBlockManager.addDistToFree(inboundMoveDist);

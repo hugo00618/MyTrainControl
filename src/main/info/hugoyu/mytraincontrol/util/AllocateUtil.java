@@ -55,6 +55,10 @@ public class AllocateUtil {
                     allocatable instanceof StationTrackNode;
             boolean needAllocateExtraDist = !isAllocatingDestinationTrackNode && allocatable.isBidirectional();
             if (needAllocateExtraDist) {
+                if (nodesToAllocate.size() < 3) {
+                    return 0;
+                }
+
                 int minAllocatingDist = sectionLength + trainset.getTotalLength();
 
                 AbstractTrackNode nextNode = LayoutUtil.getNode(nodesToAllocate.get(1), nodesToAllocate.get(2));
@@ -79,7 +83,7 @@ public class AllocateUtil {
 
             // allocate subsequent nodes first if needed
             if (remainingDist > 0) {
-                allocatedDist += allocNode(trainset, remainingDist, nodesToAllocate, allocatedNodes);
+                allocatedDist += allocNode(trainset, remainingDist, nodesToAllocate.subList(1, nodesToAllocate.size()), allocatedNodes);
                 // unable to allocate (due to no enough nodes remaining, will need to initiate stop routine
                 if (allocatedDist == 0) {
                     return 0;
