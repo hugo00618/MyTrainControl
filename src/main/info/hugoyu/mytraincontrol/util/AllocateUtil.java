@@ -51,7 +51,10 @@ public class AllocateUtil {
             //  2. part of next node:
             //      a. if next node is StationTrackNode, allocate trainset.length
             //      b. otherwise, allocate trainset.length + trailing buffer
-            if (allocatable.isBidirectional()) {
+            boolean isAllocatingDestinationTrackNode = nodesToAllocate.size() == 2 &&
+                    allocatable instanceof StationTrackNode;
+            boolean needAllocateExtraDist = !isAllocatingDestinationTrackNode && allocatable.isBidirectional();
+            if (needAllocateExtraDist) {
                 int minAllocatingDist = sectionLength + trainset.getTotalLength();
 
                 AbstractTrackNode nextNode = LayoutUtil.getNode(nodesToAllocate.get(1), nodesToAllocate.get(2));
@@ -94,8 +97,8 @@ public class AllocateUtil {
             allocatable.setOccupier(trainset, vector, newOwnedRange);
             allocatable.updateHardware();
 
-            allocatedNodes.add(id0);
-            allocatedNodes.add(id1);
+            allocatedNodes.add(0, id1);
+            allocatedNodes.add(0, id0);
 
             allocatedDist += allocatingDist;
 
@@ -167,6 +170,8 @@ public class AllocateUtil {
             freeNode(trainset,
                     new Vector(stationTrackNode.getId0(), stationTrackNode.getId1()),
                     stationTrackNode.getInboundMargin(trainset));
+
+            trainset.addAllocatedNodes(List.of(stationTrackNode.getId0(), stationTrackNode.getId1()));
 
             return true;
         } catch (NodeAllocationException e) {
