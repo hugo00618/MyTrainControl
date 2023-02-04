@@ -161,13 +161,4 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
         return this.isUplink == isUplink ? id1 : id0;
     }
 
-    @Override
-    public String getOwnerStatus(int ownerId) {
-        return null;
-    }
-
-    @Override
-    public Map<Integer, String> getOwnerSummary() {
-        return null;
-    }
 }

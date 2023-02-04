@@ -74,7 +74,7 @@ public class MovingBlockRunnable implements Runnable {
             // todo: this is a temporary workaround to fix a "fail to free all nodes" issue
             AllocateUtil.reserveStationTrack(trainset.getAllocatedStationTrack(), trainset);
         } catch (NodeAllocationException e) {
-            throw new RuntimeException("Track allocation error");
+            throw new RuntimeException("Track allocation error", e);
         }
     }
 

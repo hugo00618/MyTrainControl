@@ -14,7 +14,6 @@ import info.hugoyu.mytraincontrol.command.impl.LightControlCommand;
 import info.hugoyu.mytraincontrol.command.impl.MoveCommand;
 import info.hugoyu.mytraincontrol.command.impl.PowerControlCommand;
 import info.hugoyu.mytraincontrol.command.impl.PrintCommand;
-import info.hugoyu.mytraincontrol.command.impl.PrintNodeCommand;
 import info.hugoyu.mytraincontrol.command.impl.RegisterCommand;
 import lombok.Getter;
 
@@ -62,7 +61,6 @@ public class CommandRegistry {
         commands.put("light", new LightControlCommand());
         commands.put(COMMAND_MOVE, new MoveCommand());
         commands.put("print", new PrintCommand());
-        commands.put("printnode", new PrintNodeCommand());
         commands.put("pwr", new PowerControlCommand());
         commands.put("reg", new RegisterCommand());
 

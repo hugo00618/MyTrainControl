@@ -43,8 +43,8 @@ public class PrintCommand implements Command {
 
             System.out.println("\tOwned sections:");
             trainset.getAllocatedNodesSummary()
-                    .forEach((nodeId, ownerDetails) ->
-                            System.out.println(String.format("\t\t%d: %s", nodeId, ownerDetails)));
+                    .forEach((nodeVector, occupiedRange) ->
+                            System.out.println(String.format("\t\t%s: %s", nodeVector, occupiedRange)));
         });
         System.out.println();
     }

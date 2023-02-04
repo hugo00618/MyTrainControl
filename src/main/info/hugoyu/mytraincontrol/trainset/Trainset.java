@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.trainset;
 
+import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.ato.AutomaticTrainOperationThread;
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
@@ -22,6 +23,7 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -193,12 +195,6 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public double getMovedDist() {
-        synchronized (distLock) {
-            return movedDist;
-        }
-    }
-
     public void waitDistUpdate() {
         synchronized (distLock) {
             try {
@@ -292,10 +288,16 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public Map<Long, String> getAllocatedNodesSummary() {
+    public Map<Vector, Range<Integer>> getAllocatedNodesSummary() {
+        Map<Vector, Range<Integer>> result = new HashMap<>();
         synchronized (allocatedNodesLock) {
-            return null;
+            for (int i = 0; i < allocatedNodes.size() - 1; i++) {
+                Vector nodeVector = new Vector(allocatedNodes.get(i), allocatedNodes.get(i + 1));
+                result.put(nodeVector,
+                        LayoutUtil.getNode(nodeVector).getOccupiedRange(nodeVector, this).orElse(null));
+            }
         }
+        return result;
     }
 
     public interface AtoHandler {

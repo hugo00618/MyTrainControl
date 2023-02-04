@@ -12,7 +12,6 @@ import info.hugoyu.mytraincontrol.util.SwitchUtil;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class TurnoutNode extends AbstractTrackNode {
@@ -177,13 +176,4 @@ public class TurnoutNode extends AbstractTrackNode {
         }
     }
 
-    @Override
-    public String getOwnerStatus(int ownerId) {
-        return null;
-    }
-
-    @Override
-    public Map<Integer, String> getOwnerSummary() {
-        return null;
-    }
 }

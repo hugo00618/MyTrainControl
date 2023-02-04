@@ -4,9 +4,11 @@ import info.hugoyu.mytraincontrol.json.layout.VectorJson;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
+import lombok.ToString;
 
 @AllArgsConstructor
 @EqualsAndHashCode
+@ToString
 @Getter
 public class Vector {
     private final long id0, id1;

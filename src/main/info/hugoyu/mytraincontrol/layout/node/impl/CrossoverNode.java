@@ -173,14 +173,4 @@ public class CrossoverNode extends AbstractTrackNode {
         return connections;
     }
 
-    @Override
-    public String getOwnerStatus(int ownerId) {
-        return null;
-    }
-
-    @Override
-    public Map<Integer, String> getOwnerSummary() {
-        return null;
-    }
-
 }

@@ -4,7 +4,6 @@ import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 
-import java.util.Map;
 import java.util.Optional;
 
 public interface Allocatable {
@@ -76,14 +75,4 @@ public interface Allocatable {
      */
     boolean isBidirectional();
 
-    /**
-     * @param ownerId
-     * @return current owning status of ownerId
-     */
-    String getOwnerStatus(int ownerId);
-
-    /**
-     * @return summary of all current owners
-     */
-    Map<Integer, String> getOwnerSummary();
 }
