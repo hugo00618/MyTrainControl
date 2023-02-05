@@ -1,4 +1,5 @@
-![alt text](./banner.png "banner")
+![banner](./banner.png#gh-light-mode-only "banner")
+![banner](./banner_dark.png#gh-dark-mode-only "banner")
 
 # Project TrainControl
 To implement an autonomous DCC model railway control system with Arduino DCC++ command station and JMRI API.
