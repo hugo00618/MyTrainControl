@@ -64,7 +64,7 @@
     {
       "id": "s2",
       "name": "Station 2",
-      "downlinkEntryNode": 155,
+      "downlinkEntryNode": 153,
       "uplinkTracks": [
         {
           "id0": 146,
@@ -154,5 +154,13 @@
     }
   ],
   "sensors": [
+    {
+      "address": 17,
+      "node": {
+        "id0": 151,
+        "id1": 153
+      },
+      "offset": 0
+    }
   ]
 }
