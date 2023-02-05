@@ -5,7 +5,6 @@ import lombok.Getter;
 @Getter
 public class SensorJson {
     private int address;
-    private VectorJson nodeVector;
-    private boolean isUplink;
+    private VectorJson node;
     private int offset;
 }

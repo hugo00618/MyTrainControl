@@ -1,8 +1,8 @@
 package info.hugoyu.mytraincontrol.layout.movingblock;
 
-import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.Vector;
+import info.hugoyu.mytraincontrol.layout.node.impl.RegularTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
@@ -65,10 +65,10 @@ public class MovingBlockManager {
         return new MovingBlockRunnable(this);
     }
 
-    public void calibrate(Position sensorPosition, SensorState sensorState) {
-        final Vector referenceNodeVector = sensorPosition.getReferenceNodeVector();
-        Route remainingRoute = RouteUtil.findRoute(referenceNodeVector.getId0(), getDestinationId(), isUplink);
-        int calibratedDistToMove = calcCalibratedDistToMove(trainset, remainingRoute, sensorPosition, sensorState);
+    public void calibrate(Vector nodeVector, int sensorOffset, SensorState sensorState) {
+        RegularTrackNode node = (RegularTrackNode) LayoutUtil.getNode(nodeVector);
+        Route remainingRoute = RouteUtil.findRoute(nodeVector.getId0(), getDestinationId(), isUplink);
+        int calibratedDistToMove = calcCalibratedDistToMove(trainset, node, sensorOffset, remainingRoute, sensorState);
 
         double offset;
         distToMoveLock.lock();
@@ -83,15 +83,15 @@ public class MovingBlockManager {
         trainset.addDistToMove(offset);
     }
 
-    private int calcCalibratedDistToMove(Trainset trainset, Route remainingRoute, Position sensorPosition, SensorState sensorState) {
-        // remainingRoute.getCost() is the length between sensor's reference node to our destination node
+    private int calcCalibratedDistToMove(Trainset trainset, RegularTrackNode node, int sensorOffset, Route remainingRoute, SensorState sensorState) {
+        // remainingRoute.getCost() is the length between sensor's reference node to the destination node
         int calibratedDistToMove = remainingRoute.getCost();
-        // if our travelling direction is the same with sensor's definition,
+        // if the train's travelling direction is the same with node's,
         // then we need to subtract offset from the total cost, otherwise we add
-        if (isUplink == sensorPosition.isUplink()) {
-            calibratedDistToMove -= sensorPosition.getOffset();
+        if (isUplink == node.isUplink()) {
+            calibratedDistToMove -= sensorOffset;
         } else {
-            calibratedDistToMove += sensorPosition.getOffset();
+            calibratedDistToMove += sensorOffset;
         }
 
         if (isStopRoutineInitiated) {

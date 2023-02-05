@@ -1,6 +1,5 @@
 package info.hugoyu.mytraincontrol.json.layout;
 
-import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
 import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
@@ -96,10 +95,8 @@ public class LayoutProvider {
     private static void registerSensor(SensorJson sensorJson) {
         int address = sensorJson.getAddress();
 
-        Vector nodeVector = new Vector(sensorJson.getNodeVector());
+        Vector nodeVector = new Vector(sensorJson.getNode());
         SensorAttachable node = (SensorAttachable) LayoutRegistry.getInstance().getNode(nodeVector);
-
-        Position position = new Position(nodeVector, sensorJson.isUplink(), sensorJson.getOffset());
 
         Sensor sensor = SensorUtil.getSensor(address, new SensorChangeListener() {
             @Override
@@ -114,9 +111,9 @@ public class LayoutProvider {
 
             private void calibrateOwnerMovingBlockManager(SensorState sensorState) {
 
-                Trainset occupyingTrainset = node.getOccupier(position);
+                Trainset occupyingTrainset = node.getOccupier(sensorJson.getOffset());
                 if (occupyingTrainset != null) {
-                    occupyingTrainset.calibrate(position, sensorState);
+                    occupyingTrainset.calibrate(nodeVector, sensorJson.getOffset(), sensorState);
                 }
             }
         });

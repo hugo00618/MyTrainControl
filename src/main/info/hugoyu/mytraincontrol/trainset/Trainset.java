@@ -8,7 +8,6 @@ import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
-import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
@@ -179,9 +178,9 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public void calibrate(Position sensorPosition, SensorState sensorState) {
+    public void calibrate(Vector nodeVector, int sensorOffset, SensorState sensorState) {
         if (movingBlockManagerThread != null && movingBlockManagerThread.isAlive()) {
-            movingBlockManager.calibrate(sensorPosition, sensorState);
+            movingBlockManager.calibrate(nodeVector, sensorOffset, sensorState);
         }
     }
 

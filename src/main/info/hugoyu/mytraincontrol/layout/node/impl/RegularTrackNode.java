@@ -3,7 +3,6 @@ package info.hugoyu.mytraincontrol.layout.node.impl;
 import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.json.layout.RegularTrackJson;
 import info.hugoyu.mytraincontrol.layout.Connection;
-import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
@@ -135,17 +134,14 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     }
 
     @Override
-    public Trainset getOccupier(Position position) {
+    public Trainset getOccupier(int position) {
         synchronized (occupierLock) {
             if (occupiedVector == null) {
                 return null;
             }
-            int relativePosition = occupiedVector.equals(position.getReferenceNodeVector()) ?
-                    position.getOffset() :
-                    length - position.getOffset();
 
             return occupiers.entrySet().stream()
-                    .filter(entry -> entry.getValue().contains(relativePosition))
+                    .filter(entry -> entry.getValue().contains(position))
                     .findFirst()
                     .map(entry -> TrainsetRegistry.getInstance().getTrainset(entry.getKey()))
                     .orElse(null);
