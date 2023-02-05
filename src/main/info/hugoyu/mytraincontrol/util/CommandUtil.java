@@ -21,4 +21,12 @@ public class CommandUtil {
             throw new CommandInvalidUsageException(command, e);
         }
     }
+
+    public static <T extends Command> T getCommand(Class<T> type) {
+        return CommandRegistry.getCommands().values().stream()
+                .filter(type::isInstance)
+                .findFirst()
+                .map(type::cast)
+                .orElse(null);
+    }
 }

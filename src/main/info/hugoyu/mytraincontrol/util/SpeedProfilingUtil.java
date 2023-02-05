@@ -6,7 +6,6 @@ import jmri.Sensor;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -88,11 +87,7 @@ public class SpeedProfilingUtil {
 
             // write to file
             String fileName = trainset.getName() + ".json";
-            try {
-                JsonUtil.writeJSON(fileName, speedMap);
-            } catch (IOException e) {
-                throw new RuntimeException(String.format("failed to write file: %s", fileName), e);
-            }
+            FileUtil.writeJson(fileName, speedMap);
         }
     }
 

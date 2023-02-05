@@ -50,7 +50,7 @@ public class MovingBlockManager {
 
     public void prepareToMove(Route route) {
         List<Long> nodesToAllocate = new ArrayList<>(route.getNodes());
-        nodesToAllocate.add(0, trainset.getAllocatedStationTrack().getNodeIds(route.isUplink()).get(0));
+        nodesToAllocate.add(0, trainset.getAllocatedStationTrack().get().getNodeIds(route.isUplink()).get(0));
         this.nodesToAllocate = nodesToAllocate;
         this.isUplink = route.isUplink();
         setDestinationId(nodesToAllocate.get(nodesToAllocate.size() - 1));
@@ -106,7 +106,7 @@ public class MovingBlockManager {
     }
 
     private int calcDistToMove(Trainset trainset, Route route) {
-        StationTrackNode stationTrackNode = trainset.getAllocatedStationTrack();
+        StationTrackNode stationTrackNode = trainset.getAllocatedStationTrack().get();
         return stationTrackNode.getOutboundMoveDist(trainset) + route.getCost();
     }
 

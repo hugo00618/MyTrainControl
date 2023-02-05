@@ -11,7 +11,6 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.trainset.TrainsetProfile;
 import jmri.DccThrottle;
 
-import java.io.IOException;
 import java.util.Map;
 
 public class TrainUtil {
@@ -28,13 +27,10 @@ public class TrainUtil {
     }
 
     public static TrainsetProfile getTrainsetProfile(String fileName) {
-        try {
-            TrainsetProfile trainsetProfile = JsonUtil.parseJSON(TRAINSET_PROFILE_DIR + "/" + fileName, TrainsetProfile.class);
-            trainsetProfile.postDeserialization();
-            return trainsetProfile;
-        } catch (IOException e) {
-            throw new RuntimeException("Error parsing trainset profile: " + fileName);
-        }
+        String filePath = TRAINSET_PROFILE_DIR + "/" + fileName;
+        TrainsetProfile trainsetProfile = FileUtil.readJson(filePath, TrainsetProfile.class);
+        trainsetProfile.postDeserialization();
+        return trainsetProfile;
     }
 
     public static Map<Integer, Trainset> getTrainsets() {
@@ -61,7 +57,7 @@ public class TrainUtil {
     }
 
     public static void moveTo(Trainset trainset, String stationId) {
-        Route route = RouteUtil.findRouteToStation(trainset, trainset.getAllocatedStationTrack(), stationId);
+        Route route = RouteUtil.findRouteToStation(trainset, trainset.getAllocatedStationTrack().get(), stationId);
         if (route == null) {
             throw new RouteException(String.format("No route to station: %s", stationId));
         }

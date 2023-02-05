@@ -52,7 +52,7 @@ public class AutomaticTrainOperationThread extends Thread {
         }
 
         private void moveToRandomStation() {
-            List<Route> nextRoutes = RouteUtil.findReachableStations(trainset, trainset.getAllocatedStationTrack());
+            List<Route> nextRoutes = RouteUtil.findReachableStations(trainset, trainset.getAllocatedStationTrack().get());
             if (nextRoutes.isEmpty()) {
                 throw new RuntimeException(String.format("%s: no available route to other stations", trainset.getName()));
             }

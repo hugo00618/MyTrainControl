@@ -40,8 +40,9 @@ public class Main {
         CommandUtil.runCommand(new String[]{"reg", "15", "E5E6", "e5e6-4300.json", "true"});
         CommandUtil.runCommand(new String[]{"reg", "17", "E7", "e7-4000.json", "true"});
 
-
         LayoutUtil.registerLayout();
+
+        LayoutUtil.restoreLayoutState();
 
         CommandStationRunnable.getInstance();
         listenCommands();
@@ -96,6 +97,7 @@ public class Main {
     }
 
     private static void cleanup() {
+        LayoutUtil.saveLayoutState();
         BaseStationPowerUtil.turnOffPower();
     }
 

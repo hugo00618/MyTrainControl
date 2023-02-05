@@ -7,6 +7,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.TaskExecutionListener;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
+import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.layout.Position;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.Vector;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 @Setter
 @Log4j
@@ -77,7 +79,7 @@ public class Trainset implements TaskExecutionListener {
             throw new RuntimeException("Train is still running");
         }
         setIsForward(route.isUplink());
-        setAllocatedNodes(getAllocatedStationTrack().getNodeIds(route.isUplink()));
+        setAllocatedNodes(getAllocatedStationTrack().get().getNodeIds(route.isUplink()));
 
         movingBlockManager.prepareToMove(route);
         movingBlockManagerThread = new Thread(movingBlockManager.getNewMovingBlockRunnable());
@@ -256,8 +258,20 @@ public class Trainset implements TaskExecutionListener {
         }
     }
 
-    public StationTrackNode getAllocatedStationTrack() {
-        return LayoutUtil.getStationTrackNode(getAllocatedVector());
+    /**
+     *
+     * @return allocated station track node if trainset occupies only one node and the node is a station track node
+     */
+    public Optional<StationTrackNode> getAllocatedStationTrack() {
+        synchronized (allocatedNodesLock) {
+            if (allocatedNodes.size() != 2) return Optional.empty();
+
+            try {
+                return Optional.of(LayoutUtil.getStationTrackNode(getAllocatedVector()));
+            } catch (InvalidIdException e) {
+                return Optional.empty();
+            }
+        }
     }
 
     private Vector getAllocatedVector() {
