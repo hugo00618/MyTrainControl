@@ -11,25 +11,27 @@ import lombok.Setter;
 import java.util.ArrayList;
 import java.util.List;
 
+@Getter
 public class StationTrackNode extends RegularTrackNode {
 
-    @Getter
     private String name;
 
-    @Getter
     private int trackLength;
 
-    @Getter
     private boolean isPlatformTrack;
 
-    @Getter
     private boolean isPassingTrack;
 
     @Setter
     private Station station;
 
-    public StationTrackNode(long id0, long id1, String name, int trackLength, boolean isUplink,
-                            boolean isPlatformTrack, boolean isPassingTrack) {
+    public StationTrackNode(long id0,
+                            long id1,
+                            String name,
+                            int trackLength,
+                            boolean isUplink,
+                            boolean isPlatformTrack,
+                            boolean isPassingTrack) {
         super(id0, id1, trackLength, isUplink, true);
 
         this.name = name;
@@ -39,7 +41,8 @@ public class StationTrackNode extends RegularTrackNode {
     }
 
     public StationTrackNode(StationTrackJson stationTrackJson, boolean isUplink) {
-        this(stationTrackJson.getId0(),
+        this(
+                stationTrackJson.getId0(),
                 stationTrackJson.getId1(),
                 stationTrackJson.getName(),
                 stationTrackJson.getTrackLength(),

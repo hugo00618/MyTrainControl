@@ -63,8 +63,14 @@ public class LayoutProvider {
     }
 
     private static List<StationTrackNode> registerStationTracks(StationJson stationJson, LayoutRegistry layoutRegistry) {
-        Stream<StationTrackNode> uplinkTrackNodes = registerStationTrackNodes(stationJson.getUplinkTracks(), layoutRegistry, true),
-                downlinkTrackNodes = registerStationTrackNodes(stationJson.getDownlinkTracks(), layoutRegistry, false);
+        Stream<StationTrackNode> uplinkTrackNodes = registerStationTrackNodes(
+                stationJson.getUplinkTracks(),
+                layoutRegistry,
+                true),
+                downlinkTrackNodes = registerStationTrackNodes(
+                        stationJson.getDownlinkTracks(),
+                        layoutRegistry,
+                        false);
         return Stream.concat(uplinkTrackNodes, downlinkTrackNodes)
                 .collect(Collectors.toList());
     }
@@ -110,7 +116,6 @@ public class LayoutProvider {
             }
 
             private void calibrateOwnerMovingBlockManager(SensorState sensorState) {
-
                 Trainset occupyingTrainset = node.getOccupier(sensorJson.getOffset());
                 if (occupyingTrainset != null) {
                     occupyingTrainset.calibrate(nodeVector, sensorJson.getOffset(), sensorState);

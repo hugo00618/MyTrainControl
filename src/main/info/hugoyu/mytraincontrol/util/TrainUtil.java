@@ -3,8 +3,6 @@ package info.hugoyu.mytraincontrol.util;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetThrottleTask;
 import info.hugoyu.mytraincontrol.exception.RouteException;
 import info.hugoyu.mytraincontrol.layout.Route;
-import info.hugoyu.mytraincontrol.layout.Vector;
-import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
@@ -39,11 +37,6 @@ public class TrainUtil {
 
     public static void setLight(Trainset trainset, LightState lightState) {
         trainset.setIsLightOn(lightState);
-    }
-
-    public static boolean allocateStationTrackImmediately(Trainset trainset, long trackNodeId0, long trackNodeId1) {
-        StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(new Vector(trackNodeId0, trackNodeId1));
-        return AllocateUtil.reserveStationTrack(stationTrackNode, trainset);
     }
 
     public static void freeAllAllocatedNodes(Trainset trainset) {

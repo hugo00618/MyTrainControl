@@ -1,6 +1,8 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
+import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
+import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 
@@ -43,8 +45,18 @@ public class PrintCommand implements Command {
 
             System.out.println("\tOwned sections:");
             trainset.getAllocatedNodesSummary()
-                    .forEach((nodeVector, occupiedRange) ->
-                            System.out.println(String.format("\t\t%s: %s", nodeVector, occupiedRange)));
+                    .forEach((nodeVector, occupiedRange) -> {
+                        AbstractTrackNode node = LayoutUtil.getNode(nodeVector);
+                        String summary;
+                        if (node instanceof StationTrackNode) {
+                            StationTrackNode stationTrackNode = ((StationTrackNode) node);
+                            summary = String.format("%s %s", stationTrackNode.getStation().getName(), occupiedRange);
+                        } else {
+                            summary = String.format("%s: %s", nodeVector, occupiedRange);
+
+                        }
+                        System.out.println(String.format("\t\t%s", summary));
+                    });
         });
         System.out.println();
     }

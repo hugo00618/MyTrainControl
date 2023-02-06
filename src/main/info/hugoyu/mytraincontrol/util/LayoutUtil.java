@@ -52,6 +52,10 @@ public class LayoutUtil {
         }
     }
 
+    public static StationTrackNode getStationTrackNode(long id0, long id1) {
+        return getStationTrackNode(new Vector(id0, id1));
+    }
+
     public static Station getStation(String id) {
         Station station = LayoutRegistry.getInstance().getStation(id);
         if (station == null) {
