@@ -50,7 +50,9 @@ public class PrintCommand implements Command {
                         String summary;
                         if (node instanceof StationTrackNode) {
                             StationTrackNode stationTrackNode = ((StationTrackNode) node);
-                            summary = String.format("%s %s", stationTrackNode.getStation().getName(), occupiedRange);
+                            summary = String.format("%s %s",
+                                    stationTrackNode.getStation().getName(),
+                                    stationTrackNode.getName());
                         } else {
                             summary = String.format("%s: %s", nodeVector, occupiedRange);
 
