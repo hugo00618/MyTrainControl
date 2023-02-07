@@ -21,6 +21,6 @@ public class CrossoverControlCommand extends AbstractDebugCommand {
         String turnoutStateStr = args[2].toUpperCase();
         Turnout.State turnoutState = Turnout.State.valueOf(turnoutStateStr);
 
-        SwitchUtil.setSwitchState(crossover, turnoutState, true);
+        SwitchUtil.setSwitchState(crossover, turnoutState, true, null);
     }
 }

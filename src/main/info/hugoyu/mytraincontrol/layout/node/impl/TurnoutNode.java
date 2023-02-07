@@ -13,6 +13,9 @@ import lombok.Getter;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 public class TurnoutNode extends AbstractTrackNode {
 
@@ -126,13 +129,18 @@ public class TurnoutNode extends AbstractTrackNode {
     }
 
     @Override
-    public void updateHardware() {
+    public Future<Void> updateHardware() {
         synchronized (occupierLock) {
+            CompletableFuture<Void> isHardwareUpdated = new CompletableFuture<>();
+            Consumer<Long> callback = actualExecutionTime -> isHardwareUpdated.complete(null);
+
             if (isThrown(occupiedVector)) {
-                SwitchUtil.setSwitchState(turnout, Turnout.State.THROWN);
+                SwitchUtil.setSwitchState(turnout, Turnout.State.THROWN, callback);
             } else {
-                SwitchUtil.setSwitchState(turnout, Turnout.State.CLOSED);
+                SwitchUtil.setSwitchState(turnout, Turnout.State.CLOSED, callback);
             }
+
+            return isHardwareUpdated;
         }
     }
 

@@ -12,6 +12,8 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Future;
 
 import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_TRAILING;
 
@@ -99,7 +101,7 @@ public class AllocateUtil {
             }
 
             allocatable.setOccupier(trainset, vector, newOwnedRange);
-            allocatable.updateHardware();
+            Future<Void> isHardwareUpdated = allocatable.updateHardware();
 
             allocatedNodes.add(0, id1);
             allocatedNodes.add(0, id0);
@@ -109,6 +111,13 @@ public class AllocateUtil {
             boolean isEntireSectionAllocated = newOwnedRange.upperEndpoint() == sectionLength;
             if (isEntireSectionAllocated) {
                 nodesToAllocate.remove(0);
+            }
+
+            // wait for hardware update to complete
+            try {
+                isHardwareUpdated.get();
+            } catch (ExecutionException | InterruptedException e) {
+
             }
 
             return allocatedDist;

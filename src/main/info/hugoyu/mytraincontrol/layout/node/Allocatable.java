@@ -5,6 +5,7 @@ import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 
 import java.util.Optional;
+import java.util.concurrent.Future;
 
 public interface Allocatable {
 
@@ -32,7 +33,7 @@ public interface Allocatable {
     /**
      * makes hardware change if needed (e.g. change switch state)
      */
-    void updateHardware();
+    Future<Void> updateHardware();
 
     /**
      * @param vector

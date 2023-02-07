@@ -34,9 +34,11 @@ public class CommandStationRunnable implements Runnable {
 
             AbstractCommandStationTask task = commandStation.getAvailableTask(true);
             if (task != null) {
-                task.execute();
-
                 long executionTime = System.currentTimeMillis();
+
+                task.execute();
+                task.callback(executionTime);
+
                 nextAvailableExecutionTime = executionTime + MIN_UPDATE_INTERVAL;
                 nextAvailableHighCurrentExecutionTime = executionTime + task.getHighCurrentConsumptionPeriod();
 

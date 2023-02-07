@@ -7,11 +7,15 @@ import jmri.TurnoutManager;
 
 public class TurnoutControlTask extends AbstractCommandStationTask {
 
+    private static final long HIGH_CURRENT_CONSUMPTION_PERIOD = 500;
+
     private int address;
     private Turnout.State state;
 
     public TurnoutControlTask(int address, Turnout.State state) {
         super();
+
+        super.highCurrentConsumptionPeriod = HIGH_CURRENT_CONSUMPTION_PERIOD;
 
         this.address = address;
         this.state = state;

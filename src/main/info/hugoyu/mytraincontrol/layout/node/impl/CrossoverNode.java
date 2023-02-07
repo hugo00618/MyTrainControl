@@ -16,6 +16,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
+import java.util.function.Consumer;
 
 public class CrossoverNode extends AbstractTrackNode {
 
@@ -107,15 +110,20 @@ public class CrossoverNode extends AbstractTrackNode {
     }
 
     @Override
-    public void updateHardware() {
+    public Future<Void> updateHardware() {
         synchronized (occupierLock) {
             Vector occupiedVector = occupiers.keySet().iterator().next();
 
+            CompletableFuture<Void> isHardwareUpdated = new CompletableFuture<>();
+            Consumer<Long> callback = actualExecutionTime -> isHardwareUpdated.complete(null);
+
             if (isStraightConnection(occupiedVector)) {
-                SwitchUtil.setSwitchState(crossover, Switchable.State.CLOSED);
+                SwitchUtil.setSwitchState(crossover, Switchable.State.CLOSED, callback);
             } else {
-                SwitchUtil.setSwitchState(crossover, Switchable.State.THROWN);
+                SwitchUtil.setSwitchState(crossover, Switchable.State.THROWN, callback);
             }
+
+            return isHardwareUpdated;
         }
     }
 

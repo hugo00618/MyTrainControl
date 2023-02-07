@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.Future;
 
 public class RegularTrackNode extends AbstractTrackNode implements Comparable<RegularTrackNode>, SensorAttachable {
 
@@ -91,8 +93,9 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     }
 
     @Override
-    public void updateHardware() {
+    public Future<Void> updateHardware() {
         // no hardware change required
+        return CompletableFuture.completedFuture(null);
     }
 
     @Override

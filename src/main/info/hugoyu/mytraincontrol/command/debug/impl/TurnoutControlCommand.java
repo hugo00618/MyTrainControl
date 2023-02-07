@@ -16,7 +16,7 @@ public class TurnoutControlCommand extends AbstractDebugCommand {
         String switchStateStr = args[2].toUpperCase();
         Switchable.State switchState = Switchable.State.valueOf(switchStateStr);
 
-        SwitchUtil.setSwitchState(turnout, switchState, true);
+        SwitchUtil.setSwitchState(turnout, switchState, true, null);
     }
 
     @Override

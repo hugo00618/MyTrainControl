@@ -4,6 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.util.AbstractMap;
+import java.util.HashSet;
+import java.util.Set;
+import java.util.function.Consumer;
 
 public abstract class AbstractCommandStationTask implements Comparable<AbstractCommandStationTask>, Deduplicatable {
 
@@ -27,6 +30,8 @@ public abstract class AbstractCommandStationTask implements Comparable<AbstractC
     // nextTask, delay
     protected AbstractMap.SimpleImmutableEntry<AbstractCommandStationTask, Long> nextTask;
 
+    private final Set<Consumer<Long>> callbackFunctions;
+
     protected AbstractCommandStationTask() {
         this(System.currentTimeMillis());
     }
@@ -39,6 +44,7 @@ public abstract class AbstractCommandStationTask implements Comparable<AbstractC
     protected AbstractCommandStationTask(long taskCreationTime) {
         this.taskCreationTime = taskCreationTime;
         this.scheduledExecutionTime = taskCreationTime;
+        this.callbackFunctions = new HashSet<>();
     }
 
     private void addDelay(long delay) {
@@ -71,6 +77,14 @@ public abstract class AbstractCommandStationTask implements Comparable<AbstractC
 
     public void dedupe(Deduplicatable task) {
 
+    }
+
+    public void addCallbackFunction(Consumer<Long> callback) {
+        callbackFunctions.add(callback);
+    }
+
+    public void callback(long actualExecutionTime) {
+        callbackFunctions.forEach(callback -> callback.accept(actualExecutionTime));
     }
 
     @Override
