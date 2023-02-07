@@ -28,6 +28,10 @@ public class SwitchUtil {
                 switchControlTask.addCallbackFunction(callback);
             }
             CommandStationUtil.addTask(switchControlTask);
+        } else {
+            if (callback != null) {
+                callback.accept(-1L);
+            }
         }
     }
 
