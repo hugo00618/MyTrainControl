@@ -125,17 +125,25 @@ public class Trainset implements TaskExecutionListener {
             final double distToMove = distance.getDistToMove();
             if (distToMove > 0) {
                 if (cSpeed == 0 || cSpeed != tSpeed) {
-                    CommandStationUtil.addTask(new SetSpeedTask(this, currentTime));
+                    sendSetSpeedTask(currentTime);
                 } else {
                     double coastingDistance = distToMove - minimumStoppingDistance;
                     if (coastingDistance > 0) {
                         long coastingTime = (long) (coastingDistance / cSpeed * 1000);
                         log.debug(String.format("%s: coasting for %dms", name, coastingTime));
-                        CommandStationUtil.addTask(new SetSpeedTask(this, currentTime, coastingTime));
+                        sendSetSpeedTask(currentTime, coastingTime);
                     }
                 }
             }
         }
+    }
+
+    private void sendSetSpeedTask(long taskCreationTime) {
+        CommandStationUtil.addTask(new SetSpeedTask(this, taskCreationTime));
+    }
+
+    private void sendSetSpeedTask(long taskCreationTime, long delay) {
+        CommandStationUtil.addTask(new SetSpeedTask(this, taskCreationTime, delay));
     }
 
     public void calibrate(Vector nodeVector, int sensorOffset, SensorState sensorState) {
@@ -154,6 +162,7 @@ public class Trainset implements TaskExecutionListener {
 
     public void setDistToMove(double distToMove) {
         distance.setDistToMove(distToMove);
+        setIsLightOn(LightState.ON);
     }
 
     public double getDistToMove() {
@@ -294,6 +303,7 @@ public class Trainset implements TaskExecutionListener {
         public void setDistToMove(double distToMove) {
             synchronized (distLock) {
                 this.distToMove = distToMove;
+                sendSetSpeedTask(System.currentTimeMillis());
             }
         }
 
