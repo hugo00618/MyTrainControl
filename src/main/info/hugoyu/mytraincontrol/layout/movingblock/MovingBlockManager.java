@@ -13,8 +13,6 @@ import lombok.Getter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 
 import static info.hugoyu.mytraincontrol.sensor.SensorState.EXIT;
 
@@ -31,7 +29,7 @@ public class MovingBlockManager {
     private double allocatedMoveDist;
     private double distToMove; // total distance to move
     private double calibrationOffset;
-    private final Lock distToMoveLock = new ReentrantLock(true);
+    private final Object distanceLock = new Object();
 
     private int distToAlloc; // total distance to alloc
 
@@ -67,17 +65,12 @@ public class MovingBlockManager {
     }
 
     public void calibrate(Vector nodeVector, int sensorOffset, SensorState sensorState) {
-        int calibratedDistToMove = calcCalibratedDistToMove(trainset, nodeVector, sensorOffset, sensorState);
-
         double offset;
-        distToMoveLock.lock();
-        try {
+        synchronized (distanceLock) {
+            int calibratedDistToMove = calcCalibratedDistToMove(trainset, nodeVector, sensorOffset, sensorState);
             offset = calibratedDistToMove - distToMove;
-
             calibrationOffset += offset;
             distToMove = calibratedDistToMove;
-        } finally {
-            distToMoveLock.unlock();
         }
         trainset.addDistToMove(offset);
     }
@@ -114,29 +107,20 @@ public class MovingBlockManager {
     }
 
     public void addDistToMove(double dist) {
-        distToMoveLock.lock();
-        try {
+        synchronized (distanceLock) {
             distToMove += dist;
-        } finally {
-            distToMoveLock.unlock();
         }
     }
 
     public double getDistToMove() {
-        distToMoveLock.lock();
-        try {
+        synchronized (distanceLock) {
             return distToMove;
-        } finally {
-            distToMoveLock.unlock();
         }
     }
 
     public double getAllocatedMoveDist() {
-        distToMoveLock.lock();
-        try {
+        synchronized (distanceLock) {
             return allocatedMoveDist;
-        } finally {
-            distToMoveLock.unlock();
         }
     }
 
@@ -153,11 +137,8 @@ public class MovingBlockManager {
     }
 
     public void addAllocatedMoveDist(double dist) {
-        distToMoveLock.lock();
-        try {
+        synchronized (distanceLock) {
             allocatedMoveDist += dist;
-        } finally {
-            distToMoveLock.unlock();
         }
     }
 
@@ -170,8 +151,7 @@ public class MovingBlockManager {
      * @return movedDist that should expose to the block section system
      */
     public double logMovedDist(double movedDist) {
-        distToMoveLock.lock();
-        try {
+        synchronized (distanceLock) {
             distToMove -= movedDist;
 
             if (calibrationOffset >= movedDist) {
@@ -182,8 +162,6 @@ public class MovingBlockManager {
                 calibrationOffset = 0;
                 return res;
             }
-        } finally {
-            distToMoveLock.unlock();
         }
     }
 
