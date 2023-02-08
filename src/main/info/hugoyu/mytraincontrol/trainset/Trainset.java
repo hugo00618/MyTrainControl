@@ -40,14 +40,12 @@ public class Trainset implements TaskExecutionListener {
     @Getter
     private double cSpeed; // current speed
 
-    private volatile double tSpeed; // targeting speed
+    private double tSpeed; // targeting speed
     private final Object tSpeedLock = new Object();
 
-    private volatile double distToMove;
-    private volatile double movedDist;
-    private final Object distLock = new Object();
+    private Distance distance = new Distance();
 
-    private TrainsetProfile profile;
+    private final TrainsetProfile profile;
 
     @Getter
     private LightState lightState = LightState.UNKNOWN;
@@ -56,9 +54,9 @@ public class Trainset implements TaskExecutionListener {
     private boolean isForward = true;
 
     // whether motor is placed reversed on the track
-    private boolean isMotorReversed;
+    private final boolean isMotorReversed;
 
-    private volatile List<Long> allocatedNodes = new ArrayList<>();
+    private List<Long> allocatedNodes = new ArrayList<>();
     private final Object allocatedNodesLock = new Object();
 
     private MovingBlockManager movingBlockManager = new MovingBlockManager(this);
@@ -85,95 +83,57 @@ public class Trainset implements TaskExecutionListener {
         movingBlockManagerThread.start();
     }
 
-    public void addDistToMove(double addDist) {
-        synchronized (distLock) {
-            setDistToMove(this.distToMove + addDist);
-        }
-    }
-
-    public double getDistToMove() {
-        synchronized (distLock) {
-            return distToMove;
-        }
-    }
-
-    public void setDistToMove(double distToMove) {
-        log.debug("setDistToMove " + distToMove);
-        synchronized (distLock) {
-            this.distToMove = distToMove;
-        }
-        setIsLightOn(LightState.ON);
-        sendSetSpeedTask(System.currentTimeMillis());
-    }
-
-    public void sendSetSpeedTask(long taskCreationTime) {
-        CommandStationUtil.addTask(new SetSpeedTask(this, taskCreationTime));
-    }
-
-    private void sendSetSpeedTask(long taskCreationTime, long delay) {
-        CommandStationUtil.addTask(new SetSpeedTask(this, taskCreationTime, delay));
-    }
-
     @Override
     public void prepareForSetSpeedTaskExecution(AbstractCommandStationTask task) {
         synchronized (tSpeedLock) {
-            synchronized (distLock) {
-                long currentTime = System.currentTimeMillis();
+            final long currentTime = System.currentTimeMillis();
+
+            // update distance
+            distance.update();
+
+            // update target speed
+            double minimumStoppingDistance = getCurrentMinimumStoppingDistance();
+            if (distance.getDistToMove() > minimumStoppingDistance) {
+                tSpeed = profile.getTopSpeed();
+            } else {
+                tSpeed = 0;
+            }
+            log.debug(String.format("%s: tSpeed %f", name, tSpeed));
+
+            // update cSpeed if train was not coasting
+            if (!task.isDelayedTask()) {
+                boolean isAcc = cSpeed < tSpeed;
+
+                double a = isAcc ? profile.getAccRate() : profile.getDecRate();
+                final double distToMove = distance.getDistToMove();
+                if (distToMove < minimumStoppingDistance) {
+                    a = -cSpeed * cSpeed / 2 / distToMove;
+                }
                 double deltaT = (currentTime - task.getTaskCreationTime()) / 1000.0;
-                double deltaD = cSpeed * deltaT;
+                cSpeed += a * deltaT;
 
-                // update distance
-                movedDist += deltaD;
-                distToMove -= deltaD;
-                distToMove = Math.max(0, distToMove);
-
-                log.debug(String.format("%s: deltaT %f", name, deltaT));
-                log.debug(String.format("%s: deltaD %f", name, deltaD));
-                log.debug(String.format("%s: remaining distance %f", name, distToMove));
-
-                // update target speed
-                double minimumStoppingDistance = getCurrentMinimumStoppingDistance();
-                if (distToMove > minimumStoppingDistance) {
-                    tSpeed = profile.getTopSpeed();
+                if (isAcc) {
+                    cSpeed = Math.min(cSpeed, tSpeed);
                 } else {
-                    tSpeed = 0;
+                    cSpeed = Math.max(cSpeed, tSpeed);
                 }
-                log.debug(String.format("%s: tSpeed %f", name, tSpeed));
+            }
+            log.debug(String.format("%s: cSpeed %f", name, cSpeed));
+            log.debug(String.format("%s: min stop distance %f", name, minimumStoppingDistance));
 
-                // update cSpeed if train was not coasting
-                if (!task.isDelayedTask()) {
-                    boolean isAcc = cSpeed < tSpeed;
-
-                    double a = isAcc ? profile.getAccRate() : profile.getDecRate();
-                    if (distToMove < minimumStoppingDistance) {
-                        a = -cSpeed * cSpeed / 2 / distToMove;
-                    }
-                    cSpeed += a * deltaT;
-
-                    if (isAcc) {
-                        cSpeed = Math.min(cSpeed, tSpeed);
-                    } else {
-                        cSpeed = Math.max(cSpeed, tSpeed);
-                    }
-                }
-                log.debug(String.format("%s: cSpeed %f", name, cSpeed));
-                log.debug(String.format("%s: min stop distance %f", name, minimumStoppingDistance));
-
-                // send next speed task
-                if (distToMove > 0) {
-                    if (cSpeed == 0 || cSpeed != tSpeed) {
-                        sendSetSpeedTask(currentTime);
-                    } else {
-                        double coastingDistance = distToMove - minimumStoppingDistance;
-                        if (coastingDistance > 0) {
-                            long coastingTime = (long) (coastingDistance / cSpeed * 1000);
-                            log.debug(String.format("%s: coasting for %dms", name, coastingTime));
-                            sendSetSpeedTask(currentTime, coastingTime);
-                        }
+            // send next speed task
+            final double distToMove = distance.getDistToMove();
+            if (distToMove > 0) {
+                if (cSpeed == 0 || cSpeed != tSpeed) {
+                    CommandStationUtil.addTask(new SetSpeedTask(this, currentTime));
+                } else {
+                    double coastingDistance = distToMove - minimumStoppingDistance;
+                    if (coastingDistance > 0) {
+                        long coastingTime = (long) (coastingDistance / cSpeed * 1000);
+                        log.debug(String.format("%s: coasting for %dms", name, coastingTime));
+                        CommandStationUtil.addTask(new SetSpeedTask(this, currentTime, coastingTime));
                     }
                 }
-
-                distLock.notifyAll();
             }
         }
     }
@@ -188,22 +148,24 @@ public class Trainset implements TaskExecutionListener {
         return profile.getMinimumStoppingDistance(cSpeed);
     }
 
+    public void addDistToMove(double dist) {
+        distance.addDistToMove(dist);
+    }
+
+    public void setDistToMove(double distToMove) {
+        distance.setDistToMove(distToMove);
+    }
+
+    public double getDistToMove() {
+        return distance.getDistToMove();
+    }
+
     public double resetMovedDist() {
-        synchronized (distLock) {
-            double res = movedDist;
-            movedDist = 0;
-            return res;
-        }
+        return distance.resetMovedDist();
     }
 
     public void waitDistUpdate() {
-        synchronized (distLock) {
-            try {
-                distLock.wait();
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-        }
+        distance.waitDistUpdate();
     }
 
     public int getTotalLength() {
@@ -228,11 +190,7 @@ public class Trainset implements TaskExecutionListener {
     }
 
     public boolean isForward() {
-        if (isMotorReversed) {
-            return !isForward;
-        } else {
-            return isForward;
-        }
+        return !isMotorReversed ? isForward : !isForward;
     }
 
     public void addAllocatedNodes(List<Long> nodes) {
@@ -258,7 +216,6 @@ public class Trainset implements TaskExecutionListener {
     }
 
     /**
-     *
      * @return allocated station track node if trainset occupies only one node and the node is a station track node
      */
     public Optional<StationTrackNode> getAllocatedStationTrack() {
@@ -266,16 +223,10 @@ public class Trainset implements TaskExecutionListener {
             if (allocatedNodes.size() != 2) return Optional.empty();
 
             try {
-                return Optional.of(LayoutUtil.getStationTrackNode(getAllocatedVector()));
+                return Optional.of(LayoutUtil.getStationTrackNode(getFirstAllocatedVector()));
             } catch (InvalidIdException e) {
                 return Optional.empty();
             }
-        }
-    }
-
-    private Vector getAllocatedVector() {
-        synchronized (allocatedNodesLock) {
-            return new Vector(allocatedNodes.get(0), allocatedNodes.get(1));
         }
     }
 
@@ -303,32 +254,87 @@ public class Trainset implements TaskExecutionListener {
 
     public Map<Vector, Range<Integer>> getAllocatedNodesSummary() {
         Map<Vector, Range<Integer>> result = new HashMap<>();
-        synchronized (allocatedNodesLock) {
-            for (int i = 0; i < allocatedNodes.size() - 1; i++) {
-                Vector nodeVector = new Vector(allocatedNodes.get(i), allocatedNodes.get(i + 1));
-                result.put(nodeVector,
-                        LayoutUtil.getNode(nodeVector).getOccupiedRange(nodeVector, this).orElse(null));
-            }
+        for (int i = 0; i < allocatedNodes.size() - 1; i++) {
+            Vector nodeVector = new Vector(allocatedNodes.get(i), allocatedNodes.get(i + 1));
+            result.put(nodeVector,
+                    LayoutUtil.getNode(nodeVector).getOccupiedRange(nodeVector, this).orElse(null));
         }
         return result;
     }
 
-    public interface AtoHandler {
-        void onSuccess();
-    }
-
-    public void activateAto(AtoHandler callback) {
-        if (atoThread == null || !atoThread.isAlive()) {
-            atoThread = new AutomaticTrainOperationThread(this);
-            atoThread.start();
-            callback.onSuccess();
-        }
-    }
-
-    public void deactivateAto(AtoHandler callback) {
+    public void activateAto() {
         if (atoThread != null && atoThread.isAlive()) {
-            atoThread.signalTerminate();
-            callback.onSuccess();
+            throw new RuntimeException(String.format("%s: ATO is already running", getName()));
+        }
+
+        atoThread = new AutomaticTrainOperationThread(this);
+        atoThread.start();
+    }
+
+    public void deactivateAto() {
+        if (atoThread == null || atoThread.isAlive()) {
+            throw new RuntimeException(String.format("%s: ATO is not running", getName()));
+        }
+
+        atoThread.signalTerminate();
+    }
+
+    private class Distance {
+        private double distToMove;
+        private double movedDist;
+        private long lastUpdated;
+        private final Object distLock = new Object();
+
+        public void addDistToMove(double dist) {
+            synchronized (distLock) {
+                setDistToMove(this.distToMove + dist);
+            }
+        }
+
+        public void setDistToMove(double distToMove) {
+            synchronized (distLock) {
+                this.distToMove = distToMove;
+            }
+        }
+
+        public double getDistToMove() {
+            synchronized (distLock) {
+                update();
+                return distToMove;
+            }
+        }
+
+        public double resetMovedDist() {
+            synchronized (distLock) {
+                update();
+                double res = movedDist;
+                movedDist = 0;
+                return res;
+            }
+        }
+
+        public void waitDistUpdate() {
+            synchronized (distLock) {
+                try {
+                    distLock.wait();
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+
+        private void update() {
+            synchronized (distLock) {
+                long currentTime = System.currentTimeMillis();
+                double deltaT = (currentTime - lastUpdated) / 1000.0;
+                double deltaD = cSpeed * deltaT;
+                lastUpdated = currentTime;
+
+                distToMove = Math.max(0, distToMove - deltaD);
+                movedDist += deltaD;
+
+                distLock.notifyAll();
+            }
         }
     }
 

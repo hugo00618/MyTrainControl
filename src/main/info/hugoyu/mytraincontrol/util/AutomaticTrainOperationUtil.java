@@ -16,21 +16,12 @@ public class AutomaticTrainOperationUtil {
     }
 
     public static void enableAto(Trainset trainset) {
-
-        trainset.activateAto(new Trainset.AtoHandler() {
-            @Override
-            public void onSuccess() {
-                System.out.println(String.format("%s: enabling ATO", trainset.getName()));
-            }
-        });
+        trainset.activateAto();
+        System.out.println(String.format("%s: enabling ATO", trainset.getName()));
     }
 
     public static void disableAto(Trainset trainset) {
-        trainset.deactivateAto(new Trainset.AtoHandler() {
-            @Override
-            public void onSuccess() {
-                System.out.println(String.format("%s: disabling ATO", trainset.getName()));
-            }
-        });
+        trainset.deactivateAto();
+        System.out.println(String.format("%s: disabling ATO", trainset.getName()));
     }
 }
