@@ -2,20 +2,12 @@ package info.hugoyu.mytraincontrol.switchable.impl;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.TurnoutControlTask;
-import info.hugoyu.mytraincontrol.switchable.Switchable;
-import lombok.Getter;
-import lombok.Setter;
+import info.hugoyu.mytraincontrol.switchable.AbstractSwitchable;
 
-@Setter
-@Getter
-public class Turnout implements Switchable {
-
-    private int address;
-    private State state;
+public class Turnout extends AbstractSwitchable {
 
     public Turnout(int address) {
-        this.address = address;
-        this.state = State.UNKNOWN;
+        super(address);
     }
 
     @Override

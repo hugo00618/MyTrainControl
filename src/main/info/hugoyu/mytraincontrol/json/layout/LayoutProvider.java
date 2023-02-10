@@ -9,12 +9,10 @@ import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.TurnoutNode;
 import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
 import info.hugoyu.mytraincontrol.registry.SensorRegistry;
-import info.hugoyu.mytraincontrol.registry.switchable.impl.CrossoverRegistry;
-import info.hugoyu.mytraincontrol.registry.switchable.impl.TurnoutRegistry;
+import info.hugoyu.mytraincontrol.registry.SwitchableRegistry;
 import info.hugoyu.mytraincontrol.sensor.SensorChangeListener;
 import info.hugoyu.mytraincontrol.sensor.SensorState;
-import info.hugoyu.mytraincontrol.switchable.impl.Crossover;
-import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
+import info.hugoyu.mytraincontrol.switchable.AbstractSwitchable;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SensorUtil;
 import jmri.Sensor;
@@ -89,12 +87,14 @@ public class LayoutProvider {
     private static void registerTurnout(TurnoutJson turnoutJson,
                                         LayoutRegistry layoutRegistry,
                                         boolean isUplink) {
-        Turnout turnout = TurnoutRegistry.getInstance().registerTurnout(turnoutJson);
+        AbstractSwitchable turnout = SwitchableRegistry.getInstance()
+                .registerSwitchable(turnoutJson.getAddress(), AbstractSwitchable.Type.TURNOUT);
         layoutRegistry.registerGraphNode(new TurnoutNode(turnoutJson, isUplink, turnout));
     }
 
     private static void registerCrossover(CrossoverJson crossoverJson, LayoutRegistry layoutRegistry) {
-        Crossover crossover = CrossoverRegistry.getInstance().registerCrossover(crossoverJson);
+        AbstractSwitchable crossover = SwitchableRegistry.getInstance()
+                .registerSwitchable(crossoverJson.getAddress(), AbstractSwitchable.Type.CROSSOVER);
         layoutRegistry.registerGraphNode(new CrossoverNode(crossoverJson, crossover));
     }
 

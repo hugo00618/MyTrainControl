@@ -1,7 +1,8 @@
 package info.hugoyu.mytraincontrol.util;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
-import info.hugoyu.mytraincontrol.switchable.Switchable;
+import info.hugoyu.mytraincontrol.registry.SwitchableRegistry;
+import info.hugoyu.mytraincontrol.switchable.AbstractSwitchable;
 
 import java.util.function.Consumer;
 
@@ -14,11 +15,11 @@ public class SwitchUtil {
      * @param forceSend ignores cached turnout state and forces sending the turnout control task
      * @param callback callback function
      */
-    public static void setSwitchState(Switchable switchable,
-                                      Switchable.State state,
+    public static void setSwitchState(AbstractSwitchable switchable,
+                                      AbstractSwitchable.State state,
                                       boolean forceSend,
                                       Consumer<Long> callback) {
-        Switchable.State cachedState = switchable.getState();
+        AbstractSwitchable.State cachedState = switchable.getState();
         boolean isSwitchStateChanged = cachedState != state;
         switchable.setState(state);
 
@@ -35,8 +36,13 @@ public class SwitchUtil {
         }
     }
 
-    public static void setSwitchState(Switchable switchable, Switchable.State state, Consumer<Long> callback) {
+    public static void setSwitchState(AbstractSwitchable switchable, AbstractSwitchable.State state, Consumer<Long> callback) {
         setSwitchState(switchable, state, false, callback);
+    }
+
+    public static void invalidateCachedState() {
+        SwitchableRegistry.getInstance().getSwitchables().values()
+                .forEach(switchable -> switchable.setState(AbstractSwitchable.State.UNKNOWN));
     }
 
 }

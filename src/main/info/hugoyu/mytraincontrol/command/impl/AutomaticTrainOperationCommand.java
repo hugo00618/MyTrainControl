@@ -1,7 +1,7 @@
 package info.hugoyu.mytraincontrol.command.impl;
 
 import info.hugoyu.mytraincontrol.command.Command;
-import info.hugoyu.mytraincontrol.command.constant.OnOffState;
+import info.hugoyu.mytraincontrol.command.OnOffState;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.AutomaticTrainOperationUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;

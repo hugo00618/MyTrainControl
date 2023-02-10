@@ -5,8 +5,7 @@ import info.hugoyu.mytraincontrol.json.layout.CrossoverJson;
 import info.hugoyu.mytraincontrol.layout.Connection;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
-import info.hugoyu.mytraincontrol.switchable.Switchable;
-import info.hugoyu.mytraincontrol.switchable.impl.Crossover;
+import info.hugoyu.mytraincontrol.switchable.AbstractSwitchable;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SwitchUtil;
 
@@ -24,7 +23,7 @@ public class CrossoverNode extends AbstractTrackNode {
 
     private final int length, crossLength;
 
-    private final Crossover crossover;
+    private final AbstractSwitchable crossover;
 
     private final Connection uplinkStraightConnection, downlinkStraightConnection;
     private final List<Connection> crossConnections;
@@ -39,7 +38,7 @@ public class CrossoverNode extends AbstractTrackNode {
                           Connection uplinkStraightConnection,
                           Connection downlinkStraightConnection,
                           List<Connection> crossConnections,
-                          Crossover crossover
+                          AbstractSwitchable crossover
     ) {
         super(true);
 
@@ -53,7 +52,7 @@ public class CrossoverNode extends AbstractTrackNode {
         this.crossConnections = crossConnections;
     }
 
-    public CrossoverNode(CrossoverJson crossoverJson, Crossover crossover) {
+    public CrossoverNode(CrossoverJson crossoverJson, AbstractSwitchable crossover) {
         this(
                 crossoverJson.getLength(),
                 crossoverJson.getCrossLength(),
@@ -118,9 +117,9 @@ public class CrossoverNode extends AbstractTrackNode {
             Consumer<Long> callback = actualExecutionTime -> isHardwareUpdated.complete(null);
 
             if (isStraightConnection(occupiedVector)) {
-                SwitchUtil.setSwitchState(crossover, Switchable.State.CLOSED, callback);
+                SwitchUtil.setSwitchState(crossover, AbstractSwitchable.State.CLOSED, callback);
             } else {
-                SwitchUtil.setSwitchState(crossover, Switchable.State.THROWN, callback);
+                SwitchUtil.setSwitchState(crossover, AbstractSwitchable.State.THROWN, callback);
             }
 
             return isHardwareUpdated;

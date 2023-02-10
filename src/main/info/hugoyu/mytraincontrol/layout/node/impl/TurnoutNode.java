@@ -6,7 +6,7 @@ import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
 import info.hugoyu.mytraincontrol.layout.Connection;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
-import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
+import info.hugoyu.mytraincontrol.switchable.AbstractSwitchable;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SwitchUtil;
 import lombok.Getter;
@@ -42,7 +42,7 @@ public class TurnoutNode extends AbstractTrackNode {
     private Type type;
 
     private int address;
-    private Turnout turnout;
+    private AbstractSwitchable turnout;
 
     private final boolean isUplink;
 
@@ -64,7 +64,7 @@ public class TurnoutNode extends AbstractTrackNode {
     public TurnoutNode(long id, long idClosed, long idThrown,
                        int distClosed, int distThrown, Type type, int address,
                        boolean isUplink,
-                       Turnout turnout) {
+                       AbstractSwitchable turnout) {
         super(true);
 
         this.id = id;
@@ -78,7 +78,7 @@ public class TurnoutNode extends AbstractTrackNode {
         this.turnout = turnout;
     }
 
-    public TurnoutNode(TurnoutJson turnoutJson, boolean isUplink, Turnout turnout) {
+    public TurnoutNode(TurnoutJson turnoutJson, boolean isUplink, AbstractSwitchable turnout) {
         this(turnoutJson.getId(),
                 turnoutJson.getIdClosed(),
                 turnoutJson.getIdThrown(),
@@ -135,9 +135,9 @@ public class TurnoutNode extends AbstractTrackNode {
             Consumer<Long> callback = actualExecutionTime -> isHardwareUpdated.complete(null);
 
             if (isThrown(occupiedVector)) {
-                SwitchUtil.setSwitchState(turnout, Turnout.State.THROWN, callback);
+                SwitchUtil.setSwitchState(turnout, AbstractSwitchable.State.THROWN, callback);
             } else {
-                SwitchUtil.setSwitchState(turnout, Turnout.State.CLOSED, callback);
+                SwitchUtil.setSwitchState(turnout, AbstractSwitchable.State.CLOSED, callback);
             }
 
             return isHardwareUpdated;

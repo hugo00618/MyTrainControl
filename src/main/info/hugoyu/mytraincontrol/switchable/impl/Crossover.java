@@ -4,27 +4,19 @@ import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetThrottleTask;
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
 import info.hugoyu.mytraincontrol.registry.ThrottleRegistry;
-import info.hugoyu.mytraincontrol.switchable.Switchable;
+import info.hugoyu.mytraincontrol.switchable.AbstractSwitchable;
 import jmri.DccThrottle;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.AbstractMap;
 
-import static info.hugoyu.mytraincontrol.switchable.Switchable.State.CLOSED;
+import static info.hugoyu.mytraincontrol.switchable.AbstractSwitchable.State.CLOSED;
 
-@Setter
-@Getter
-public class Crossover implements Switchable {
+public class Crossover extends AbstractSwitchable {
 
     private static final long CROSSOVER_SWITCH_DELAY_MILLIS = 500;
 
-    private int address;
-    private State state;
-
     public Crossover(int address) {
-        this.address = address;
-        this.state = State.UNKNOWN;
+        super(address);
     }
 
     @Override
