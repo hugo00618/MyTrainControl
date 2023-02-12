@@ -29,6 +29,12 @@ public class SwitchableRegistry {
     }
 
     public AbstractSwitchable registerSwitchable(int address, AbstractSwitchable.Type type) {
+        AbstractSwitchable switchable = constructSwitchable(address, type)
+        switchables.put(address, switchable);
+        return switchable;
+    }
+
+    private AbstractSwitchable constructSwitchable(int address, AbstractSwitchable.Type type) {
         switch (type) {
             case TURNOUT:
                 return new Turnout(address);

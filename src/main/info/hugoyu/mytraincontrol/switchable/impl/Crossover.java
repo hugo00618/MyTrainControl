@@ -14,6 +14,7 @@ import static info.hugoyu.mytraincontrol.switchable.AbstractSwitchable.State.CLO
 public class Crossover extends AbstractSwitchable {
 
     private static final long CROSSOVER_SWITCH_DELAY_MILLIS = 500;
+    private static final long HIGH_CURRENT_OCCUPANCY_PERIOD = 750;
 
     public Crossover(int address) {
         super(address);
@@ -27,7 +28,7 @@ public class Crossover extends AbstractSwitchable {
         return new SetThrottleTask(
                 crossoverThrottle,
                 throttlePercent,
-                CROSSOVER_SWITCH_DELAY_MILLIS,
+                HIGH_CURRENT_OCCUPANCY_PERIOD,
                 new AbstractMap.SimpleImmutableEntry<>(
                         new SetThrottleTask(crossoverThrottle, 0),
                         CROSSOVER_SWITCH_DELAY_MILLIS
