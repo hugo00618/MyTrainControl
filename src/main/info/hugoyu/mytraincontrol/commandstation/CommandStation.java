@@ -45,21 +45,24 @@ public class CommandStation {
             } else {
                 tasks.add(newTask);
             }
+
+            tasksLock.notifyAll();
         }
     }
 
-    public AbstractCommandStationTask getAvailableTask(boolean poll) {
-        synchronized (tasksLock) {
-            AbstractCommandStationTask task = tasks.peek();
-            if (task != null && System.currentTimeMillis() >= task.getScheduledExecutionTime()) {
-                if (poll) {
-                    return tasks.poll();
-                } else {
-                    return task;
+    public AbstractCommandStationTask waitForNextTask() {
+        try {
+            synchronized (tasksLock) {
+                while (true) {
+                    if (tasks.isEmpty()) {
+                        tasksLock.wait();
+                    } else {
+                        return tasks.poll();
+                    }
                 }
-            } else {
-                return null;
             }
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
         }
     }
 

@@ -29,7 +29,7 @@ public class SwitchableRegistry {
     }
 
     public AbstractSwitchable registerSwitchable(int address, AbstractSwitchable.Type type) {
-        AbstractSwitchable switchable = constructSwitchable(address, type)
+        AbstractSwitchable switchable = constructSwitchable(address, type);
         switchables.put(address, switchable);
         return switchable;
     }
