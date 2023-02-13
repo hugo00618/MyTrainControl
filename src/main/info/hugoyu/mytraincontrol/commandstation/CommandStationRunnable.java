@@ -2,7 +2,13 @@ package info.hugoyu.mytraincontrol.commandstation;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executors;
 
 public class CommandStationRunnable implements Runnable {
 
@@ -30,10 +36,23 @@ public class CommandStationRunnable implements Runnable {
     @Override
     public void run() {
         while (true) {
-            sleepIfNeeded();
+            Callable<AbstractCommandStationTask> nextTask = () -> {
+                AbstractCommandStationTask task = commandStation.getNextAvailableTask(false);
+                sleep(task);
+                return task;
+            };
 
-            AbstractCommandStationTask task = commandStation.getAvailableTask(true);
-            if (task != null) {
+            Callable<AbstractCommandStationTask> nextHighConsumptionTask = () -> {
+                AbstractCommandStationTask task = commandStation.getNextAvailableTask(true);
+                sleep(task);
+                return task;
+            };
+
+            try {
+                AbstractCommandStationTask task = Executors.newFixedThreadPool(2)
+                        .invokeAny(List.of(nextTask, nextHighConsumptionTask));
+                commandStation.removeFromTasks(task);
+
                 long executionTime = System.currentTimeMillis();
 
                 task.execute();
@@ -42,26 +61,18 @@ public class CommandStationRunnable implements Runnable {
                 nextAvailableExecutionTime = executionTime + MIN_UPDATE_INTERVAL;
                 nextAvailableHighCurrentExecutionTime = executionTime + task.getHighCurrentConsumptionPeriod();
 
-                AbstractCommandStationTask nextTask = task.getNextTask(executionTime);
-                if (nextTask != null) {
-                    commandStation.addTask(nextTask);
-                }
+                Optional.ofNullable(task.getNextTask(executionTime))
+                        .ifPresent(followupTask -> commandStation.addTask(followupTask));
+            } catch(InterruptedException | ExecutionException e) {
+
             }
         }
     }
 
-    private void sleepIfNeeded() {
-        long nextAvailableTime = nextAvailableExecutionTime;
-        if (isNextTaskHighCurrentConsumption()) {
-            nextAvailableTime = Math.max(nextAvailableTime, nextAvailableHighCurrentExecutionTime);
-        }
-        sleep(nextAvailableTime);
-    }
-
-    private boolean isNextTaskHighCurrentConsumption() {
-        return Optional.ofNullable(commandStation.getAvailableTask(false))
-                .map(AbstractCommandStationTask::isHighCurrentConsumptionTask)
-                .orElse(false);
+    private void sleep(AbstractCommandStationTask task) {
+        long until = Math.max(task.getScheduledExecutionTime(),
+                task.isHighCurrentConsumptionTask() ? nextAvailableHighCurrentExecutionTime : nextAvailableExecutionTime);
+        sleep(until);
     }
 
     private void sleep(long until) {

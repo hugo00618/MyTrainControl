@@ -6,6 +6,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.function.Predicate;
 
 public class CommandStation {
 
@@ -45,25 +46,33 @@ public class CommandStation {
             } else {
                 tasks.add(newTask);
             }
+
+            tasksLock.notifyAll();
         }
     }
 
-    public AbstractCommandStationTask getAvailableTask(boolean poll) {
-        synchronized (tasksLock) {
-            AbstractCommandStationTask task = tasks.peek();
-            if (task != null && System.currentTimeMillis() >= task.getScheduledExecutionTime()) {
-                if (poll) {
-                    return tasks.poll();
-                } else {
-                    return task;
-                }
+    public AbstractCommandStationTask getNextAvailableTask(boolean includeHighConsumptionTasks) {
+        Predicate<AbstractCommandStationTask> predicate = (task) -> {
+            if (!includeHighConsumptionTasks) {
+                return !task.isHighCurrentConsumptionTask();
             } else {
-                return null;
+                return true;
             }
+        };
+
+        synchronized (tasksLock) {
+            return tasks.stream().filter(predicate).findFirst().orElseGet(() -> {
+                try {
+                    tasksLock.wait();
+                } catch (InterruptedException e) {
+
+                }
+                return getNextAvailableTask(includeHighConsumptionTasks);
+            });
         }
     }
 
-    private void removeFromTasks(AbstractCommandStationTask removingTask) {
+    public void removeFromTasks(AbstractCommandStationTask removingTask) {
         synchronized (tasksLock) {
             Queue<AbstractCommandStationTask> newTasks = new PriorityQueue<>();
             while (!tasks.isEmpty()) {
