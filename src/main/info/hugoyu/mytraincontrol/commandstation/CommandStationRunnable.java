@@ -2,12 +2,11 @@ package info.hugoyu.mytraincontrol.commandstation;
 
 import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask;
 
-import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class CommandStationRunnable implements Runnable {
@@ -36,6 +35,8 @@ public class CommandStationRunnable implements Runnable {
     @Override
     public void run() {
         while (true) {
+            System.out.println(java.lang.Thread.activeCount());
+
             Callable<AbstractCommandStationTask> nextTask = () -> {
                 AbstractCommandStationTask task = commandStation.getNextAvailableTask(false);
                 sleep(task);
@@ -48,24 +49,29 @@ public class CommandStationRunnable implements Runnable {
                 return task;
             };
 
+            ExecutorService executorService = Executors.newFixedThreadPool(2);
+            AbstractCommandStationTask task;
             try {
-                AbstractCommandStationTask task = Executors.newFixedThreadPool(2)
-                        .invokeAny(List.of(nextTask, nextHighConsumptionTask));
-                commandStation.removeFromTasks(task);
-
-                long executionTime = System.currentTimeMillis();
-
-                task.execute();
-                task.callback(executionTime);
-
-                nextAvailableExecutionTime = executionTime + MIN_UPDATE_INTERVAL;
-                nextAvailableHighCurrentExecutionTime = executionTime + task.getHighCurrentConsumptionPeriod();
-
-                Optional.ofNullable(task.getNextTask(executionTime))
-                        .ifPresent(followupTask -> commandStation.addTask(followupTask));
-            } catch(InterruptedException | ExecutionException e) {
-
+                task = executorService.invokeAny(List.of(nextTask, nextHighConsumptionTask));
+            } catch (InterruptedException | ExecutionException e) {
+                throw new RuntimeException(e);
+            } finally {
+                executorService.shutdownNow();
             }
+            commandStation.removeFromTasks(task);
+
+            long executionTime = System.currentTimeMillis();
+
+            task.execute();
+            task.callback(executionTime);
+
+
+            nextAvailableExecutionTime = executionTime + MIN_UPDATE_INTERVAL;
+            nextAvailableHighCurrentExecutionTime = executionTime + task.getHighCurrentConsumptionPeriod();
+
+            Optional.ofNullable(task.getNextTask(executionTime))
+                    .ifPresent(followupTask -> commandStation.addTask(followupTask));
+
         }
     }
 

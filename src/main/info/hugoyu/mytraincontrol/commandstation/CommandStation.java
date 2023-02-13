@@ -74,14 +74,16 @@ public class CommandStation {
 
     public void removeFromTasks(AbstractCommandStationTask removingTask) {
         synchronized (tasksLock) {
-            Queue<AbstractCommandStationTask> newTasks = new PriorityQueue<>();
-            while (!tasks.isEmpty()) {
-                AbstractCommandStationTask task = tasks.poll();
-                if (task != removingTask) {
-                    newTasks.add(task);
+            if (removingTask != null) {
+                Queue<AbstractCommandStationTask> newTasks = new PriorityQueue<>();
+                while (!tasks.isEmpty()) {
+                    AbstractCommandStationTask task = tasks.poll();
+                    if (task != removingTask) {
+                        newTasks.add(task);
+                    }
                 }
+                tasks = newTasks;
             }
-            tasks = newTasks;
         }
     }
 
