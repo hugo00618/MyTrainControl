@@ -130,7 +130,7 @@ class CommandStationRunnableTest {
 
     private Future<AbstractCommandStationTask> constructGetNextAvailableToExecuteTaskFuture() {
         CompletableFuture<AbstractCommandStationTask> future = new CompletableFuture<>();
-        Executors.newCachedThreadPool().submit(() -> future.complete(sut.getNextAvailableToExecuteTask()));
+        Executors.newCachedThreadPool().submit(() -> future.complete(sut.getNextAvailableTask()));
         return future;
     }
 }
