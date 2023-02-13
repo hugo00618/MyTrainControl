@@ -35,8 +35,6 @@ public class CommandStationRunnable implements Runnable {
     @Override
     public void run() {
         while (true) {
-            System.out.println(java.lang.Thread.activeCount());
-
             Callable<AbstractCommandStationTask> nextTask = () -> {
                 AbstractCommandStationTask task = commandStation.getNextAvailableTask(false);
                 sleep(task);
