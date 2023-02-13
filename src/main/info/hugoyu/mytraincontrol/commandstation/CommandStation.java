@@ -6,6 +6,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
+import java.util.function.Predicate;
 
 public class CommandStation {
 
@@ -50,32 +51,39 @@ public class CommandStation {
         }
     }
 
-    public AbstractCommandStationTask waitForNextTask() {
-        try {
-            synchronized (tasksLock) {
-                while (true) {
-                    if (tasks.isEmpty()) {
-                        tasksLock.wait();
-                    } else {
-                        return tasks.poll();
-                    }
-                }
+    public AbstractCommandStationTask getNextAvailableTask(boolean includeHighConsumptionTasks) {
+        Predicate<AbstractCommandStationTask> predicate = (task) -> {
+            if (!includeHighConsumptionTasks) {
+                return !task.isHighCurrentConsumptionTask();
+            } else {
+                return true;
             }
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+        };
+
+        synchronized (tasksLock) {
+            return tasks.stream().filter(predicate).findFirst().orElseGet(() -> {
+                try {
+                    tasksLock.wait();
+                } catch (InterruptedException e) {
+
+                }
+                return getNextAvailableTask(includeHighConsumptionTasks);
+            });
         }
     }
 
-    private void removeFromTasks(AbstractCommandStationTask removingTask) {
+    public void removeFromTasks(AbstractCommandStationTask removingTask) {
         synchronized (tasksLock) {
-            Queue<AbstractCommandStationTask> newTasks = new PriorityQueue<>();
-            while (!tasks.isEmpty()) {
-                AbstractCommandStationTask task = tasks.poll();
-                if (task != removingTask) {
-                    newTasks.add(task);
+            if (removingTask != null) {
+                Queue<AbstractCommandStationTask> newTasks = new PriorityQueue<>();
+                while (!tasks.isEmpty()) {
+                    AbstractCommandStationTask task = tasks.poll();
+                    if (task != removingTask) {
+                        newTasks.add(task);
+                    }
                 }
+                tasks = newTasks;
             }
-            tasks = newTasks;
         }
     }
 
