@@ -105,6 +105,9 @@ public class LayoutProvider {
         SensorAttachable node = (SensorAttachable) LayoutRegistry.getInstance().getNode(nodeVector);
 
         Sensor sensor = SensorUtil.getSensor(address, new SensorChangeListener() {
+            
+            private Trainset lastEntered;
+
             @Override
             public void onEnter(Sensor sensor) {
                 calibrateOwnerMovingBlockManager(SensorState.ENTER);
@@ -117,6 +120,14 @@ public class LayoutProvider {
 
             private void calibrateOwnerMovingBlockManager(SensorState sensorState) {
                 Trainset occupyingTrainset = node.getOccupier(sensorJson.getOffset());
+
+                if (sensorState == SensorState.ENTER) {
+                    lastEntered = occupyingTrainset;
+                }
+                if (sensorState == SensorState.EXIT && occupyingTrainset == null) {
+                    occupyingTrainset = lastEntered;
+                }
+
                 if (occupyingTrainset != null) {
                     occupyingTrainset.calibrate(nodeVector, sensorJson.getOffset(), sensorState);
                 }
