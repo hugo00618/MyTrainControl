@@ -46,7 +46,10 @@ public class TurnoutNode extends AbstractTrackNode {
 
     private final boolean isUplink;
 
+
+    private static final int NO_OCCUPIER = -1;
     private int occupier;
+
     private Vector occupiedVector;
     private Range<Integer> occupiedRange;
     private final Object occupierLock = new Object();
@@ -77,7 +80,7 @@ public class TurnoutNode extends AbstractTrackNode {
         this.isUplink = isUplink;
         this.turnout = turnout;
 
-        this.occupier = -1;
+        this.occupier = NO_OCCUPIER;
     }
 
     public TurnoutNode(TurnoutJson turnoutJson, boolean isUplink, AbstractSwitchable turnout) {
@@ -117,7 +120,7 @@ public class TurnoutNode extends AbstractTrackNode {
     public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
         synchronized (occupierLock) {
             // return true if there is no occupier or if the current occupier is trainset itself
-            return occupier == trainset.getAddress();
+            return occupier == NO_OCCUPIER || occupier == trainset.getAddress();
         }
     }
 
@@ -181,7 +184,7 @@ public class TurnoutNode extends AbstractTrackNode {
 
     private void removeOccupier() {
         synchronized (occupierLock) {
-            occupier = -1;
+            occupier = NO_OCCUPIER;
             occupiedRange = null;
         }
     }
