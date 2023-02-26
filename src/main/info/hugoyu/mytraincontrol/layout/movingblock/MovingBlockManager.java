@@ -10,12 +10,14 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.RouteUtil;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static info.hugoyu.mytraincontrol.sensor.SensorState.EXIT;
 
+@Log4j2
 @Getter
 public class MovingBlockManager {
 
@@ -55,9 +57,9 @@ public class MovingBlockManager {
         setDestinationId(nodesToAllocate.get(nodesToAllocate.size() - 1));
 
         int distToMove = calcDistToMove(trainset, route);
-        this.totalDistToMove += distToMove;
-        this.distToAlloc += distToMove;
-        this.distToFree += distToMove;
+        setTotalDistToMove(distToMove);
+        this.distToAlloc = distToMove;
+        this.distToFree = distToMove;
     }
 
     public Runnable getNewMovingBlockRunnable() {
@@ -68,11 +70,18 @@ public class MovingBlockManager {
         double offset;
         synchronized (distanceLock) {
             double calibratedDistToMove = calcCalibratedDistToMove(trainset, nodeVector, sensorOffset, sensorState);
-            offset = calibratedDistToMove - totalDistToMove - calibrationOffset;
+            offset = calibratedDistToMove - getTotalDistToMove() - calibrationOffset;
+
+            log.debug("{} calibratedDistToMove: {}", trainset.getName(), calibratedDistToMove);
+            log.debug("{} totalDistToMove: {}", trainset.getName(), getTotalDistToMove());
+            log.debug("{} calibrationOffset: {}", trainset.getName(), calibrationOffset);
+            log.debug("{} offset: {}", trainset.getName(), offset);
+
             calibrationOffset += offset;
-            totalDistToMove = calibratedDistToMove;
+            setTotalDistToMove(calibratedDistToMove);
         }
         trainset.addDistToMove(offset);
+        log.debug("{} updated distToMove to {}", trainset.getName(), trainset.getDistToMove());
     }
 
     @VisibleForTesting
@@ -106,9 +115,16 @@ public class MovingBlockManager {
         return stationTrackNode.getOutboundMoveDist(trainset) + route.getCost();
     }
 
+    public void setTotalDistToMove(double dist) {
+        synchronized (distanceLock) {
+            totalDistToMove = dist;
+        }
+    }
+
     public void addTotalDistToMove(double dist) {
         synchronized (distanceLock) {
             totalDistToMove += dist;
+            log.debug("{} totalDistToMove added {} to {}", trainset.getName(), dist, totalDistToMove);
         }
     }
 

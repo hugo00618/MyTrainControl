@@ -9,7 +9,6 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.AllocateUtil;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.RouteUtil;
-import lombok.extern.log4j.Log4j;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -17,7 +16,6 @@ import java.util.List;
 import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_HEADING;
 import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_TRAILING;
 
-@Log4j
 public class MovingBlockRunnable implements Runnable {
 
     private static final int INITIAL_MOVE_DISTANCE = 20;

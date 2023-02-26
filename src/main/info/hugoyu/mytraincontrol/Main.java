@@ -10,21 +10,17 @@ import jmri.ConfigureManager;
 import jmri.InstanceManager;
 import jmri.implementation.JmriConfigurationManager;
 import jmri.jmrix.dccpp.serial.DCCppAdapter;
-import lombok.extern.log4j.Log4j;
-import org.apache.log4j.PropertyConfigurator;
+import lombok.extern.log4j.Log4j2;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Vector;
 
-@Log4j
+@Log4j2
 public class Main {
 
-    private static final String LOG4J_CONFIG_PATH = "log4j.properties";
-
     public static void main(String[] args) throws Exception {
-        PropertyConfigurator.configure(LOG4J_CONFIG_PATH);
         log.info("System start");
 
         selectPort();

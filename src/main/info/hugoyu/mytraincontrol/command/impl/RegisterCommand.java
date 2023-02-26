@@ -4,9 +4,7 @@ import info.hugoyu.mytraincontrol.command.Command;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.LightState;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
-import lombok.extern.log4j.Log4j;
 
-@Log4j
 public class RegisterCommand implements Command {
 
     @Override

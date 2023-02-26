@@ -3,10 +3,10 @@ package info.hugoyu.mytraincontrol.exception;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import lombok.Getter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
 @Getter
-@Log4j
+@Log4j2
 public class NodeAllocationException extends Exception {
 
     public static enum ExceptionType {

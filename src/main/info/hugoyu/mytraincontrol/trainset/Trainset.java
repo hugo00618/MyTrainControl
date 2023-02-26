@@ -21,7 +21,7 @@ import info.hugoyu.mytraincontrol.util.LightState;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
 import lombok.Getter;
 import lombok.Setter;
-import lombok.extern.log4j.Log4j;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -30,7 +30,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @Setter
-@Log4j
+@Log4j2
 public class Trainset implements TaskExecutionListener {
     @Getter
     private final int address;
@@ -100,7 +100,7 @@ public class Trainset implements TaskExecutionListener {
             } else {
                 tSpeed = 0;
             }
-            log.debug(String.format("%s: tSpeed %f", name, tSpeed));
+            log.debug("{} tSpeed: {}", name, tSpeed);
 
             // update cSpeed if train was not coasting
             if (!task.isDelayedTask()) {
@@ -120,8 +120,8 @@ public class Trainset implements TaskExecutionListener {
                     cSpeed = Math.max(cSpeed, tSpeed);
                 }
             }
-            log.debug(String.format("%s: cSpeed %f", name, cSpeed));
-            log.debug(String.format("%s: min stop distance %f", name, minimumStoppingDistance));
+            log.debug("{} cSpeed: {}", name, cSpeed);
+            log.debug("{} min stop distance: {}", name, minimumStoppingDistance);
 
             // send next speed task
             final double distToMove = distance.getDistToMove();
@@ -132,7 +132,7 @@ public class Trainset implements TaskExecutionListener {
                     double coastingDistance = distToMove - minimumStoppingDistance;
                     if (coastingDistance > 0) {
                         long coastingTime = (long) (coastingDistance / cSpeed * 1000);
-                        log.debug(String.format("%s: coasting for %dms", name, coastingTime));
+                        log.debug("{} coasting for {} ms", name, coastingTime);
                         sendSetSpeedTask(currentTime, coastingTime);
                     }
                 }

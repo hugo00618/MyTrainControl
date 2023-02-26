@@ -6,9 +6,7 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.AllocateUtil;
 import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.TrainUtil;
-import lombok.extern.log4j.Log4j;
 
-@Log4j
 public class AllocateCommand implements Command {
 
     @Override

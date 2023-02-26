@@ -11,13 +11,11 @@ import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.registry.LayoutRegistry;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
-import lombok.extern.log4j.Log4j;
 
 import java.util.AbstractMap;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-@Log4j
 public class LayoutUtil {
 
     private static final String LAYOUT_FILE_PATH = "json-layout-profiles/layout.json";

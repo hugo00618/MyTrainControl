@@ -8,6 +8,7 @@ import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.Allocatable;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.List;
 import java.util.Optional;
@@ -16,6 +17,7 @@ import java.util.concurrent.Future;
 
 import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_TRAILING;
 
+@Log4j2
 public class AllocateUtil {
     /**
      * @param trainset
@@ -39,6 +41,8 @@ public class AllocateUtil {
         final long id0 = nodesToAllocate.get(0);
         final long id1 = nodesToAllocate.get(1);
         final Vector vector = new Vector(id0, id1);
+
+        log.debug("{} allocating {} with distance {}", trainset.getName(), vector, dist);
 
         Allocatable allocatable = LayoutUtil.getNode(vector);
 
@@ -73,6 +77,8 @@ public class AllocateUtil {
                     minAllocatingDist += TRAIN_BUFFER_DISTANCE_TRAILING;
                     dist = Math.max(dist, minAllocatingDist);
                 }
+
+                log.debug("{} allocating distance updated to {}", trainset.getName(), dist);
             }
 
             Range<Integer> ownedRange = allocatable.getOccupiedRange(vector, trainset)
@@ -96,6 +102,8 @@ public class AllocateUtil {
 
             while (!allocatable.isFree(trainset, vector, occupyingRange)) {
                 try {
+                    log.debug("{} waiting for {} at {} to become available",
+                            trainset.getName(), vector, occupyingRange);
                     occupierLock.wait();
                 } catch (InterruptedException e) {
                     throw new RuntimeException(e);
@@ -104,6 +112,8 @@ public class AllocateUtil {
 
             allocatable.setOccupier(trainset, vector, newOwnedRange);
             Future<Void> isHardwareUpdated = allocatable.updateHardware();
+
+            log.debug("{} allocated {} with new range {}", trainset.getName(), vector, newOwnedRange);
 
             allocatedNodes.add(0, id1);
             allocatedNodes.add(0, id0);
@@ -119,7 +129,7 @@ public class AllocateUtil {
             try {
                 isHardwareUpdated.get();
             } catch (ExecutionException | InterruptedException e) {
-
+                throw new RuntimeException(e);
             }
 
             return allocatedDist;
