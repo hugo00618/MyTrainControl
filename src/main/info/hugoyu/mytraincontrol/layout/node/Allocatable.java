@@ -43,9 +43,18 @@ public interface Allocatable {
 
     /**
      * @param vector
+     * @param trainset
      * @return current owned range of vector, or null if trainset doesn't own the vector
      */
     Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset);
+
+    /**
+     *
+     * @param vector
+     * @param trainset
+     * @return non-block version of getOccupiedRange
+     */
+    Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset);
 
     /**
      * sets the occupier of vector to be trainset, with newOccupiedRange

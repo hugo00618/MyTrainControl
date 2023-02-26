@@ -138,9 +138,14 @@ public class CrossoverNode extends AbstractTrackNode {
     @Override
     public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
         synchronized (occupierLock) {
-            return Optional.ofNullable(occupiers.get(vector))
-                    .map(AbstractMap.SimpleImmutableEntry::getValue);
+            return getOccupiedRangeImmediately(vector, trainset);
         }
+    }
+
+    @Override
+    public Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset) {
+        return Optional.ofNullable(occupiers.get(vector))
+                .map(AbstractMap.SimpleImmutableEntry::getValue);
     }
 
     @Override

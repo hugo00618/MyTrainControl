@@ -106,8 +106,13 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     @Override
     public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
         synchronized (occupierLock) {
-            return Optional.ofNullable(occupiers.get(trainset.getAddress()));
+            return getOccupiedRangeImmediately(vector, trainset);
         }
+    }
+
+    @Override
+    public Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset) {
+        return Optional.ofNullable(occupiers.get(trainset.getAddress()));
     }
 
     @Override

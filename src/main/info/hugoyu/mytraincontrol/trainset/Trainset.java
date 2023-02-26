@@ -284,7 +284,8 @@ public class Trainset implements TaskExecutionListener {
         for (int i = 0; i < allocatedNodes.size() - 1; i++) {
             Vector nodeVector = new Vector(allocatedNodes.get(i), allocatedNodes.get(i + 1));
             result.put(nodeVector,
-                    LayoutUtil.getNode(nodeVector).getOccupiedRange(nodeVector, this).orElse(null));
+                    LayoutUtil.getNode(nodeVector).getOccupiedRangeImmediately(nodeVector, this)
+                            .orElse(null));
         }
         return result;
     }

@@ -157,8 +157,13 @@ public class TurnoutNode extends AbstractTrackNode {
     @Override
     public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
         synchronized (occupierLock) {
-            return Optional.ofNullable(occupier == trainset.getAddress() ? occupiedRange : null);
+            return getOccupiedRangeImmediately(vector, trainset);
         }
+    }
+
+    @Override
+    public Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset) {
+        return Optional.ofNullable(occupier == trainset.getAddress() ? occupiedRange : null);
     }
 
     @Override
