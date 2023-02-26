@@ -9,7 +9,6 @@ import info.hugoyu.mytraincontrol.layout.node.Allocatable;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.ExecutionException;
@@ -26,7 +25,7 @@ public class AllocateUtil {
      * @return allocated distance - note that this number could be higher than the input dist, if any extra distance is allocated
      */
     public static int allocNode(Trainset trainset,
-                                final int dist,
+                                int dist,
                                 List<Long> nodesToAllocate,
                                 List<Long> allocatedNodes) {
         if (dist <= 0) {
@@ -61,15 +60,18 @@ public class AllocateUtil {
                     return 0;
                 }
 
-                int minAllocatingDist = sectionLength + trainset.getTotalLength();
+                int remainingSectionLength = sectionLength -
+                        allocatable.getOccupiedRange(vector, trainset)
+                        .map(Range::upperEndpoint)
+                        .orElse(0);
+                int minAllocatingDist = remainingSectionLength + trainset.getTotalLength();
 
                 AbstractTrackNode nextNode = LayoutUtil.getNode(nodesToAllocate.get(1), nodesToAllocate.get(2));
-                if (!(nextNode instanceof StationTrackNode)) {
+                if (nextNode instanceof StationTrackNode) {
+                    dist = minAllocatingDist;
+                } else {
                     minAllocatingDist += TRAIN_BUFFER_DISTANCE_TRAILING;
-                }
-
-                if (dist < minAllocatingDist) {
-                    return allocNode(trainset, minAllocatingDist, nodesToAllocate, allocatedNodes);
+                    dist = Math.max(dist, minAllocatingDist);
                 }
             }
 
@@ -176,14 +178,7 @@ public class AllocateUtil {
         trainset.freeAllNodes();
 
         try {
-            allocNode(trainset,
-                    stationTrackNode.getInboundMoveDist(trainset),
-                    List.of(stationTrackNode.getId0(), stationTrackNode.getId1()),
-                    new ArrayList<>());
-            freeNode(trainset,
-                    new Vector(stationTrackNode.getId0(), stationTrackNode.getId1()),
-                    stationTrackNode.getInboundMargin(trainset));
-
+            stationTrackNode.occupyStationTrack(trainset);
             trainset.addAllocatedNodes(List.of(stationTrackNode.getId0(), stationTrackNode.getId1()));
 
             return true;
@@ -192,4 +187,5 @@ public class AllocateUtil {
             return false;
         }
     }
+
 }

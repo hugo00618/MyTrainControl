@@ -47,7 +47,7 @@ public class MovingBlockRunnable implements Runnable {
             // allocate initial buffer space
             allocateInitialDistance();
 
-            while (movingBlockManager.getDistToMove() >= 1 || trainset.getDistToMove() >= 1) {
+            while (movingBlockManager.getDistToAlloc() >= 1 || trainset.getDistToMove() >= 1) {
                 double movedDist = trainset.resetMovedDist();
                 if (movedDist > 0) {
                     double movedDistForBlockSection = movingBlockManager.logMovedDist(movedDist);
@@ -72,7 +72,7 @@ public class MovingBlockRunnable implements Runnable {
             free();
 
             // todo: this is a temporary workaround to fix a "fail to free all nodes" issue
-            AllocateUtil.reserveStationTrack(trainset.getAllocatedStationTrack().get(), trainset);
+            trainset.resetAllocatedNodes();
         } catch (NodeAllocationException e) {
             throw new RuntimeException("Track allocation error", e);
         }
@@ -162,9 +162,13 @@ public class MovingBlockRunnable implements Runnable {
     }
 
     private int getMinAllocateDistance() {
-        int minStoppingDist = (int) (Math.ceil(trainset.getCurrentMinimumStoppingDistance() + trainset.getCSpeed() * 0.5));
-        int minAllocateDist = Math.max(minStoppingDist, INITIAL_MOVE_DISTANCE) + TRAIN_BUFFER_DISTANCE_HEADING;
-        minAllocateDist = Math.min(minAllocateDist, (int) Math.ceil(movingBlockManager.getDistToMove()));
+        final int minTravellingDist = Math.max(
+                INITIAL_MOVE_DISTANCE,
+                (int) Math.ceil(trainset.getCurrentMinimumStoppingDistance() +
+                        trainset.getCSpeed() * 0.5)); // allocating 0.5 sec of travelling distance for next cycle
+        final int minAllocateDist = Math.min(
+                minTravellingDist + TRAIN_BUFFER_DISTANCE_HEADING,
+                (int) Math.ceil(movingBlockManager.getTotalDistToMove()));
         return minAllocateDist;
     }
 
@@ -185,7 +189,7 @@ public class MovingBlockRunnable implements Runnable {
         nodesToAllocate.addAll(inboundRoute.getNodes());
 
         int inboundMoveDist = inboundRoute.getCost() - stationTrackNode.getOutboundMoveDist(trainset);
-        movingBlockManager.addDistToMove(inboundMoveDist);
+        movingBlockManager.addTotalDistToMove(inboundMoveDist);
         movingBlockManager.addDistToAlloc(inboundMoveDist);
         movingBlockManager.addDistToFree(inboundMoveDist);
         movingBlockManager.setDestinationId(inboundRoute.getDestinationVector().getId1());

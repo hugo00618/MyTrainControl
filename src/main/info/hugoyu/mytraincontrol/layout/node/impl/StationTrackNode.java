@@ -1,6 +1,7 @@
 package info.hugoyu.mytraincontrol.layout.node.impl;
 
 import com.google.common.collect.Range;
+import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.json.layout.StationTrackJson;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.alias.Station;
@@ -10,6 +11,8 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static info.hugoyu.mytraincontrol.exception.NodeAllocationException.ExceptionType.ALLOCATING_OCCUPIED_SECTION;
 
 @Getter
 public class StationTrackNode extends RegularTrackNode {
@@ -80,6 +83,17 @@ public class StationTrackNode extends RegularTrackNode {
         synchronized (occupierLock) {
             return occupiers.isEmpty();
         }
+    }
+
+    public void occupyStationTrack(Trainset trainset) throws NodeAllocationException {
+        Vector vector = new Vector(id0, id1);
+        Range<Integer> range = Range.closedOpen(getInboundMargin(trainset), getInboundMoveDist(trainset));
+
+        if (!isFree(trainset, vector, range)) {
+            throw new NodeAllocationException(ALLOCATING_OCCUPIED_SECTION, trainset, vector, 0);
+        }
+
+        setOccupier(trainset, vector, range);
     }
 
     /**

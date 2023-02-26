@@ -8,6 +8,7 @@ import info.hugoyu.mytraincontrol.commandstation.task.impl.SetDirectionTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetLightTask;
 import info.hugoyu.mytraincontrol.commandstation.task.impl.SetSpeedTask;
 import info.hugoyu.mytraincontrol.exception.InvalidIdException;
+import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.Route;
 import info.hugoyu.mytraincontrol.layout.Vector;
 import info.hugoyu.mytraincontrol.layout.movingblock.MovingBlockManager;
@@ -40,6 +41,7 @@ public class Trainset implements TaskExecutionListener {
     @Getter
     private double cSpeed; // current speed
 
+    @Getter
     private double tSpeed; // targeting speed
     private final Object tSpeedLock = new Object();
 
@@ -215,6 +217,22 @@ public class Trainset implements TaskExecutionListener {
     public void removeFirstAllocatedNode() {
         synchronized (allocatedNodesLock) {
             allocatedNodes.remove(0);
+        }
+    }
+
+    public void resetAllocatedNodes() {
+        synchronized (allocatedNodesLock) {
+            while (allocatedNodes.size() > 2) {
+                LayoutUtil.getNode(allocatedNodes.get(0), allocatedNodes.get(1)).freeAll(this);
+                allocatedNodes.remove(0);
+            }
+
+            try {
+                LayoutUtil.getStationTrackNode(allocatedNodes.get(0), allocatedNodes.get(1))
+                                .occupyStationTrack(this);
+            } catch (NodeAllocationException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 

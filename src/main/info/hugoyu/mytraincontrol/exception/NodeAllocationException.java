@@ -11,6 +11,7 @@ public class NodeAllocationException extends Exception {
 
     public static enum ExceptionType {
         // alloc
+        ALLOCATING_OCCUPIED_SECTION,
 
         // free
         FREEING_UNOWNED_SECTION,

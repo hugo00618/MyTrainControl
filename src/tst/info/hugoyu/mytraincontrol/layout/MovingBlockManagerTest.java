@@ -45,7 +45,7 @@ class MovingBlockManagerTest extends LayoutTestBase {
 
         // outbound dist = (1304-960)/2 + 960 = 1132
         // distToMove is 1923 + 1132 = 3055
-        assertEquals(3055, sut.getDistToMove());
+        assertEquals(3055, sut.getTotalDistToMove());
     }
 
     @Test

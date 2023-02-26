@@ -27,7 +27,7 @@ public class MovingBlockManager {
     private final Object destinationLock = new Object();
 
     private double allocatedMoveDist;
-    private double distToMove; // total distance to move
+    private double totalDistToMove;
     private double calibrationOffset;
     private final Object distanceLock = new Object();
 
@@ -55,7 +55,7 @@ public class MovingBlockManager {
         setDestinationId(nodesToAllocate.get(nodesToAllocate.size() - 1));
 
         int distToMove = calcDistToMove(trainset, route);
-        this.distToMove += distToMove;
+        this.totalDistToMove += distToMove;
         this.distToAlloc += distToMove;
         this.distToFree += distToMove;
     }
@@ -67,10 +67,10 @@ public class MovingBlockManager {
     public void calibrate(Vector nodeVector, int sensorOffset, SensorState sensorState) {
         double offset;
         synchronized (distanceLock) {
-            int calibratedDistToMove = calcCalibratedDistToMove(trainset, nodeVector, sensorOffset, sensorState);
-            offset = calibratedDistToMove - distToMove;
+            double calibratedDistToMove = calcCalibratedDistToMove(trainset, nodeVector, sensorOffset, sensorState);
+            offset = calibratedDistToMove - totalDistToMove - calibrationOffset;
             calibrationOffset += offset;
-            distToMove = calibratedDistToMove;
+            totalDistToMove = calibratedDistToMove;
         }
         trainset.addDistToMove(offset);
     }
@@ -106,15 +106,15 @@ public class MovingBlockManager {
         return stationTrackNode.getOutboundMoveDist(trainset) + route.getCost();
     }
 
-    public void addDistToMove(double dist) {
+    public void addTotalDistToMove(double dist) {
         synchronized (distanceLock) {
-            distToMove += dist;
+            totalDistToMove += dist;
         }
     }
 
-    public double getDistToMove() {
+    public double getTotalDistToMove() {
         synchronized (distanceLock) {
-            return distToMove;
+            return totalDistToMove;
         }
     }
 
@@ -152,7 +152,7 @@ public class MovingBlockManager {
      */
     public double logMovedDist(double movedDist) {
         synchronized (distanceLock) {
-            distToMove -= movedDist;
+            totalDistToMove -= movedDist;
 
             if (calibrationOffset >= movedDist) {
                 calibrationOffset -= movedDist;
