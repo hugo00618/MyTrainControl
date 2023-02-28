@@ -31,7 +31,6 @@ public class CrossoverNode extends AbstractTrackNode {
     // (vector -> (owner -> ownedRange))
     private final Map<Vector, AbstractMap.SimpleImmutableEntry<Integer, Range<Integer>>>
             occupiers = new HashMap<>();
-    private final Object occupierLock = new Object();
 
     private CrossoverNode(int length,
                           int crossLength,
@@ -67,13 +66,9 @@ public class CrossoverNode extends AbstractTrackNode {
     }
 
     @Override
-    public Object getOccupierLock() {
-        return occupierLock;
-    }
-
-    @Override
     public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             // no occupiers, return true
             if (occupiers.isEmpty()) {
                 return true;
@@ -98,19 +93,25 @@ public class CrossoverNode extends AbstractTrackNode {
 
             // crossover cannot hold more than 2 occupiers
             return false;
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     @Override
     public void setOccupier(Trainset trainset, Vector vector, Range<Integer> range) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupiers.put(vector, new AbstractMap.SimpleImmutableEntry<>(trainset.getAddress(), range));
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     @Override
     public Future<Void> updateHardware() {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             Vector occupiedVector = occupiers.keySet().iterator().next();
 
             CompletableFuture<Void> isHardwareUpdated = new CompletableFuture<>();
@@ -123,6 +124,8 @@ public class CrossoverNode extends AbstractTrackNode {
             }
 
             return isHardwareUpdated;
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -137,8 +140,11 @@ public class CrossoverNode extends AbstractTrackNode {
 
     @Override
     public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             return getOccupiedRangeImmediately(vector, trainset);
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -150,15 +156,21 @@ public class CrossoverNode extends AbstractTrackNode {
 
     @Override
     public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOwnedRange) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupiers.put(vector, new AbstractMap.SimpleImmutableEntry<>(trainset.getAddress(), newOwnedRange));
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     @Override
     public void removeOccupier(Vector vector, Trainset trainset) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupiers.remove(vector);
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -169,10 +181,12 @@ public class CrossoverNode extends AbstractTrackNode {
 
     @Override
     public void freeAll(Trainset trainset) {
-        synchronized (occupierLock) {
-            occupiers.entrySet().stream()
-                    .filter(entry -> entry.getValue().getKey() == trainset.getAddress())
-                    .forEach(entry -> occupiers.remove(entry.getKey()));
+        final int trainsetAddress = trainset.getAddress();
+        occupierLock.lock();
+        try {
+            occupiers.entrySet().removeIf(entry -> entry.getValue().getKey().equals(trainsetAddress));
+        } finally {
+            occupierLock.unlock();
         }
     }
 

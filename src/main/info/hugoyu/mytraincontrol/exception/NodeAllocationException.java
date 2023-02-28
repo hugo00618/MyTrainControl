@@ -9,7 +9,7 @@ import lombok.extern.log4j.Log4j2;
 @Log4j2
 public class NodeAllocationException extends Exception {
 
-    public static enum ExceptionType {
+    public enum ExceptionType {
         // alloc
         ALLOCATING_OCCUPIED_SECTION,
 
@@ -17,15 +17,18 @@ public class NodeAllocationException extends Exception {
         FREEING_UNOWNED_SECTION,
     }
 
-    private ExceptionType exceptionType;
+    private final ExceptionType exceptionType;
+
+    private final String trainsetName;
+    private final Vector vector;
+    private final int dist;
 
     public NodeAllocationException(ExceptionType exceptionType, Trainset trainset, Vector vector, int dist) {
-        super(String.format("%s while %s alloc/freeing node %s for distance %d",
-                exceptionType, trainset.getName(), vector.toString(), dist));
-
-        log.error(String.format("%s: exception %s while alloc/freeing node %s for distance %d",
-                trainset.getName(), exceptionType, vector.toString(), dist));
+        super();
 
         this.exceptionType = exceptionType;
+        this.trainsetName = trainset.getName();
+        this.vector = vector;
+        this.dist = dist;
     }
 }

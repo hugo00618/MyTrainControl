@@ -8,7 +8,9 @@ import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.SensorAttachable;
 import info.hugoyu.mytraincontrol.registry.TrainsetRegistry;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
+import info.hugoyu.mytraincontrol.util.GeneralUtil;
 import lombok.Getter;
+import lombok.extern.log4j.Log4j2;
 
 import java.util.HashMap;
 import java.util.List;
@@ -17,6 +19,7 @@ import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
+@Log4j2
 public class RegularTrackNode extends AbstractTrackNode implements Comparable<RegularTrackNode>, SensorAttachable {
 
     @Getter
@@ -30,7 +33,6 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     // direction -> (train address -> occupiedRange))
     protected Vector occupiedVector;
     protected Map<Integer, Range<Integer>> occupiers = new HashMap<>();
-    protected final Object occupierLock = new Object();
 
     /**
      * @param id0    id of the current section
@@ -66,29 +68,30 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     }
 
     @Override
-    public Object getOccupierLock() {
-        return occupierLock;
-    }
-
-    @Override
     public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             if (occupiedVector == null) {
                 return true;
             }
             if (occupiedVector.equals(vector)) {
                 return occupiers.values().stream()
-                        .allMatch(occupiedRange -> occupiedRange.intersection(range).isEmpty());
+                        .noneMatch(occupiedRange -> GeneralUtil.isOverlapping(occupiedRange, range));
             }
             return false;
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     @Override
     public void setOccupier(Trainset trainset, Vector vector, Range<Integer> range) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupiedVector = vector;
             occupiers.put(trainset.getAddress(), range);
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -105,8 +108,11 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
 
     @Override
     public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             return getOccupiedRangeImmediately(vector, trainset);
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -117,8 +123,11 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
 
     @Override
     public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOccupiedRange) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupiers.put(trainset.getAddress(), newOccupiedRange);
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -133,17 +142,21 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     }
 
     private void removeOccupier(Trainset trainset) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupiers.remove(trainset.getAddress());
             if (occupiers.isEmpty()) {
                 occupiedVector = null;
             }
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     @Override
     public Trainset getOccupier(int position) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             if (occupiedVector == null) {
                 return null;
             }
@@ -153,11 +166,12 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
                     .findFirst()
                     .map(entry -> TrainsetRegistry.getInstance().getTrainset(entry.getKey()))
                     .orElse(null);
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     /**
-     *
      * @param isUplink
      * @return nodeId used for finding routes
      */

@@ -99,7 +99,7 @@ public class MovingBlockManager {
             calibratedDistToMove += sensorOffset;
         }
 
-        if (isStopRoutineInitiated) {
+        if (isStopRoutineInitiated()) {
             StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(remainingRoute.getDestinationVector());
             calibratedDistToMove -= stationTrackNode.getOutboundMoveDist(trainset);
         }
@@ -168,7 +168,7 @@ public class MovingBlockManager {
      */
     public double logMovedDist(double movedDist) {
         synchronized (distanceLock) {
-            totalDistToMove -= movedDist;
+            addTotalDistToMove(-movedDist);
 
             if (calibrationOffset >= movedDist) {
                 calibrationOffset -= movedDist;

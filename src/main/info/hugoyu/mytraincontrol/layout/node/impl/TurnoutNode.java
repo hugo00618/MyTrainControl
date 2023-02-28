@@ -52,7 +52,6 @@ public class TurnoutNode extends AbstractTrackNode {
 
     private Vector occupiedVector;
     private Range<Integer> occupiedRange;
-    private final Object occupierLock = new Object();
 
     /**
      * @param id         id of the turnout node
@@ -112,30 +111,32 @@ public class TurnoutNode extends AbstractTrackNode {
     }
 
     @Override
-    public Object getOccupierLock() {
-        return occupierLock;
-    }
-
-    @Override
     public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             // return true if there is no occupier or if the current occupier is trainset itself
             return occupier == NO_OCCUPIER || occupier == trainset.getAddress();
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     @Override
     public void setOccupier(Trainset trainset, Vector vector, Range<Integer> range) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupier = trainset.getAddress();
             occupiedVector = vector;
             occupiedRange = range;
+        } finally {
+            occupierLock.unlock();
         }
     }
 
     @Override
     public Future<Void> updateHardware() {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             CompletableFuture<Void> isHardwareUpdated = new CompletableFuture<>();
             Consumer<Long> callback = actualExecutionTime -> isHardwareUpdated.complete(null);
 
@@ -146,6 +147,8 @@ public class TurnoutNode extends AbstractTrackNode {
             }
 
             return isHardwareUpdated;
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -156,8 +159,11 @@ public class TurnoutNode extends AbstractTrackNode {
 
     @Override
     public Optional<Range<Integer>> getOccupiedRange(Vector vector, Trainset trainset) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             return getOccupiedRangeImmediately(vector, trainset);
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -168,8 +174,11 @@ public class TurnoutNode extends AbstractTrackNode {
 
     @Override
     public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOccupiedRange) {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupiedRange = newOccupiedRange;
+        } finally {
+            occupierLock.unlock();
         }
     }
 
@@ -188,9 +197,12 @@ public class TurnoutNode extends AbstractTrackNode {
     }
 
     private void removeOccupier() {
-        synchronized (occupierLock) {
+        occupierLock.lock();
+        try {
             occupier = NO_OCCUPIER;
             occupiedRange = null;
+        } finally {
+            occupierLock.unlock();
         }
     }
 

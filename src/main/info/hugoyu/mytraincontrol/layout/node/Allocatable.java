@@ -6,13 +6,20 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 
 import java.util.Optional;
 import java.util.concurrent.Future;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
 
 public interface Allocatable {
 
     /**
      * @return occupier lock object
      */
-    Object getOccupierLock();
+    Lock getOccupierLock();
+
+    /**
+     *
+     */
+    Condition getOccupierChangeCondition();
 
     /**
      * @param vector
