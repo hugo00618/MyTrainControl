@@ -70,14 +70,14 @@ public class MovingBlockManager {
         double offset;
         synchronized (distanceLock) {
             double calibratedDistToMove = calcCalibratedDistToMove(trainset, nodeVector, sensorOffset, sensorState);
-            offset = calibratedDistToMove - getTotalDistToMove() - calibrationOffset;
+            offset = calibratedDistToMove - getTotalDistToMove();
 
             log.debug("{} calibratedDistToMove: {}", trainset.getName(), calibratedDistToMove);
             log.debug("{} totalDistToMove: {}", trainset.getName(), getTotalDistToMove());
-            log.debug("{} calibrationOffset: {}", trainset.getName(), calibrationOffset);
+            log.debug("{} calibrationOffset: {}", trainset.getName(), getCalibrationOffset());
             log.debug("{} offset: {}", trainset.getName(), offset);
 
-            calibrationOffset += offset;
+            addCalibrationOffset(offset);
             setTotalDistToMove(calibratedDistToMove);
         }
         trainset.addDistToMove(offset);
@@ -134,6 +134,24 @@ public class MovingBlockManager {
         }
     }
 
+    public void addCalibrationOffset(double offset) {
+        synchronized (distanceLock) {
+            calibrationOffset += offset;
+        }
+    }
+
+    public void setCalibrationOffset(double calibrationOffset) {
+        synchronized (distanceLock) {
+            this.calibrationOffset = calibrationOffset;
+        }
+    }
+
+    public double getCalibrationOffset() {
+        synchronized (distanceLock) {
+            return calibrationOffset;
+        }
+    }
+
     public double getAllocatedMoveDist() {
         synchronized (distanceLock) {
             return allocatedMoveDist;
@@ -170,12 +188,12 @@ public class MovingBlockManager {
         synchronized (distanceLock) {
             addTotalDistToMove(-movedDist);
 
-            if (calibrationOffset >= movedDist) {
-                calibrationOffset -= movedDist;
+            if (getCalibrationOffset() >= movedDist) {
+                addCalibrationOffset(-movedDist);
                 return 0;
             } else {
-                double res = movedDist - calibrationOffset;
-                calibrationOffset = 0;
+                double res = movedDist - getCalibrationOffset();
+                setCalibrationOffset(0);
                 return res;
             }
         }
