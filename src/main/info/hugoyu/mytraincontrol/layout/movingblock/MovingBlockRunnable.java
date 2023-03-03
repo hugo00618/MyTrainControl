@@ -25,7 +25,6 @@ public class MovingBlockRunnable implements Runnable {
     private final MovingBlockManager movingBlockManager;
     private final Trainset trainset;
     private final List<Long> nodesToAllocate;
-    private final boolean isUplink;
 
     private boolean isBufferReleased;
 
@@ -35,7 +34,6 @@ public class MovingBlockRunnable implements Runnable {
         this.movingBlockManager = movingBlockManager;
         this.trainset = movingBlockManager.getTrainset();
         this.nodesToAllocate = movingBlockManager.getNodesToAllocate();
-        this.isUplink = movingBlockManager.isUplink();
     }
 
     @Override
@@ -47,7 +45,12 @@ public class MovingBlockRunnable implements Runnable {
             // allocate initial buffer space
             allocateInitialDistance();
 
-            while (movingBlockManager.getDistToAlloc() >= 1 || trainset.getDistToMove() >= 1) {
+            while ((nodesToAllocate.size() > 1 && movingBlockManager.getDistToAlloc() >= 1) ||
+                    trainset.getDistToMove() >= 1) {
+
+                // allocate more distance if needed
+                allocate();
+
                 double movedDist = trainset.resetMovedDist();
                 if (movedDist > 0) {
                     double movedDistForBlockSection = movingBlockManager.logMovedDist(movedDist);
@@ -59,9 +62,6 @@ public class MovingBlockRunnable implements Runnable {
 
                     // free movedDistToFree
                     free();
-
-                    // allocate more distance if needed
-                    allocate();
                 } else {
                     trainset.waitDistUpdate();
                 }
@@ -93,14 +93,15 @@ public class MovingBlockRunnable implements Runnable {
 
         allocThread = new Thread(() -> {
             try {
+                int allocatedDistToMove = 0;
                 while (movingBlockManager.getAllocatedMoveDist() < getMinAllocateDistance()) {
                     int allocatedDist = allocate(1);
-                    if (allocatedDist > 0) {
-                        trainset.addDistToMove(allocatedDist);
-                    } else {
+                    allocatedDistToMove += allocatedDist;
+                    if (allocatedDist == 0) {
                         break;
                     }
                 }
+                trainset.addDistToMove(allocatedDistToMove);
 
                 // release heading buffer at the end of the trip
                 if (movingBlockManager.getDistToAlloc() == 0 && !isBufferReleased) {
@@ -180,7 +181,7 @@ public class MovingBlockRunnable implements Runnable {
         Route inboundRoute = RouteUtil.findRouteToAvailableStationTrack(
                 trainset,
                 entryNodeId,
-                isUplink,
+                movingBlockManager.isUplink(),
                 false,
                 true);
         StationTrackNode stationTrackNode = LayoutUtil.getStationTrackNode(inboundRoute.getDestinationVector());

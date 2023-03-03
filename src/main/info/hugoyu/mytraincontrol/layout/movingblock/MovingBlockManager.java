@@ -18,11 +18,12 @@ import java.util.List;
 import static info.hugoyu.mytraincontrol.sensor.SensorState.EXIT;
 
 @Log4j2
-@Getter
 public class MovingBlockManager {
 
+    @Getter
     private Trainset trainset;
 
+    @Getter
     private List<Long> nodesToAllocate;
 
     private long destinationId;
@@ -31,9 +32,8 @@ public class MovingBlockManager {
     private double allocatedMoveDist;
     private double totalDistToMove;
     private double calibrationOffset;
-    private final Object distanceLock = new Object();
-
     private int distToAlloc; // total distance to alloc
+    private final Object distanceLock = new Object();
 
     private int distToFree; // total distance to free
     private final Object distToFreeLock = new Object();
@@ -43,6 +43,7 @@ public class MovingBlockManager {
     private boolean isStopRoutineInitiated;
     private final Object isStopRoutineInitiatedLock = new Object();
 
+    @Getter
     private boolean isUplink;
 
     public MovingBlockManager(Trainset trainset) {
@@ -152,6 +153,12 @@ public class MovingBlockManager {
         }
     }
 
+    public void addAllocatedMoveDist(double dist) {
+        synchronized (distanceLock) {
+            allocatedMoveDist += dist;
+        }
+    }
+
     public double getAllocatedMoveDist() {
         synchronized (distanceLock) {
             return allocatedMoveDist;
@@ -167,12 +174,6 @@ public class MovingBlockManager {
     public int getDistToFree() {
         synchronized (distToFreeLock) {
             return distToFree;
-        }
-    }
-
-    public void addAllocatedMoveDist(double dist) {
-        synchronized (distanceLock) {
-            allocatedMoveDist += dist;
         }
     }
 
@@ -220,7 +221,15 @@ public class MovingBlockManager {
     }
 
     public void addDistToAlloc(int dist) {
-        distToAlloc += dist;
+        synchronized (distanceLock) {
+            distToAlloc += dist;
+        }
+    }
+
+    public int getDistToAlloc() {
+        synchronized (distanceLock) {
+            return distToAlloc;
+        }
     }
 
     public void setDestinationId(long destinationId) {
