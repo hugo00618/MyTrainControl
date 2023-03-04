@@ -64,15 +64,6 @@ public interface Allocatable {
     Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset);
 
     /**
-     * sets the occupier of vector to be trainset, with newOccupiedRange
-     *
-     * @param vector
-     * @param trainset
-     * @param newOccupiedRange
-     */
-    void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOccupiedRange);
-
-    /**
      * remove trainset from the occupiers list
      *
      * @param vector

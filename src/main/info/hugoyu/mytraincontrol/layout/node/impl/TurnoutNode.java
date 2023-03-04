@@ -173,16 +173,6 @@ public class TurnoutNode extends AbstractTrackNode {
     }
 
     @Override
-    public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOccupiedRange) {
-        occupierLock.lock();
-        try {
-            occupiedRange = newOccupiedRange;
-        } finally {
-            occupierLock.unlock();
-        }
-    }
-
-    @Override
     public void removeOccupier(Vector vector, Trainset trainset) {
         this.removeOccupier();
     }

@@ -11,8 +11,9 @@ import info.hugoyu.mytraincontrol.util.LayoutUtil;
 import info.hugoyu.mytraincontrol.util.RouteUtil;
 import lombok.extern.log4j.Log4j2;
 
-import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_HEADING;
 import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_TRAILING;
@@ -124,7 +125,7 @@ public class MovingBlockRunnable implements Runnable {
         int totalDistAllocated = 0;
 
         while (movingBlockManager.getDistToAlloc() > 0 && distance > 0 && nodesToAllocate.size() > 1) {
-            List<Long> allocatedNodes = new ArrayList<>();
+            Set<Long> allocatedNodes = new HashSet<>();
             final int distAllocated = AllocateUtil.allocNode(trainset, distance, nodesToAllocate, allocatedNodes);
             totalDistAllocated += distAllocated;
 

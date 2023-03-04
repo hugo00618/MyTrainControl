@@ -6,7 +6,6 @@ import info.hugoyu.mytraincontrol.commandstation.task.AbstractCommandStationTask
 import java.util.Optional;
 import java.util.PriorityQueue;
 import java.util.Queue;
-import java.util.function.Predicate;
 
 public class CommandStation {
 
@@ -52,23 +51,18 @@ public class CommandStation {
     }
 
     public AbstractCommandStationTask getNextAvailableTask(boolean includeHighConsumptionTasks) {
-        Predicate<AbstractCommandStationTask> predicate = (task) -> {
-            if (!includeHighConsumptionTasks) {
-                return !task.isHighCurrentConsumptionTask();
-            } else {
-                return true;
-            }
-        };
-
         synchronized (tasksLock) {
-            return tasks.stream().filter(predicate).findFirst().orElseGet(() -> {
-                try {
-                    tasksLock.wait();
-                } catch (InterruptedException e) {
+            return tasks.stream()
+                    .filter(task -> includeHighConsumptionTasks || !task.isHighCurrentConsumptionTask())
+                    .findFirst()
+                    .orElseGet(() -> {
+                        try {
+                            tasksLock.wait();
+                        } catch (InterruptedException e) {
 
-                }
-                return getNextAvailableTask(includeHighConsumptionTasks);
-            });
+                        }
+                        return getNextAvailableTask(includeHighConsumptionTasks);
+                    });
         }
     }
 

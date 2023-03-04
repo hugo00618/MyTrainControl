@@ -24,6 +24,7 @@ import lombok.Setter;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -204,7 +205,7 @@ public class Trainset implements TaskExecutionListener {
         return !isMotorReversed ? isForward : !isForward;
     }
 
-    public void addAllocatedNodes(List<Long> nodes) {
+    public void addAllocatedNodes(Collection<Long> nodes) {
         synchronized (allocatedNodesLock) {
             nodes.forEach(node -> {
                 if (!allocatedNodes.contains(node)) {

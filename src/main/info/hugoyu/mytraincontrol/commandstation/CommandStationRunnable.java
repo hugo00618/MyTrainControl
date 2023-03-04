@@ -51,9 +51,6 @@ public class CommandStationRunnable implements Runnable {
             task.execute();
             task.callback(executionTime);
 
-//                System.out.print(new SimpleDateFormat("yyyyMMdd_HHmmss").format(Calendar.getInstance().getTime()));
-//                System.out.println(task);
-
             nextAvailableExecutionTime = executionTime + MIN_UPDATE_INTERVAL;
             nextAvailableHighCurrentExecutionTime = executionTime + task.getHighCurrentConsumptionPeriod();
 

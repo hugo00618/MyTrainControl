@@ -4,31 +4,26 @@ import com.google.common.collect.Range;
 import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
 import info.hugoyu.mytraincontrol.layout.BlockSectionResult;
 import info.hugoyu.mytraincontrol.layout.Vector;
-import info.hugoyu.mytraincontrol.layout.node.AbstractTrackNode;
 import info.hugoyu.mytraincontrol.layout.node.Allocatable;
 import info.hugoyu.mytraincontrol.layout.node.impl.StationTrackNode;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
+import lombok.AllArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 
 import static info.hugoyu.mytraincontrol.util.LayoutConstant.TRAIN_BUFFER_DISTANCE_TRAILING;
 
 @Log4j2
 public class AllocateUtil {
-    // todo: fix deadlock under the following situation:
-    // train 1 and 2 are in the same station both departing from the same direction
-    // the outbound route for this station is node A (bi-direct), B (single-direct), C (single-direct)
-    // train 1 allocates node A and B and starts travelling first
-    // train 2 is significantly longer than train 1 and thus needs to allocate A, B and C
-    // train 2 successfully allocates C and then waits to allocate B which is held by train 1
-    // train 1 continues to move to the point where it needs node C, which is held by train 2
-    // a deadlock occurs
-    //
-    // solution: add a timer on await() with backoff
+
+    private static final int ALLOCATE_AWAIT_TIMEOUT_MILLIS = 1000;
 
     /**
      * @param trainset
@@ -40,13 +35,111 @@ public class AllocateUtil {
     public static int allocNode(Trainset trainset,
                                 int dist,
                                 List<Long> nodesToAllocate,
-                                List<Long> allocatedNodes) {
-        if (dist <= 0) {
-            return 0;
-        }
+                                Set<Long> allocatedNodes) {
+        log.debug("{} allocating {} with distance {}", trainset.getName(), nodesToAllocate, dist);
 
-        if (nodesToAllocate.size() < 2) {
+        List<NodeToAllocate> allocatingNodes = findAllocatingNodes(trainset, dist, new ArrayList<>(nodesToAllocate));
+        final boolean isAllNodesAllocated = allocatingNodes.stream()
+                .allMatch(allocatedNode -> allocate(allocatedNode, trainset));
+
+        if (!isAllNodesAllocated) {
+            revertAll(allocatingNodes, trainset);
             return 0;
+        } else {
+            int allocatedDist = 0;
+            List<Future<Void>> isHardwareUpdated = new ArrayList<>();
+            for (NodeToAllocate allocatingNode : allocatingNodes) {
+                final Vector vector = allocatingNode.vector;
+                final Allocatable allocatable = LayoutUtil.getNode(vector);
+                final Range<Integer> newOwnedRange = allocatingNode.newOwnedRange;
+
+                isHardwareUpdated.add(allocatable.updateHardware());
+
+                allocatedNodes.add(vector.getId0());
+                allocatedNodes.add(vector.getId1());
+                allocatedDist += allocatingNode.getAllocatingDistance();
+
+                boolean isEntireSectionAllocated = newOwnedRange.upperEndpoint() == allocatable.getSectionLength(vector);
+                if (isEntireSectionAllocated) {
+                    nodesToAllocate.remove(0);
+                }
+            }
+
+            // wait for all hardware update to complete
+            isHardwareUpdated.forEach(future -> {
+                try {
+                    future.get();
+                } catch (InterruptedException | ExecutionException e) {
+                    throw new RuntimeException(e);
+                }
+            });
+
+            return allocatedDist;
+        }
+    }
+
+    private static boolean allocate(NodeToAllocate allocatingNode, Trainset trainset) {
+        final Vector vector = allocatingNode.vector;
+        final Allocatable allocatable = LayoutUtil.getNode(vector);
+        final Lock occupierLock = allocatable.getOccupierLock();
+        final Range<Integer> newOwnedRange = allocatingNode.newOwnedRange;
+
+        log.debug("{} occupying {} with newRange {}", trainset.getName(), vector, newOwnedRange);
+
+        occupierLock.lock();
+        try {
+            if (!allocatable.isFree(trainset, vector, newOwnedRange)) {
+                try {
+                    log.debug("{} waiting for {} at {} to become available", trainset.getName(), vector, newOwnedRange);
+                    if (!allocatable.getOccupierChangeCondition()
+                            .await(ALLOCATE_AWAIT_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+                        return false;
+                    }
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+
+            log.debug("{} allocated {} with new range {}", trainset.getName(), vector, newOwnedRange);
+            allocatable.setOccupier(trainset, vector, newOwnedRange);
+            return true;
+        } finally {
+            occupierLock.unlock();
+        }
+    }
+
+    private static void revertAll(List<NodeToAllocate> allocatingNodes, Trainset trainset) {
+        log.debug("{} revert all allocations", trainset.getName());
+        allocatingNodes.forEach(allocatingNode -> {
+            final Vector vector = allocatingNode.vector;
+            final Allocatable allocatable = LayoutUtil.getNode(vector);
+            final Range<Integer> prevOwnedRange = allocatingNode.prevOwnedRange;
+            free(allocatable, vector, trainset, prevOwnedRange);
+        });
+    }
+
+    @AllArgsConstructor
+    private static class NodeToAllocate {
+        private Vector vector;
+        private Range<Integer> newOwnedRange;
+        private Range<Integer> prevOwnedRange;
+
+        public Integer getAllocatingDistance() {
+            return newOwnedRange.upperEndpoint() - prevOwnedRange.upperEndpoint();
+        }
+    }
+
+    /**
+     * @param trainset
+     * @param dist
+     * @param nodesToAllocate
+     * @return
+     */
+    private static List<NodeToAllocate> findAllocatingNodes(Trainset trainset,
+                                                            int dist,
+                                                            List<Long> nodesToAllocate) {
+        if (dist <= 0 || nodesToAllocate.size() < 2) {
+            return List.of();
         }
 
         final long id0 = nodesToAllocate.get(0);
@@ -73,20 +166,23 @@ public class AllocateUtil {
             boolean needAllocateExtraDist = !isAllocatingDestinationTrackNode && allocatable.isBidirectional();
             if (needAllocateExtraDist) {
                 if (nodesToAllocate.size() < 3) {
-                    return 0;
+                    return List.of();
                 }
+
+                final boolean isNextNodeStationTrackNode =
+                        LayoutUtil.getNode(nodesToAllocate.get(1), nodesToAllocate.get(2)) instanceof StationTrackNode;
 
                 int remainingSectionLength = sectionLength -
                         allocatable.getOccupiedRange(vector, trainset)
                                 .map(Range::upperEndpoint)
                                 .orElse(0);
-                int minAllocatingDist = remainingSectionLength + trainset.getTotalLength();
+                final int minAllocatingDist = remainingSectionLength +
+                        trainset.getTotalLength() +
+                        (!isNextNodeStationTrackNode ? TRAIN_BUFFER_DISTANCE_TRAILING : 0);
 
-                AbstractTrackNode nextNode = LayoutUtil.getNode(nodesToAllocate.get(1), nodesToAllocate.get(2));
-                if (nextNode instanceof StationTrackNode) {
+                if (isNextNodeStationTrackNode) {
                     dist = minAllocatingDist;
                 } else {
-                    minAllocatingDist += TRAIN_BUFFER_DISTANCE_TRAILING;
                     dist = Math.max(dist, minAllocatingDist);
                 }
 
@@ -96,59 +192,29 @@ public class AllocateUtil {
             Range<Integer> ownedRange = allocatable.getOccupiedRange(vector, trainset)
                     .orElse(Range.closedOpen(0, 0));
             final int occupyingUpperBound = Math.min(sectionLength, ownedRange.upperEndpoint() + dist);
-            Range<Integer> occupyingRange = Range.closedOpen(ownedRange.upperEndpoint(), occupyingUpperBound);
-            Range<Integer> newOwnedRange = Range.closedOpen(ownedRange.lowerEndpoint(), occupyingRange.upperEndpoint());
+            Range<Integer> newOwnedRange = Range.closedOpen(ownedRange.lowerEndpoint(), occupyingUpperBound);
+            NodeToAllocate nodeToAllocate = new NodeToAllocate(vector, newOwnedRange, ownedRange);
+            final int remainingDist = dist - nodeToAllocate.getAllocatingDistance();
 
-            int allocatedDist = 0;
-            final int allocatingDist = newOwnedRange.upperEndpoint() - ownedRange.upperEndpoint();
-            final int remainingDist = dist - allocatingDist;
+            List<NodeToAllocate> res = new ArrayList<>() {{
+                add(nodeToAllocate);
+            }};
 
-            // allocate subsequent nodes first if needed
+            // allocate subsequent nodes if needed
             if (remainingDist > 0) {
                 occupierLock.unlock();
-                allocatedDist += allocNode(trainset, remainingDist, nodesToAllocate.subList(1, nodesToAllocate.size()), allocatedNodes);
+                List<NodeToAllocate> nextAllocatingNodes =
+                        findAllocatingNodes(trainset, remainingDist, nodesToAllocate.subList(1, nodesToAllocate.size()));
                 occupierLock.lock();
-                // unable to allocate (due to no enough nodes remaining, will need to initiate stop routine
-                if (allocatedDist == 0) {
-                    return 0;
+
+                if (nextAllocatingNodes.isEmpty()) {
+                    return List.of();
+                } else {
+                    res.addAll(nextAllocatingNodes);
                 }
             }
 
-            log.debug("{} occupying {} with range {}",
-                    trainset.getName(), vector, occupyingRange);
-            while (!allocatable.isFree(trainset, vector, occupyingRange)) {
-                try {
-                    log.debug("{} waiting for {} at {} to become available",
-                            trainset.getName(), vector, occupyingRange);
-                    allocatable.getOccupierChangeCondition().await();
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-            allocatable.setOccupier(trainset, vector, newOwnedRange);
-            Future<Void> isHardwareUpdated = allocatable.updateHardware();
-
-            log.debug("{} allocated {} with new range {}", trainset.getName(), vector, newOwnedRange);
-
-            allocatedNodes.add(0, id1);
-            allocatedNodes.add(0, id0);
-
-            allocatedDist += allocatingDist;
-
-            boolean isEntireSectionAllocated = newOwnedRange.upperEndpoint() == sectionLength;
-            if (isEntireSectionAllocated) {
-                nodesToAllocate.remove(0);
-            }
-
-            // wait for hardware update to complete
-            try {
-                isHardwareUpdated.get();
-            } catch (ExecutionException | InterruptedException e) {
-                throw new RuntimeException(e);
-            }
-
-            return allocatedDist;
+            return res;
         } finally {
             occupierLock.unlock();
         }
@@ -180,16 +246,31 @@ public class AllocateUtil {
                 throw freeingUnownedSectionException;
             }
 
+            boolean isEntireSectionFreed = free(allocatable, vector, trainset, newOccupiedRange);
+
+            return new BlockSectionResult(freedDist, remainingDist, isEntireSectionFreed);
+        } finally {
+            occupierLock.unlock();
+        }
+    }
+
+    /**
+     *
+     * @return isEntireSectionFreed
+     */
+    private static boolean free(Allocatable allocatable, Vector vector, Trainset trainset, Range<Integer> newOccupiedRange) {
+        final Lock occupierLock = allocatable.getOccupierLock();
+        occupierLock.lock();
+        try {
             boolean isEntireSectionFreed = false;
             if (newOccupiedRange.isEmpty()) {
                 allocatable.removeOccupier(vector, trainset);
                 isEntireSectionFreed = true;
             } else {
-                allocatable.setOccupiedRange(vector, trainset, newOccupiedRange);
+                allocatable.setOccupier(trainset, vector, newOccupiedRange);
             }
             allocatable.getOccupierChangeCondition().signalAll();
-
-            return new BlockSectionResult(freedDist, remainingDist, isEntireSectionFreed);
+            return isEntireSectionFreed;
         } finally {
             occupierLock.unlock();
         }

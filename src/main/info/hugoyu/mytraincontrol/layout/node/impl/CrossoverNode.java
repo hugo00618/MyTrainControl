@@ -155,16 +155,6 @@ public class CrossoverNode extends AbstractTrackNode {
     }
 
     @Override
-    public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOwnedRange) {
-        occupierLock.lock();
-        try {
-            occupiers.put(vector, new AbstractMap.SimpleImmutableEntry<>(trainset.getAddress(), newOwnedRange));
-        } finally {
-            occupierLock.unlock();
-        }
-    }
-
-    @Override
     public void removeOccupier(Vector vector, Trainset trainset) {
         occupierLock.lock();
         try {

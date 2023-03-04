@@ -122,16 +122,6 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     }
 
     @Override
-    public void setOccupiedRange(Vector vector, Trainset trainset, Range<Integer> newOccupiedRange) {
-        occupierLock.lock();
-        try {
-            occupiers.put(trainset.getAddress(), newOccupiedRange);
-        } finally {
-            occupierLock.unlock();
-        }
-    }
-
-    @Override
     public void removeOccupier(Vector vector, Trainset trainset) {
         this.removeOccupier(trainset);
     }
