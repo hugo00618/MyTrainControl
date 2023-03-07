@@ -116,15 +116,9 @@ public class TurnoutNode extends AbstractTrackNode {
     public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
         occupierLock.lock();
         try {
-            if (occupiedVector == null) {
-                return true;
-            }
-            if (occupiedVector.equals(vector)) {
-                // return true if there is no occupier or if the current occupier is trainset itself
-                return occupier == NO_OCCUPIER || occupier == trainset.getAddress();
-            } else {
-                return false;
-            }
+            // return true if there is no occupier or if the current occupier/vector match with the input
+            return occupier == NO_OCCUPIER ||
+                    (occupiedVector.equals(vector) && occupier == trainset.getAddress());
         } finally {
             occupierLock.unlock();
         }
