@@ -10,11 +10,11 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SwitchUtil;
 
 import java.util.AbstractMap;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -26,7 +26,7 @@ public class CrossoverNode extends AbstractTrackNode {
     private final AbstractSwitchable crossover;
 
     private final Connection uplinkStraightConnection, downlinkStraightConnection;
-    private final List<Connection> crossConnections;
+    private final Set<Connection> crossConnections;
 
     // (vector -> (owner -> ownedRange))
     private final Map<Vector, AbstractMap.SimpleImmutableEntry<Integer, Range<Integer>>>
@@ -36,7 +36,7 @@ public class CrossoverNode extends AbstractTrackNode {
                           int crossLength,
                           Connection uplinkStraightConnection,
                           Connection downlinkStraightConnection,
-                          List<Connection> crossConnections,
+                          Set<Connection> crossConnections,
                           AbstractSwitchable crossover
     ) {
         super(true);
@@ -57,7 +57,7 @@ public class CrossoverNode extends AbstractTrackNode {
                 crossoverJson.getCrossLength(),
                 new Connection(crossoverJson.getUplinkStraight(), crossoverJson.getLength(), true, true),
                 new Connection(crossoverJson.getDownlinkStraight(), crossoverJson.getLength(), false, true),
-                List.of(
+                Set.of(
                         new Connection(crossoverJson.getUplinkCross(), crossoverJson.getCrossLength(), true, true),
                         new Connection(crossoverJson.getDownlinkCross(), crossoverJson.getCrossLength(), false, true)
                 ),
@@ -151,6 +151,7 @@ public class CrossoverNode extends AbstractTrackNode {
     @Override
     public Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset) {
         return Optional.ofNullable(occupiers.get(vector))
+                .filter(entry -> entry.getKey().equals(trainset.getAddress()))
                 .map(AbstractMap.SimpleImmutableEntry::getValue);
     }
 
@@ -191,10 +192,12 @@ public class CrossoverNode extends AbstractTrackNode {
     }
 
     @Override
-    public List<Connection> getConnections() {
-        List<Connection> connections = new ArrayList<>(List.of(uplinkStraightConnection, downlinkStraightConnection));
-        connections.addAll(crossConnections);
-        return connections;
+    public Set<Connection> getConnections() {
+        return new HashSet<>() {{
+           add(uplinkStraightConnection);
+           add(downlinkStraightConnection);
+           addAll(crossConnections);
+        }};
     }
 
 }

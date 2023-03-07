@@ -3,7 +3,7 @@ package info.hugoyu.mytraincontrol.layout.node;
 import info.hugoyu.mytraincontrol.layout.Connection;
 import lombok.AllArgsConstructor;
 
-import java.util.List;
+import java.util.Set;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
@@ -31,5 +31,5 @@ public abstract class AbstractTrackNode implements Allocatable {
         return occupierChangeCondition;
     }
 
-    public abstract List<Connection> getConnections();
+    public abstract Set<Connection> getConnections();
 }

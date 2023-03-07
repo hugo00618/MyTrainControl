@@ -1,5 +1,6 @@
 package info.hugoyu.mytraincontrol.layout.node.impl;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.Range;
 import com.google.gson.annotations.SerializedName;
 import info.hugoyu.mytraincontrol.json.layout.TurnoutJson;
@@ -11,8 +12,8 @@ import info.hugoyu.mytraincontrol.trainset.Trainset;
 import info.hugoyu.mytraincontrol.util.SwitchUtil;
 import lombok.Getter;
 
-import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 import java.util.function.Consumer;
@@ -63,10 +64,11 @@ public class TurnoutNode extends AbstractTrackNode {
      * @param address    turnout address
      * @param isUplink   whether turnout is in uplink
      */
-    public TurnoutNode(long id, long idClosed, long idThrown,
-                       int distClosed, int distThrown, Type type, int address,
-                       boolean isUplink,
-                       AbstractSwitchable turnout) {
+    @VisibleForTesting
+    TurnoutNode(long id, long idClosed, long idThrown,
+                int distClosed, int distThrown, Type type, int address,
+                boolean isUplink,
+                AbstractSwitchable turnout) {
         super(true);
 
         this.id = id;
@@ -95,14 +97,14 @@ public class TurnoutNode extends AbstractTrackNode {
     }
 
     @Override
-    public List<Connection> getConnections() {
+    public Set<Connection> getConnections() {
         switch (type) {
             case MERGE:
-                return List.of(
+                return Set.of(
                         new Connection(idClosed, id, distClosed, isUplink, true),
                         new Connection(idThrown, id, distThrown, isUplink, true));
             case DIVERGE:
-                return List.of(
+                return Set.of(
                         new Connection(id, idClosed, distClosed, isUplink, true),
                         new Connection(id, idThrown, distThrown, isUplink, true));
             default:
@@ -114,8 +116,15 @@ public class TurnoutNode extends AbstractTrackNode {
     public boolean isFree(Trainset trainset, Vector vector, Range<Integer> range) {
         occupierLock.lock();
         try {
-            // return true if there is no occupier or if the current occupier is trainset itself
-            return occupier == NO_OCCUPIER || occupier == trainset.getAddress();
+            if (occupiedVector == null) {
+                return true;
+            }
+            if (occupiedVector.equals(vector)) {
+                // return true if there is no occupier or if the current occupier is trainset itself
+                return occupier == NO_OCCUPIER || occupier == trainset.getAddress();
+            } else {
+                return false;
+            }
         } finally {
             occupierLock.unlock();
         }
@@ -169,7 +178,9 @@ public class TurnoutNode extends AbstractTrackNode {
 
     @Override
     public Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset) {
-        return Optional.ofNullable(occupier == trainset.getAddress() ? occupiedRange : null);
+        return Optional.ofNullable(occupier == trainset.getAddress() && occupiedVector.equals(vector) ?
+                occupiedRange :
+                null);
     }
 
     @Override

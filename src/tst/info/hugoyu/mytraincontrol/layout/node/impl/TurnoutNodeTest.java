@@ -1,133 +1,142 @@
 package info.hugoyu.mytraincontrol.layout.node.impl;
 
-import info.hugoyu.mytraincontrol.LayoutTestBase;
-import info.hugoyu.mytraincontrol.exception.NodeAllocationException;
+import com.google.common.collect.Range;
+import info.hugoyu.mytraincontrol.layout.Connection;
+import info.hugoyu.mytraincontrol.layout.Vector;
+import info.hugoyu.mytraincontrol.switchable.impl.Turnout;
 import info.hugoyu.mytraincontrol.trainset.Trainset;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 
+import java.util.Set;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 import static org.mockito.MockitoAnnotations.initMocks;
 
-public class TurnoutNodeTest extends LayoutTestBase {
+public class TurnoutNodeTest {
 
     @Mock
     Trainset train1, train2;
 
+    @Mock
+    Turnout turnout;
+
+    private static final int ID = 147;
+    private static final int ID_CLOSED = 145;
+    private static final int ID_THROWN = 135;
+    private static final int LENGTH_CLOSED = 186;
+    private static final int LENGTH_THROWN = 188;
+
+    private Vector UPLINK_CLOSED_VECTOR = new Vector(ID, ID_CLOSED);
+    private Vector DOWNLINK_CLOSED_VECTOR = new Vector(ID_CLOSED, ID);
+    private Vector UPLINK_THROWN_VECTOR = new Vector(ID, ID_THROWN);
+
+    private Range<Integer> RANGE_FIRST_HALF = Range.closedOpen(0, LENGTH_CLOSED / 2);
+    private Range<Integer> RANGE_SECOND_HALF = Range.closedOpen(LENGTH_CLOSED / 2, LENGTH_CLOSED);
+
+    private TurnoutNode sut;
+
     @BeforeEach
     public void setUp() {
-        super.setUp();
-
         initMocks(this);
 
         when(train1.getAddress()).thenReturn(1);
         when(train2.getAddress()).thenReturn(2);
+
+        sut = new TurnoutNode(ID, ID_CLOSED, ID_THROWN, LENGTH_CLOSED, LENGTH_THROWN,
+                TurnoutNode.Type.DIVERGE, 50, true, turnout);
     }
 
     @Test
-    public void testAllocFreeDiverge() throws NodeAllocationException {
-//        TurnoutNode node = (TurnoutNode) LayoutUtil.getNode(10001);
-//
-//        BlockSectionResult blockSectionResult;
-//
-//        assertThrows(NodeAllocationException.class, () -> node.free(train1, 1)); // freeing unowned track
-//
-//        // total length: 188
-//        blockSectionResult = node.alloc(train1, 100, 10103L, null); // owning [0, 100)
-//        assertEquals(100, blockSectionResult.getConsumedDist());
-//        assertEquals(0, blockSectionResult.getRemainingDist());
-//
-//        assertThrows(NodeAllocationException.class, () -> node.free(train1, 101)); // freeing unowned range
-//
-//        blockSectionResult = node.alloc(train1, 88, null, null); // owning [0, 188)
-//        assertEquals(88, blockSectionResult.getConsumedDist());
-//        assertEquals(0, blockSectionResult.getRemainingDist());
-//
-//        blockSectionResult = node.free(train1, 100); // owning [100, 188]
-//        assertEquals(100, blockSectionResult.getConsumedDist());
-//        assertEquals(0, blockSectionResult.getRemainingDist());
-//
-//        blockSectionResult = node.alloc(train1, 1, null, null); // allocating out-of-bound range
-//        assertEquals(0, blockSectionResult.getConsumedDist());
-//        assertEquals(1, blockSectionResult.getRemainingDist());
-//
-//        blockSectionResult = node.free(train1, 188); // freeing all remaining range,  dist = 188 - 100 = 88
-//        assertEquals(88, blockSectionResult.getConsumedDist());
-//        assertEquals(100, blockSectionResult.getRemainingDist()); // remaining = 188 - 88 = 100
-//
-//        assertThrows(NodeAllocationException.class, () -> node.free(train1, 1)); // freeing unowned track
+    public void testGetConnections() {
+        Set<Connection> connections = sut.getConnections();
+
+        assertEquals(2, connections.size());
+
+        Connection closedConnection = connections.stream()
+                .filter(connection -> connection.getDist() == LENGTH_CLOSED)
+                .findFirst()
+                .get();
+        assertTrue(closedConnection.isBidirectional());
+        assertEquals(UPLINK_CLOSED_VECTOR, closedConnection.getVector());
+        assertTrue(closedConnection.isUplink());
+
+        Connection thrownConnection = connections.stream()
+                .filter(connection -> connection.getDist() == LENGTH_THROWN)
+                .findFirst()
+                .get();
+        assertTrue(thrownConnection.isBidirectional());
+        assertEquals(UPLINK_THROWN_VECTOR, thrownConnection.getVector());
+        assertTrue(closedConnection.isUplink());
     }
 
     @Test
-    public void testAllocFreeMerge() throws NodeAllocationException {
-//        TurnoutNode node = (TurnoutNode) LayoutUtil.getNode(10003);
-//
-//        BlockSectionResult blockSectionResult;
-//
-//        assertThrows(NodeAllocationException.class, () -> node.free(train1, 1)); // freeing unowned track
-//
-//        // total length: 186
-//        blockSectionResult = node.alloc(train1, 100, null, 10101L); // owning [0, 100)
-//        assertEquals(100, blockSectionResult.getConsumedDist());
-//        assertEquals(0, blockSectionResult.getRemainingDist());
-//
-//        assertThrows(NodeAllocationException.class, () -> node.free(train1, 101)); // freeing unowned range
-//
-//        blockSectionResult = node.alloc(train1, 86, null, null); // owning [0, 186)
-//        assertEquals(86, blockSectionResult.getConsumedDist());
-//        assertEquals(0, blockSectionResult.getRemainingDist());
-//
-//        blockSectionResult = node.free(train1, 100); // owning [100, 186]
-//        assertEquals(100, blockSectionResult.getConsumedDist());
-//        assertEquals(0, blockSectionResult.getRemainingDist());
-//
-//        blockSectionResult = node.alloc(train1, 1, null, null); // allocating out-of-bound range
-//        assertEquals(0, blockSectionResult.getConsumedDist());
-//        assertEquals(1, blockSectionResult.getRemainingDist());
-//
-//        blockSectionResult = node.free(train1, 186); // freeing all remaining range,  dist = 186 - 100 = 86
-//        assertEquals(86, blockSectionResult.getConsumedDist());
-//        assertEquals(100, blockSectionResult.getRemainingDist()); // remaining = 186 - 86 = 100
-//
-//        assertThrows(NodeAllocationException.class, () -> node.free(train1, 1)); // freeing unowned track
+    public void testIsFree() {
+        assertTrue(sut.isFree(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF));
     }
 
     @Test
-    public void testAllocFreeWithTwoTrains() throws Exception {
-//        TurnoutNode node = (TurnoutNode) LayoutUtil.getNode(10001);
-//
-//        final BlockSectionResult[] blockSectionResult2 = new BlockSectionResult[1];
-//
-//        // total length: 188
-//        node.alloc(train1, 186, 10103L, null);
-//        node.free(train1, 100);  // t1 owning [100, 186)
-//
-//        // t2 trying to allocate [0, 100), going to hang
-//        Thread thread = new Thread(() -> {
-//            try {
-//                blockSectionResult2[0] = node.alloc(train2, 100, 10101L, null);
-//            } catch (NodeAllocationException e) {
-//                e.printStackTrace();
-//            }
-//        });
-//        thread.start();
-//
-//        // t2 waiting to alloc
-//        assertTrue(thread.isAlive());
-//        assertNull(blockSectionResult2[0]);
-//
-//        node.free(train1, 85); // t1 owning [185, 186)
-//        // t2 still waiting to alloc
-//        assertTrue(thread.isAlive());
-//        assertNull(blockSectionResult2[0]);
-//
-//        // t2 will finish allocating after t1 frees the section
-//        node.free(train1, 1);
-//        while (thread.isAlive()) {
-//            Thread.sleep(10);
-//        }
-//        assertEquals(100, blockSectionResult2[0].getConsumedDist());
-//        assertEquals(0, blockSectionResult2[0].getRemainingDist());
+    public void testIsFreeWithRangeOccupiedBySameTrain() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertTrue(sut.isFree(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF));
+    }
+
+    @Test
+    public void testIsFreeWithRangeOccupiedByDifferentTrain() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertFalse(sut.isFree(train2, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF));
+    }
+
+    @Test
+    public void testIsFreeWithRangeOccupiedByDifferentTrainNonOverlappingRange() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertFalse(sut.isFree(train2, UPLINK_CLOSED_VECTOR, RANGE_SECOND_HALF));
+    }
+
+    @Test
+    public void testIsFreeWithRangeOccupiedByDifferentVector() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertFalse(sut.isFree(train1, UPLINK_THROWN_VECTOR, RANGE_FIRST_HALF));
+    }
+
+    @Test
+    public void testIsFreeWithRangeOccupiedByDifferentDirectionVector() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertFalse(sut.isFree(train1, DOWNLINK_CLOSED_VECTOR, RANGE_FIRST_HALF));
+    }
+
+    @Test
+    public void testGetOccupiedRangeEmpty() {
+        assertTrue(sut.getOccupiedRange(UPLINK_CLOSED_VECTOR, train1).isEmpty());
+    }
+
+    @Test
+    public void testGetOccupiedRange() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertEquals(RANGE_FIRST_HALF, sut.getOccupiedRange(UPLINK_CLOSED_VECTOR, train1).get());
+    }
+
+    @Test
+    public void testGetOccupiedRangeUnoccupiedTrainset() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertTrue(sut.getOccupiedRange(UPLINK_CLOSED_VECTOR, train2).isEmpty());
+    }
+
+    @Test
+    public void testGetOccupiedRangeUnoccupiedVector() {
+        sut.setOccupier(train1, UPLINK_CLOSED_VECTOR, RANGE_FIRST_HALF);
+
+        assertTrue(sut.getOccupiedRange(DOWNLINK_CLOSED_VECTOR, train1).isEmpty());
     }
 }

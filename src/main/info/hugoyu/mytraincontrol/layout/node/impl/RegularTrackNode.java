@@ -13,9 +13,9 @@ import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Future;
 
@@ -39,7 +39,8 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
      * @param id1    id of the next section (if any)
      * @param length length of the current section
      */
-    public RegularTrackNode(long id0, long id1, int length,
+
+    protected RegularTrackNode(long id0, long id1, int length,
                             boolean isUplink, boolean isBidirectional) {
         super(isBidirectional);
 
@@ -58,8 +59,8 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
     }
 
     @Override
-    public List<Connection> getConnections() {
-        return List.of(new Connection(id0, id1, length, isUplink, isBidirectional));
+    public Set<Connection> getConnections() {
+        return Set.of(new Connection(id0, id1, length, isUplink, isBidirectional));
     }
 
     @Override
@@ -75,8 +76,10 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
                 return true;
             }
             if (occupiedVector.equals(vector)) {
-                return occupiers.values().stream()
-                        .noneMatch(occupiedRange -> GeneralUtil.isOverlapping(occupiedRange, range));
+                return occupiers.entrySet().stream()
+                        .noneMatch(entry ->
+                                !entry.getKey().equals(trainset.getAddress()) &&
+                                        GeneralUtil.isOverlapping(entry.getValue(), range));
             }
             return false;
         } finally {
@@ -118,7 +121,11 @@ public class RegularTrackNode extends AbstractTrackNode implements Comparable<Re
 
     @Override
     public Optional<Range<Integer>> getOccupiedRangeImmediately(Vector vector, Trainset trainset) {
-        return Optional.ofNullable(occupiers.get(trainset.getAddress()));
+        if (occupiedVector != null && occupiedVector.equals(vector)) {
+            return Optional.ofNullable(occupiers.get(trainset.getAddress()));
+        } else {
+            return Optional.empty();
+        }
     }
 
     @Override
